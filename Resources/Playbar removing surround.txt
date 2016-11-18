@@ -1,0 +1,531 @@
+May-31 2:27:51 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Bedroom with HTSatChanMapSet =
+May-31 2:27:51 PM 	  	Sonos 	ZonePairingChanged called for Zone = Bedroom with ChannelMapSet
+May-31 2:27:51 PM 	  	Sonos 	DeviceTrigger called for Zone - Bedroom with Trigger = Sonos Player Config Change
+May-31 2:27:51 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Bedroom with ChangeType = ConfigChange and Changevalue = ReplicationState and SendDeviceTrigger = True
+May-31 2:27:51 PM 	  	Sonos 	CompareReplicationChanges for zoneplayer Bedroom detected change for ShareListUpdateID with Old = 711 and New = 720
+May-31 2:27:35 PM 	  	Sonos 	AddNewDiscoveredDevice found Zonename = Bedroom on line.
+May-31 2:27:35 PM 	  	Sonos 	HS updated in UpdateHS. HS Code = 3752
+May-31 2:27:35 PM 	  	Sonos 	DeviceTrigger called for Zone - Bedroom with Trigger = Sonos Player Stop
+May-31 2:27:35 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Bedroom with ChangeType = PlayStatusChanged and Changevalue = Stopped and SendDeviceTrigger = True
+May-31 2:27:35 PM 	  	Sonos 	DeviceTrigger called for Zone - Bedroom with Trigger = Sonos Track Change
+May-31 2:27:35 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Bedroom with ChangeType = SongChanged and Changevalue = Stopped and SendDeviceTrigger = True
+May-31 2:27:35 PM 	  	Sonos 	Bedroom TrackInfo(Source) = Unknown
+May-31 2:27:35 PM 	  	Sonos 	Bedroom TrackInfo (CurrentURI) =
+May-31 2:27:35 PM 	  	Sonos 	GetcurrentTrackInfo called for zoneplayer - Bedroom
+May-31 2:27:35 PM 	  	Sonos 	GetSoftwareVersion called for zoneplayer Bedroom with SW version = 5.4
+May-31 2:27:35 PM 	  	Sonos 	IPAddress for zoneplayer = Bedroom = 192.168.1.188
+May-31 2:27:35 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Bedroom with HTSatChanMapSet =
+May-31 2:27:35 PM 	  	Sonos 	ZonePairingChanged called for Zone = Bedroom with ChannelMapSet
+May-31 2:27:35 PM 	  	Sonos 	DeviceTrigger called for Zone - Bedroom with Trigger = Sonos Player Config Change
+May-31 2:27:35 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Bedroom with ChangeType = ConfigChange and Changevalue = ReplicationState and SendDeviceTrigger = True
+May-31 2:27:35 PM 	  	Sonos 	CompareReplicationChanges for zoneplayer Bedroom detected change for ShareListUpdateID with Old = 720 and New = 711
+May-31 2:27:34 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Office with HTSatChanMapSet =
+May-31 2:27:34 PM 	  	Sonos 	ZonePairingChanged called for Zone = Office with ChannelMapSet RINCON_000E5858C97A01400:LF,LF;RINCON_000E5859008A01400:RF,RF
+May-31 2:27:34 PM 	  	Sonos 	DevicePropertiesStateChange: Player: Office was paired and ZoneName changed to Office
+May-31 2:27:34 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Office with HTSatChanMapSet =
+May-31 2:27:34 PM 	  	Sonos 	ZonePairingChanged called for Zone = Office with ChannelMapSet RINCON_000E5858C97A01400:LF,LF;RINCON_000E5859008A01400:RF,RF
+May-31 2:27:34 PM 	  	Sonos 	DevicePropertiesStateChange: Player: Office was paired and ZoneName changed to Office
+May-31 2:27:34 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom: Var Name = DailyIndexRefreshTime Value = 02:00:00
+May-31 2:27:34 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom: Var Name = DateFormat Value = MDY
+May-31 2:27:34 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom: Var Name = TimeFormat Value = 12H
+May-31 2:27:34 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom: Var Name = AlarmListVersion Value = RINCON_000E5825227A01400:70
+May-31 2:27:34 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom: Var Name = TimeGeneration Value = 1
+May-31 2:27:34 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom: Var Name = TimeServer Value = 0.sonostime.pool.ntp.org,1.sonostime.pool.ntp.org,2.sonostime.pool.ntp.org,3.sonostime.pool.ntp.org
+May-31 2:27:34 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom: Var Name = TimeZone Value = 01e00b000102000003000202ffc4
+May-31 2:27:34 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Patio with HTSatChanMapSet =
+May-31 2:27:34 PM 	  	Sonos 	ZonePairingChanged called for Zone = Patio with ChannelMapSet
+May-31 2:27:34 PM 	  	Sonos 	ZonePairingChanged called for Zone = Master Bedroom with ChannelMapSet
+May-31 2:27:34 PM 	  	Sonos 	DeviceTrigger called for Zone - Master Bedroom with Trigger = Sonos Player Config Change
+May-31 2:27:34 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Master Bedroom with ChangeType = ConfigChange and Changevalue = ReplicationState and SendDeviceTrigger = True
+May-31 2:27:34 PM 	  	Sonos 	CompareReplicationChanges for zoneplayer Master Bedroom detected change for ShareListUpdateID with Old = 711 and New = 720
+May-31 2:27:34 PM 	  	Sonos 	GetLoudnessState called for ZonePlayer = Bedroom with values Channel=Master and DeviceStatus =Online
+May-31 2:27:34 PM 	  	Sonos 	GetMuteState called. DeviceStatus =Online
+May-31 2:27:34 PM 	  	Sonos 	UpdateBalance is setting HS Status for ZoneName - Bedroom with Value = 0 and HSRef = 3767
+May-31 2:27:34 PM 	  	Sonos 	GetVolumeLevel called for ZonePlayer = Bedroom with values Channel=RF and DeviceStatus =Online
+May-31 2:27:34 PM 	  	Sonos 	GetVolumeLevel called for ZonePlayer = Bedroom with values Channel=LF and DeviceStatus =Online
+May-31 2:27:34 PM 	  	Sonos 	GetVolumeLevel called for ZonePlayer = Bedroom with values Channel=Master and DeviceStatus =Online
+May-31 2:27:34 PM 	  	Sonos 	DeviceTrigger called for Zone - Bedroom with Trigger = Sonos Player Online
+May-31 2:27:34 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Bedroom with ChangeType = DeviceStatusChanged and Changevalue = Online and SendDeviceTrigger = True
+May-31 2:27:34 PM 	  	Sonos 	AlarmClock ControlCallback added for zoneplayer = Bedroom
+May-31 2:27:34 PM 	  	Sonos 	ContentDirectory ControlCallback added for zoneplayer = Bedroom
+May-31 2:27:34 PM 	  	Sonos 	RenderingControlCallback added for zoneplayer = Bedroom
+May-31 2:27:34 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Bedroom with HTSatChanMapSet =
+May-31 2:27:34 PM 	  	Sonos 	ZonePairingChanged called for Zone = Bedroom with ChannelMapSet
+May-31 2:27:34 PM 	  	Sonos 	DeviceTrigger called for Zone - Bedroom with Trigger = Sonos Player Config Change
+May-31 2:27:34 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Bedroom with ChangeType = ConfigChange and Changevalue = ReplicationState and SendDeviceTrigger = True
+May-31 2:27:34 PM 	  	Sonos 	CompareReplicationChanges for zoneplayer Bedroom detected change for ShareListUpdateID with Old = 720 and New = 711
+May-31 2:27:34 PM 	  	Sonos 	HS updated in TransportChanged for zonePlayer Office. HS Code = 3658 and updated DeviceValue = False
+May-31 2:27:34 PM 	  	Sonos 	Updating other linked zones. SourceZone=Office. TargetZone=RINCON_000E5859008A01400
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diGenreHSRef
+May-31 2:27:34 PM 	  	Sonos 	CurrentPlayerState Set for ZoneName = Office. Value = Playing
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diTrackDescrHSRef
+May-31 2:27:34 PM 	  	Sonos 	Checking linked zones for SourceZone=Office. MyZoneIsSourceForLinkedZone=True and TargetZones = RINCON_000E5859008A01400
+May-31 2:27:34 PM 	  	Sonos 	TransportChangeCallback for player - Office is the same from the previous event
+May-31 2:27:34 PM 	  	Sonos 	TransportChangeCallback for player - Office is not tracks and radio Radio
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diShuffleHSRef
+May-31 2:27:34 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(Next albumArtURI) = /images/Sonos/Artwork/NextCoverRINCON_000E5858C97A01400_109.jpg
+May-31 2:27:34 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(Next Album) = Second Chance (Remixes)
+May-31 2:27:34 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(Next Title) = Second Chance (Capa Remix)
+May-31 2:27:34 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(Next Artist) = Digitalism
+May-31 2:27:34 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(AlbumArtURL) = /images/Sonos/Artwork/CoverRINCON_000E5858C97A01400_107.jpg
+May-31 2:27:34 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(CurrentURI) = x-sonosapi-radio:stations%2f155411619%2f44%2fsequence?sid=17&flags=104
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diRepeatHSRef
+May-31 2:27:34 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(Album) = Hypnotica
+May-31 2:27:34 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(Radio) = Radio - Title info = Satisfaction
+May-31 2:27:34 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(Artist) = Benny Benassi
+May-31 2:27:34 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState (RadioShow/Title) =
+May-31 2:27:34 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState (Streamcontent/Title) =
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diRadiostationNameHSRef
+May-31 2:27:34 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Patio with HTSatChanMapSet =
+May-31 2:27:34 PM 	  	Sonos 	ZonePairingChanged called for Zone = Patio with ChannelMapSet
+May-31 2:27:34 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(CurrentPlayMode) = NORMAL
+May-31 2:27:34 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(NumberOfTracks) = 6
+May-31 2:27:34 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(CurrentTrackDuration) = 0:04:44
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diTrackPosHSRef
+May-31 2:27:34 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(CurrentTrack) = 3
+May-31 2:27:34 PM 	  	Sonos 	Office TrackInfo PositionInfo (% played) = 82
+May-31 2:27:34 PM 	  	Sonos 	Office TrackInfo PositionInfo (Queue Position) = 3
+May-31 2:27:34 PM 	  	Sonos 	Office TrackInfo PositionInfo (Track Duration) = 0:04:44
+May-31 2:27:34 PM 	  	Sonos 	Office TrackInfo PositionInfo (Track Position Seconds) = 233
+May-31 2:27:34 PM 	  	Sonos 	Office TrackInfo PositionInfo (Track Position) = 0:03:53
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diTrackLengthHSRef
+May-31 2:27:34 PM 	  	Sonos 	Office TrackInfo PositionInfo (albumArtURI) = http://192.168.1.253:1400/getaa?s=1&u=x-sonosprog-http:rtracks%2f3904067.mp3?sid=17&flags=8224&sn=7
+May-31 2:27:34 PM 	  	Sonos 	Office TrackInfo PositionInfo (title) = Satisfaction
+May-31 2:27:34 PM 	  	Sonos 	Office TrackInfo PositionInfo (album) = Hypnotica
+May-31 2:27:34 PM 	  	Sonos 	Office TrackInfo PositionInfo (creator) = Benny Benassi
+May-31 2:27:34 PM 	  	Sonos 	AvTransportCallback added for zoneplayer = Bedroom
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diBalanceHSRef
+May-31 2:27:34 PM 	  	Sonos 	Office TrackInfo PositionInfo (Streamcontent/Title) =
+May-31 2:27:34 PM 	  	Sonos 	Office TrackInfo(Source) = Radio
+May-31 2:27:34 PM 	  	Sonos 	Office TrackInfo () = Internet Radio x-sonosapi-radio:stations%2f155411619%2f44%2fsequence?sid=17&flags=104
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diLoudnessHSRef
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diMuteHSRef
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diVolumeHSRef
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diPlayStateHSRef
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diNextArtHSRef
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diArtHSRef
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diNextAlbumHSRef
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diAlbumHSRef
+May-31 2:27:34 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Office with HTSatChanMapSet =
+May-31 2:27:34 PM 	  	Sonos 	ZonePairingChanged called for Zone = Office with ChannelMapSet RINCON_000E5858C97A01400:LF,LF;RINCON_000E5859008A01400:RF,RF
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diNextArtistHSRef
+May-31 2:27:34 PM 	  	Sonos 	DevicePropertiesStateChange: Player: Office was paired and ZoneName changed to Office
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diArtistHSRef
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diNextTrackHSRef
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diTrackHSRef
+May-31 2:27:34 PM 	  	Sonos 	ZoneRoomIconChanged called with ZoneUDN = RINCON_000E58C174DE01400 and NewRoomIcon = bedroom
+May-31 2:27:34 PM 	  	Sonos 	ChangeWebLink called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diGenreHSRef and DevType = Genre
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diTrackDescrHSRef and DevType = Track Desc
+May-31 2:27:34 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diShuffleHSRef and DevType = Shuffle
+May-31 2:27:33 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diRepeatHSRef and DevType = Repeat
+May-31 2:27:33 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diRadiostationNameHSRef and DevType = Radiostation Name
+May-31 2:27:33 PM 	  	Sonos 	UpdateRadioStationsInfo updated RadioStation = Learned - Electronic Radio for Zone = Office
+May-31 2:27:33 PM 	  	Sonos 	CreateRadioStationDatabase called with C:\Program Files (x86)\HomeSeer HS3/html/Sonos/MusicDB/SonosRadioStationsDB.sdb and Data Source=C:\Program Files (x86)\HomeSeer HS3/html/Sonos/MusicDB/SonosRadioStationsDB.sdb for zoneplayer = Office and DeleteDB = False
+May-31 2:27:33 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diTrackPosHSRef and DevType = Track Position
+May-31 2:27:33 PM 	  	Sonos 	UpdateRadioStationsInfo called for Zone = Office with CurrentURI x-sonosapi-radio:stations%2f155411619%2f44%2fsequence?sid=17&flags=104
+May-31 2:27:33 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Bedroom2 with HTSatChanMapSet =
+May-31 2:27:33 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Bedroom2 with HTSatChanMapSet =
+May-31 2:27:33 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diTrackLengthHSRef and DevType = Track Length
+May-31 2:27:33 PM 	  	Sonos 	ZonePairingChanged called for Zone = Bedroom2 with ChannelMapSet
+May-31 2:27:33 PM 	  	Sonos 	ZonePairingChanged called for Zone = Bedroom2 with ChannelMapSet
+May-31 2:27:33 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diBalanceHSRef and DevType = Balance
+May-31 2:27:33 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Living Room with HTSatChanMapSet = RINCON_B8E9377C7E2601400:LF,RF;RINCON_000E5898164001400:SW
+May-31 2:27:33 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diLoudnessHSRef and DevType = Loudness
+May-31 2:27:33 PM 	  	Sonos 	ZonePairingChanged called for Zone = Living Room with ChannelMapSet
+May-31 2:27:33 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diMuteHSRef and DevType = Mute
+May-31 2:27:33 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diVolumeHSRef and DevType = Volume
+May-31 2:27:33 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diPlayStateHSRef and DevType = State
+May-31 2:27:33 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diNextArtHSRef and DevType = Next Art
+May-31 2:27:33 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diArtHSRef and DevType = Art
+May-31 2:27:33 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diNextAlbumHSRef and DevType = Next Album
+May-31 2:27:33 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diAlbumHSRef and DevType = Album
+May-31 2:27:33 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diNextArtistHSRef and DevType = Next Artist
+May-31 2:27:33 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diArtistHSRef and DevType = Artist
+May-31 2:27:33 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diNextTrackHSRef and DevType = Next Track
+May-31 2:27:33 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174DE01400 and NewZoneName = Bedroom and infoIndex = diTrackHSRef and DevType = Track
+May-31 2:27:33 PM 	  	Sonos Warning 	WARNING ZoneNamesHaveChanged called and changed Living Room to Bedroom
+May-31 2:27:33 PM 	  	Sonos 	ZoneNamesHaveChanged was called for Living Room but no ChannelMapSet info found
+May-31 2:27:33 PM 	  	Sonos 	ZoneNameChanged called with OldZoneName = Living Room and NewZoneName = Bedroom
+May-31 2:27:33 PM 	  	Sonos 	DeviceTrigger called for Zone - Living Room with Trigger = Sonos Player Config Change
+May-31 2:27:33 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Living Room with ChangeType = ConfigChange and Changevalue = ZoneName and SendDeviceTrigger = True
+May-31 2:27:33 PM 	  	Sonos 	DevicePropertiesStateChange: Zone Name Changed from = Living Room to Bedroom
+May-31 2:27:33 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Kitchen with HTSatChanMapSet =
+May-31 2:27:33 PM 	  	Sonos 	ZonePairingChanged called for Zone = Kitchen with ChannelMapSet
+May-31 2:27:33 PM 	  	Sonos 	Office TrackInfo (title) = Electronic Radio
+May-31 2:27:33 PM 	  	Sonos 	Office TrackInfo (MediaInfo/Title) = Electronic Radio
+May-31 2:27:33 PM 	  	Sonos 	Office TrackInfo (CurrentURI) = x-sonosapi-radio:stations%2f155411619%2f44%2fsequence?sid=17&flags=104
+May-31 2:27:33 PM 	  	Sonos 	DevicePropertiesCallback added for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Bedroom with HTSatChanMapSet =
+May-31 2:27:33 PM 	  	Sonos 	ZonePairingChanged called for Zone = Bedroom with ChannelMapSet
+May-31 2:27:33 PM 	  	Sonos 	service = urn:tencent-com:serviceId:QPlay found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:upnp-org:serviceId:GroupManagement found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:upnp-org:serviceId:ZoneGroupTopology found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:upnp-org:serviceId:SystemProperties found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:tencent-com:serviceId:QPlay found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:upnp-org:serviceId:GroupManagement found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:upnp-org:serviceId:DeviceProperties found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:upnp-org:serviceId:ZoneGroupTopology found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:upnp-org:serviceId:MusicServices found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:upnp-org:serviceId:SystemProperties found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:upnp-org:serviceId:AlarmClock found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:upnp-org:serviceId:DeviceProperties found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:upnp-org:serviceId:MusicServices found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:upnp-org:serviceId:AlarmClock found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:upnp-org:serviceId:GroupManagement found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:upnp-org:serviceId:ZoneGroupTopology found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:upnp-org:serviceId:SystemProperties found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:upnp-org:serviceId:DeviceProperties found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	service = urn:upnp-org:serviceId:AlarmClock found for zoneplayer = Living Room
+May-31 2:27:33 PM 	  	Sonos 	DirectConnect for zoneplayer = Living Room added Image = /images/Sonos/Artwork/PlayerIcon_S1.png for HSRef = 3752
+May-31 2:27:33 PM 	  	Sonos 	DirectConnect for zoneplayer = Living Room found Icon already stored at /images/Sonos/Artwork/PlayerIcon_S1.png
+May-31 2:27:33 PM 	  	Sonos 	DirectConnect for zoneplayer = Living Room found IconURL = http://192.168.1.188:1400/img/icon-S1.png
+May-31 2:27:33 PM 	  	Sonos 	DirectConnect called for Zone Living Room with device name = uuid:RINCON_000E58C174DE01400 and Model = S1
+May-31 2:27:33 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Bedroom2 with HTSatChanMapSet =
+May-31 2:27:33 PM 	  	Sonos 	AddNewDiscoveredDevice for zoneplayer = Bedroom found IconURL = http://192.168.1.188:1400/img/icon-S1.png
+May-31 2:27:33 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Bedroom2 with HTSatChanMapSet =
+May-31 2:27:33 PM 	  	Sonos 	ZonePairingChanged called for Zone = Bedroom2 with ChannelMapSet
+May-31 2:27:33 PM 	  	Sonos 	ZonePairingChanged called for Zone = Bedroom2 with ChannelMapSet
+May-31 2:27:33 PM 	  	Sonos 	GetcurrentTrackInfo called for zoneplayer - Office
+May-31 2:27:33 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(TransportState) = PLAYING and previous state was = Playing
+May-31 2:27:33 PM 	  	Sonos 	TransportChangeCallback for player - Office VarName = LastChange
+May-31 2:27:33 PM 	  	Sonos 	AddNewDiscoveredDevice found Zone Name = Bedroom with UDN = uuid:RINCON_000E58C174DE01400 Friendly Name = 192.168.1.188 - Sonos PLAY:1 and Icon = bedroom
+May-31 2:27:33 PM 	  	Sonos 	AddNewDiscoveredDevice dequeued UDN = RINCON_000E58C174DE01400
+May-31 2:27:33 PM 	  	Sonos 	AddNewDiscoveredDevice is processing Notification queue with # elements = 2
+May-31 2:27:33 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Living Room with HTSatChanMapSet = RINCON_B8E9377C7E2601400:LF,RF;RINCON_000E5898164001400:SW
+May-31 2:27:33 PM 	  	Sonos 	ZonePairingChanged called for Zone = Living Room with ChannelMapSet
+May-31 2:27:32 PM 	  	Sonos 	AddNewDiscoveredDevice found Zonename = Bedroom2 on line.
+May-31 2:27:32 PM 	  	Sonos 	HS updated in UpdateHS. HS Code = 3754
+May-31 2:27:32 PM 	  	Sonos 	DeviceTrigger called for Zone - Bedroom2 with Trigger = Sonos Player Stop
+May-31 2:27:32 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Bedroom2 with ChangeType = PlayStatusChanged and Changevalue = Stopped and SendDeviceTrigger = True
+May-31 2:27:32 PM 	  	Sonos 	DeviceTrigger called for Zone - Bedroom2 with Trigger = Sonos Track Change
+May-31 2:27:32 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Bedroom2 with ChangeType = SongChanged and Changevalue = Stopped and SendDeviceTrigger = True
+May-31 2:27:32 PM 	  	Sonos 	Bedroom2 TrackInfo(Source) = Unknown
+May-31 2:27:32 PM 	  	Sonos Warning 	NewDeviceFound called with UDN = RINCON_000E58C174DE01400
+May-31 2:27:32 PM 	  	Sonos 	Bedroom2 TrackInfo (CurrentURI) =
+May-31 2:27:32 PM 	  	Sonos 	GetcurrentTrackInfo called for zoneplayer - Bedroom2
+May-31 2:27:32 PM 	  	Sonos 	GetSoftwareVersion called for zoneplayer Bedroom2 with SW version = 5.4
+May-31 2:27:32 PM 	  	Sonos Warning 	NewDeviceFound called with UDN = RINCON_000E58C174DE01400
+May-31 2:27:32 PM 	  	Sonos 	IPAddress for zoneplayer = Bedroom2 = 192.168.1.208
+May-31 2:27:32 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Kitchen with HTSatChanMapSet =
+May-31 2:27:32 PM 	  	Sonos 	ZonePairingChanged called for Zone = Kitchen with ChannelMapSet
+May-31 2:27:31 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Office with HTSatChanMapSet =
+May-31 2:27:31 PM 	  	Sonos 	ZonePairingChanged called for Zone = Office with ChannelMapSet RINCON_000E5858C97A01400:LF,LF;RINCON_000E5859008A01400:RF,RF
+May-31 2:27:31 PM 	  	Sonos 	DevicePropertiesStateChange: Player: Office was paired and ZoneName changed to Office
+May-31 2:27:31 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Bedroom with HTSatChanMapSet =
+May-31 2:27:31 PM 	  	Sonos 	ZonePairingChanged called for Zone = Bedroom with ChannelMapSet
+May-31 2:27:31 PM 	  	Sonos 	GetLoudnessState called for ZonePlayer = Bedroom2 with values Channel=Master and DeviceStatus =Online
+May-31 2:27:31 PM 	  	Sonos 	HS updated in TransportChanged for zonePlayer Office. HS Code = 3658 and updated DeviceValue = False
+May-31 2:27:31 PM 	  	Sonos 	Updating other linked zones. SourceZone=Office. TargetZone=RINCON_000E5859008A01400
+May-31 2:27:31 PM 	  	Sonos 	CurrentPlayerState Set for ZoneName = Office. Value = Playing
+May-31 2:27:31 PM 	  	Sonos 	Checking linked zones for SourceZone=Office. MyZoneIsSourceForLinkedZone=True and TargetZones = RINCON_000E5859008A01400
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Office is the same from the previous event
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Office is not tracks and radio Radio
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(Next albumArtURI) = /images/Sonos/Artwork/NextCoverRINCON_000E5858C97A01400_109.jpg
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(Next Album) = Second Chance (Remixes)
+May-31 2:27:31 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Bedroom2 with HTSatChanMapSet =
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(Next Title) = Second Chance (Capa Remix)
+May-31 2:27:31 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Bedroom2 with HTSatChanMapSet =
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(Next Artist) = Digitalism
+May-31 2:27:31 PM 	  	Sonos 	ZonePairingChanged called for Zone = Bedroom2 with ChannelMapSet
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(AlbumArtURL) = /images/Sonos/Artwork/CoverRINCON_000E5858C97A01400_107.jpg
+May-31 2:27:31 PM 	  	Sonos 	ZonePairingChanged called for Zone = Bedroom2 with ChannelMapSet
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(CurrentURI) = x-sonosapi-radio:stations%2f155411619%2f44%2fsequence?sid=17&flags=104
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(Album) = Hypnotica
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(Radio) = Radio - Title info = Satisfaction
+May-31 2:27:31 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom2: Var Name = DailyIndexRefreshTime Value = 02:00:00
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(Artist) = Benny Benassi
+May-31 2:27:31 PM 	  	Sonos 	DeviceTrigger called for Zone - Bedroom2 with Trigger = Sonos Player Config Change
+May-31 2:27:31 PM 	  	Sonos 	GetMuteState called. DeviceStatus =Online
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState (RadioShow/Title) =
+May-31 2:27:31 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Bedroom2 with ChangeType = ConfigChange and Changevalue = ReplicationState and SendDeviceTrigger = True
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState (Streamcontent/Title) =
+May-31 2:27:31 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom2: Var Name = DailyIndexRefreshTime Value = 02:00:00
+May-31 2:27:31 PM 	  	Sonos 	HS updated in TransportChanged for zonePlayer Bedroom2. HS Code = 3754 and updated DeviceValue = False
+May-31 2:27:31 PM 	  	Sonos 	CompareReplicationChanges for zoneplayer Bedroom2 detected change for ServiceListVersion? with Old = 2075 and New = 2076
+May-31 2:27:31 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom2: Var Name = DateFormat Value = MDY
+May-31 2:27:31 PM 	  	Sonos 	Checking linked zones for SourceZone=Bedroom2. MyZoneIsSourceForLinkedZone=False and TargetZones =
+May-31 2:27:31 PM 	  	Sonos 	UpdateBalance is setting HS Status for ZoneName - Bedroom2 with Value = 0 and HSRef = 3803
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(CurrentPlayMode) = NORMAL
+May-31 2:27:31 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom2: Var Name = DateFormat Value = MDY
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(NumberOfTracks) = 6
+May-31 2:27:31 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom2: Var Name = TimeFormat Value = 12H
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(CurrentTrackDuration) = 0:04:44
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Bedroom2 is not tracks and radio Unknown
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(CurrentTrack) = 3
+May-31 2:27:31 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom2: Var Name = TimeFormat Value = 12H
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Bedroom2 TransportState(AlbumArtURL) = /images/Sonos/NoArt.png
+May-31 2:27:31 PM 	  	Sonos 	Office TrackInfo PositionInfo (% played) = 81
+May-31 2:27:31 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom2: Var Name = AlarmListVersion Value = RINCON_000E5825227A01400:70
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Bedroom2 TransportState(CurrentURI) =
+May-31 2:27:31 PM 	  	Sonos 	Office TrackInfo PositionInfo (Queue Position) = 3
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Bedroom2 TransportState(Album) =
+May-31 2:27:31 PM 	  	Sonos 	Office TrackInfo PositionInfo (Track Duration) = 0:04:44
+May-31 2:27:31 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom2: Var Name = AlarmListVersion Value = RINCON_000E5825227A01400:70
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Bedroom2 TransportState(Radio) = Unknown - Title info =
+May-31 2:27:31 PM 	  	Sonos 	Office TrackInfo PositionInfo (Track Position Seconds) = 230
+May-31 2:27:31 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom2: Var Name = TimeGeneration Value = 1
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Bedroom2 TransportState(Artist) =
+May-31 2:27:31 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom2: Var Name = TimeGeneration Value = 1
+May-31 2:27:31 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom2: Var Name = TimeServer Value = 0.sonostime.pool.ntp.org,1.sonostime.pool.ntp.org,2.sonostime.pool.ntp.org,3.sonostime.pool.ntp.org
+May-31 2:27:31 PM 	  	Sonos 	Office TrackInfo PositionInfo (Track Position) = 0:03:50
+May-31 2:27:31 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom2: Var Name = TimeServer Value = 0.sonostime.pool.ntp.org,1.sonostime.pool.ntp.org,2.sonostime.pool.ntp.org,3.sonostime.pool.ntp.org
+May-31 2:27:31 PM 	  	Sonos 	Office TrackInfo PositionInfo (albumArtURI) = http://192.168.1.253:1400/getaa?s=1&u=x-sonosprog-http:rtracks%2f3904067.mp3?sid=17&flags=8224&sn=7
+May-31 2:27:31 PM 	  	Sonos 	Office TrackInfo PositionInfo (title) = Satisfaction
+May-31 2:27:31 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom2: Var Name = TimeZone Value = 01e00b000102000003000202ffc4
+May-31 2:27:31 PM 	  	Sonos 	Office TrackInfo PositionInfo (album) = Hypnotica
+May-31 2:27:31 PM 	  	Sonos 	AlarmClock callback ZonePlayer Bedroom2: Var Name = TimeZone Value = 01e00b000102000003000202ffc4
+May-31 2:27:31 PM 	  	Sonos 	Office TrackInfo PositionInfo (creator) = Benny Benassi
+May-31 2:27:31 PM 	  	Sonos 	Office TrackInfo PositionInfo (Streamcontent/Title) =
+May-31 2:27:31 PM 	  	Sonos 	Office TrackInfo(Source) = Radio
+May-31 2:27:31 PM 	  	Sonos 	Office TrackInfo () = Internet Radio x-sonosapi-radio:stations%2f155411619%2f44%2fsequence?sid=17&flags=104
+May-31 2:27:31 PM 	  	Sonos 	GetVolumeLevel called for ZonePlayer = Bedroom2 with values Channel=RF and DeviceStatus =Online
+May-31 2:27:31 PM 	  	Sonos 	Bedroom2 : Rendering (Loudness) = True
+May-31 2:27:31 PM 	  	Sonos 	Bedroom2 : Rendering (Mute Master Volume) = False
+May-31 2:27:31 PM 	  	Sonos 	Bedroom2 : Rendering (RF Volume) = 100
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Bedroom2 TransportState(CurrentPlayMode) = NORMAL
+May-31 2:27:31 PM 	  	Sonos 	Bedroom2 : Rendering (LF Volume) = 100
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Bedroom2 TransportState(NumberOfTracks) = 0
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Bedroom2 TransportState(CurrentTrackDuration) = 0:00:00
+May-31 2:27:31 PM 	  	Sonos 	Bedroom2 : Rendering (Master Volume) = 25
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Bedroom2 TransportState(CurrentTrack) = 0
+May-31 2:27:31 PM 	  	Sonos 	Bedroom2 TrackInfo(Source) = Unknown
+May-31 2:27:31 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Bedroom2: Var Name = RecentlyPlayedUpdateID Value = RINCON_000E5859008A01400,161
+May-31 2:27:31 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Bedroom2: Var Name = ShareListUpdateID Value = RINCON_B8E9377C7E2601400,720
+May-31 2:27:31 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Bedroom2: Var Name = SavedQueuesUpdateID Value = RINCON_B8E9377C7E2601400,32967
+May-31 2:27:31 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Bedroom2: Var Name = RadioLocationUpdateID Value = RINCON_000E58FDE7DA01400,314
+May-31 2:27:31 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Bedroom2: Var Name = RadioFavoritesUpdateID Value = RINCON_000E5833F3CC01400,29
+May-31 2:27:31 PM 	  	Sonos 	UpdateRadioStationsInfo updated RadioStation = Learned - Electronic Radio for Zone = Office
+May-31 2:27:31 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Bedroom2: Var Name = FavoritePresetsUpdateID Value = RINCON_000E5833F3CC01400,29
+May-31 2:27:31 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Bedroom2: Var Name = FavoritesUpdateID Value = RINCON_000E5833F3CC01400,29
+May-31 2:27:31 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Bedroom2: Var Name = ShareIndexLastError Value =
+May-31 2:27:31 PM 	  	Sonos 	CreateRadioStationDatabase called with C:\Program Files (x86)\HomeSeer HS3/html/Sonos/MusicDB/SonosRadioStationsDB.sdb and Data Source=C:\Program Files (x86)\HomeSeer HS3/html/Sonos/MusicDB/SonosRadioStationsDB.sdb for zoneplayer = Office and DeleteDB = False
+May-31 2:27:31 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Bedroom2: Var Name = ShareIndexInProgress Value = 0
+May-31 2:27:31 PM 	  	Sonos 	UpdateRadioStationsInfo called for Zone = Office with CurrentURI x-sonosapi-radio:stations%2f155411619%2f44%2fsequence?sid=17&flags=104
+May-31 2:27:31 PM 	  	Sonos 	GetVolumeLevel called for ZonePlayer = Bedroom2 with values Channel=LF and DeviceStatus =Online
+May-31 2:27:31 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Bedroom2: Var Name = ContainerUpdateIDs Value = S:,1
+May-31 2:27:31 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Bedroom2: Var Name = SystemUpdateID Value = 2
+May-31 2:27:31 PM 	  	Sonos 	Bedroom2 TrackInfo (CurrentURI) =
+May-31 2:27:31 PM 	  	Sonos 	GetVolumeLevel called for ZonePlayer = Bedroom2 with values Channel=Master and DeviceStatus =Online
+May-31 2:27:31 PM 	  	Sonos 	AlarmClock ControlCallback added for zoneplayer = Bedroom2
+May-31 2:27:31 PM 	  	Sonos 	Office TrackInfo (title) = Electronic Radio
+May-31 2:27:31 PM 	  	Sonos 	Office TrackInfo (MediaInfo/Title) = Electronic Radio
+May-31 2:27:31 PM 	  	Sonos 	Office TrackInfo (CurrentURI) = x-sonosapi-radio:stations%2f155411619%2f44%2fsequence?sid=17&flags=104
+May-31 2:27:31 PM 	  	Sonos 	GetcurrentTrackInfo called for zoneplayer - Bedroom2
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Bedroom2 TransportState(TransportState) = STOPPED and previous state was = Stopped
+May-31 2:27:31 PM 	  	Sonos 	TransportChangeCallback for player - Bedroom2 VarName = LastChange
+May-31 2:27:30 PM 	  	Sonos 	ContentDirectory ControlCallback added for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Bedroom2 with HTSatChanMapSet =
+May-31 2:27:30 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Bedroom2 with HTSatChanMapSet =
+May-31 2:27:30 PM 	  	Sonos 	ZonePairingChanged called for Zone = Bedroom2 with ChannelMapSet
+May-31 2:27:30 PM 	  	Sonos 	ZonePairingChanged called for Zone = Bedroom2 with ChannelMapSet
+May-31 2:27:30 PM 	  	Sonos 	GetcurrentTrackInfo called for zoneplayer - Office
+May-31 2:27:30 PM 	  	Sonos 	TransportChangeCallback for player - Office TransportState(TransportState) = PLAYING and previous state was = Playing
+May-31 2:27:30 PM 	  	Sonos 	TransportChangeCallback for player - Office VarName = LastChange
+May-31 2:27:30 PM 	  	Sonos 	RenderingControlCallback added for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	AvTransportCallback added for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	DevicePropertiesCallback added for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:tencent-com:serviceId:QPlay found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:upnp-org:serviceId:GroupManagement found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:upnp-org:serviceId:ZoneGroupTopology found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:tencent-com:serviceId:QPlay found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:upnp-org:serviceId:GroupManagement found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:upnp-org:serviceId:ZoneGroupTopology found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:upnp-org:serviceId:SystemProperties found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:upnp-org:serviceId:DeviceProperties found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:upnp-org:serviceId:MusicServices found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:upnp-org:serviceId:AlarmClock found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:upnp-org:serviceId:SystemProperties found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:upnp-org:serviceId:DeviceProperties found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:upnp-org:serviceId:MusicServices found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:upnp-org:serviceId:AlarmClock found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:upnp-org:serviceId:GroupManagement found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:upnp-org:serviceId:ZoneGroupTopology found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:upnp-org:serviceId:SystemProperties found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:upnp-org:serviceId:DeviceProperties found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	service = urn:upnp-org:serviceId:AlarmClock found for zoneplayer = Bedroom2
+May-31 2:27:30 PM 	  	Sonos 	DirectConnect for zoneplayer = Bedroom2 added Image = /images/Sonos/Artwork/PlayerIcon_S1.png for HSRef = 3754
+May-31 2:27:30 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Bedroom2: Var Name = ShareListUpdateID Value = RINCON_B8E9377C7E2601400,720
+May-31 2:27:30 PM 	  	Sonos 	DirectConnect for zoneplayer = Bedroom2 found Icon already stored at /images/Sonos/Artwork/PlayerIcon_S1.png
+May-31 2:27:30 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Bedroom2: Var Name = ShareIndexInProgress Value = 0
+May-31 2:27:30 PM 	  	Sonos 	DirectConnect for zoneplayer = Bedroom2 found IconURL = http://192.168.1.208:1400/img/icon-S1.png
+May-31 2:27:30 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Bedroom2: Var Name = ContainerUpdateIDs Value = S:,1
+May-31 2:27:30 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Bedroom2: Var Name = SystemUpdateID Value = 2
+May-31 2:27:30 PM 	  	Sonos 	DirectConnect called for Zone Bedroom2 with device name = uuid:RINCON_000E58C174F201400 and Model = S1
+May-31 2:27:30 PM 	  	Sonos 	AddNewDiscoveredDevice for zoneplayer = Bedroom2 found IconURL = http://192.168.1.208:1400/img/icon-S1.png
+May-31 2:27:30 PM 	  	Sonos 	AddNewDiscoveredDevice found Zone Name = Bedroom2 with UDN = uuid:RINCON_000E58C174F201400 Friendly Name = 192.168.1.208 - Sonos PLAY:1 and Icon = bedroom
+May-31 2:27:30 PM 	  	Sonos 	AddNewDiscoveredDevice dequeued UDN = RINCON_000E58C174F201400
+May-31 2:27:30 PM 	  	Sonos 	AddNewDiscoveredDevice is processing Notification queue with # elements = 1
+May-31 2:27:29 PM 	  	Sonos Warning 	NewDeviceFound called with UDN = RINCON_000E58C174F201400
+May-31 2:27:28 PM 	  	Sonos 	AddNewDiscoveredDevice found Zonename = Bedroom2 on line.
+May-31 2:27:28 PM 	  	Sonos 	HS updated in UpdateHS. HS Code = 3754
+May-31 2:27:28 PM 	  	Sonos 	DeviceTrigger called for Zone - Bedroom2 with Trigger = Sonos Player Stop
+May-31 2:27:28 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Bedroom2 with ChangeType = PlayStatusChanged and Changevalue = Stopped and SendDeviceTrigger = True
+May-31 2:27:28 PM 	  	Sonos 	DeviceTrigger called for Zone - Bedroom2 with Trigger = Sonos Track Change
+May-31 2:27:28 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Bedroom2 with ChangeType = SongChanged and Changevalue = Stopped and SendDeviceTrigger = True
+May-31 2:27:28 PM 	  	Sonos 	Bedroom2 TrackInfo(Source) = Unknown
+May-31 2:27:28 PM 	  	Sonos 	Bedroom2 TrackInfo (CurrentURI) =
+May-31 2:27:27 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Bedroom2 with HTSatChanMapSet =
+May-31 2:27:27 PM 	  	Sonos 	ZonePairingChanged called for Zone = Bedroom2 with ChannelMapSet
+May-31 2:27:27 PM 	  	Sonos 	DeviceTrigger called for Zone - Bedroom2 with Trigger = Sonos Player Config Change
+May-31 2:27:27 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Bedroom2 with ChangeType = ConfigChange and Changevalue = ReplicationState and SendDeviceTrigger = True
+May-31 2:27:27 PM 	  	Sonos 	CompareReplicationChanges for zoneplayer Bedroom2 detected change for ShareListUpdateID with Old = 711 and New = 720
+May-31 2:27:25 PM 	  	Sonos 	GetcurrentTrackInfo called for zoneplayer - Bedroom2
+May-31 2:27:21 PM 	  	Sonos 	GetSoftwareVersion called for zoneplayer Bedroom2 with SW version = 5.4
+May-31 2:27:21 PM 	  	Sonos Warning 	ZonePlayer Living Room has been disconnected from the network in myDeviceFinderCallBack_DeviceLost.
+May-31 2:27:21 PM 	  	Sonos 	IPAddress for zoneplayer = Bedroom2 = 192.168.1.208
+May-31 2:27:20 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Bedroom2 with HTSatChanMapSet =
+May-31 2:27:20 PM 	  	Sonos 	ZonePairingChanged called for Zone = Bedroom2 with ChannelMapSet
+May-31 2:27:20 PM 	  	Sonos 	DeviceTrigger called for Zone - Bedroom2 with Trigger = Sonos Player Config Change
+May-31 2:27:20 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Bedroom2 with ChangeType = ConfigChange and Changevalue = ReplicationState and SendDeviceTrigger = True
+May-31 2:27:20 PM 	  	Sonos 	CompareReplicationChanges for zoneplayer Bedroom2 detected change for ShareListUpdateID with Old = 720 and New = 711
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diGenreHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diTrackDescrHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diShuffleHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diRepeatHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diRadiostationNameHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diTrackPosHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diTrackLengthHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diBalanceHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diLoudnessHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diMuteHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diVolumeHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diPlayStateHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diNextArtHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diArtHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diNextAlbumHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diAlbumHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diNextArtistHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diArtistHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diNextTrackHSRef
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileRoomIconChange called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = /images/Sonos/bedroom.png and infoIndex = diTrackHSRef
+May-31 2:27:20 PM 	  	Sonos 	ZoneRoomIconChanged called with ZoneUDN = RINCON_000E58C174F201400 and NewRoomIcon = bedroom
+May-31 2:27:20 PM 	  	Sonos 	ChangeWebLink called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diGenreHSRef and DevType = Genre
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diTrackDescrHSRef and DevType = Track Desc
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diShuffleHSRef and DevType = Shuffle
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diRepeatHSRef and DevType = Repeat
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diRadiostationNameHSRef and DevType = Radiostation Name
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diTrackPosHSRef and DevType = Track Position
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diTrackLengthHSRef and DevType = Track Length
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diBalanceHSRef and DevType = Balance
+May-31 2:27:20 PM 	  	Sonos 	HS updated in TransportChanged for zonePlayer Living Room. HS Code = 3754 and updated DeviceValue = False
+May-31 2:27:20 PM 	  	Sonos 	Checking linked zones for SourceZone=Living Room. MyZoneIsSourceForLinkedZone=False and TargetZones =
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diLoudnessHSRef and DevType = Loudness
+May-31 2:27:20 PM 	  	Sonos 	TransportChangeCallback for player - Living Room is not tracks and radio Unknown
+May-31 2:27:20 PM 	  	Sonos 	TransportChangeCallback for player - Living Room TransportState(AlbumArtURL) = /images/Sonos/NoArt.png
+May-31 2:27:20 PM 	  	Sonos 	TransportChangeCallback for player - Living Room TransportState(CurrentURI) =
+May-31 2:27:20 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Living Room: Var Name = RecentlyPlayedUpdateID Value = RINCON_000E5859008A01400,161
+May-31 2:27:20 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Living Room: Var Name = ShareListUpdateID Value = RINCON_000E58C174F201400,711
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diMuteHSRef and DevType = Mute
+May-31 2:27:20 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Living Room: Var Name = SavedQueuesUpdateID Value = RINCON_B8E9377C7E2601400,32967
+May-31 2:27:20 PM 	  	Sonos 	TransportChangeCallback for player - Living Room TransportState(Album) =
+May-31 2:27:20 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Living Room: Var Name = RadioLocationUpdateID Value = RINCON_000E58FDE7DA01400,314
+May-31 2:27:20 PM 	  	Sonos 	TransportChangeCallback for player - Living Room TransportState(Radio) = Unknown - Title info =
+May-31 2:27:20 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Living Room: Var Name = RadioFavoritesUpdateID Value = RINCON_000E5833F3CC01400,29
+May-31 2:27:20 PM 	  	Sonos 	TransportChangeCallback for player - Living Room TransportState(Artist) =
+May-31 2:27:20 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Living Room: Var Name = FavoritePresetsUpdateID Value = RINCON_000E5833F3CC01400,29
+May-31 2:27:20 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Living Room: Var Name = FavoritesUpdateID Value = RINCON_000E5833F3CC01400,29
+May-31 2:27:20 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Living Room: Var Name = ShareIndexLastError Value =
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diVolumeHSRef and DevType = Volume
+May-31 2:27:20 PM 	  	Sonos 	AlarmClock callback ZonePlayer Living Room: Var Name = DailyIndexRefreshTime Value = 02:00:00
+May-31 2:27:20 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Living Room: Var Name = ShareIndexInProgress Value = 1
+May-31 2:27:20 PM 	  	Sonos 	AlarmClock callback ZonePlayer Living Room: Var Name = DateFormat Value = MDY
+May-31 2:27:20 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Living Room: Var Name = ContainerUpdateIDs Value =
+May-31 2:27:20 PM 	  	Sonos 	AlarmClock callback ZonePlayer Living Room: Var Name = TimeFormat Value = 12H
+May-31 2:27:20 PM 	  	Sonos 	ContentDirectoryStateChange for ZonePlayer Living Room: Var Name = SystemUpdateID Value = 1
+May-31 2:27:20 PM 	  	Sonos 	AlarmClock callback ZonePlayer Living Room: Var Name = AlarmListVersion Value = RINCON_000E5825227A01400:70
+May-31 2:27:20 PM 	  	Sonos 	AlarmClock callback ZonePlayer Living Room: Var Name = TimeGeneration Value = 1
+May-31 2:27:20 PM 	  	Sonos 	AlarmClock callback ZonePlayer Living Room: Var Name = TimeServer Value = 0.sonostime.pool.ntp.org,1.sonostime.pool.ntp.org,2.sonostime.pool.ntp.org,3.sonostime.pool.ntp.org
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diPlayStateHSRef and DevType = State
+May-31 2:27:20 PM 	  	Sonos 	AlarmClock callback ZonePlayer Living Room: Var Name = TimeZone Value = 01e00b000102000003000202ffc4
+May-31 2:27:20 PM 	  	Sonos 	TransportChangeCallback for player - Living Room TransportState(CurrentPlayMode) = NORMAL
+May-31 2:27:20 PM 	  	Sonos 	TransportChangeCallback for player - Living Room TransportState(NumberOfTracks) = 0
+May-31 2:27:20 PM 	  	Sonos 	TransportChangeCallback for player - Living Room TransportState(CurrentTrackDuration) = 0:00:00
+May-31 2:27:20 PM 	  	Sonos 	TransportChangeCallback for player - Living Room TransportState(CurrentTrack) = 0
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diNextArtHSRef and DevType = Next Art
+May-31 2:27:20 PM 	  	Sonos 	Living Room TrackInfo(Source) = Unknown
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diArtHSRef and DevType = Art
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diNextAlbumHSRef and DevType = Next Album
+May-31 2:27:20 PM 	  	Sonos 	Living Room TrackInfo (CurrentURI) =
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diAlbumHSRef and DevType = Album
+May-31 2:27:20 PM 	  	Sonos 	Living Room : Rendering (Loudness) = True
+May-31 2:27:20 PM 	  	Sonos 	Living Room : Rendering (Mute Master Volume) = False
+May-31 2:27:20 PM 	  	Sonos 	Living Room : Rendering (RF Volume) = 100
+May-31 2:27:20 PM 	  	Sonos 	GetcurrentTrackInfo called for zoneplayer - Living Room
+May-31 2:27:20 PM 	  	Sonos 	Living Room : Rendering (LF Volume) = 100
+May-31 2:27:20 PM 	  	Sonos 	TransportChangeCallback for player - Living Room TransportState(TransportState) = STOPPED and previous state was = Stopped
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diNextArtistHSRef and DevType = Next Artist
+May-31 2:27:20 PM 	  	Sonos 	TransportChangeCallback for player - Living Room VarName = LastChange
+May-31 2:27:20 PM 	  	Sonos 	Living Room : Rendering (Master Volume) = 25
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diArtistHSRef and DevType = Artist
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diNextTrackHSRef and DevType = Next Track
+May-31 2:27:20 PM 	  	Sonos 	UpdateIniFileNameChange called with ZoneUDN = RINCON_000E58C174F201400 and NewZoneName = Bedroom2 and infoIndex = diTrackHSRef and DevType = Track
+May-31 2:27:20 PM 	  	Sonos 	GetLoudnessState called for ZonePlayer = Living Room with values Channel=Master and DeviceStatus =Online
+May-31 2:27:20 PM 	  	Sonos Warning 	WARNING ZoneNamesHaveChanged called and changed Living Room to Bedroom2
+May-31 2:27:20 PM 	  	Sonos 	ZoneNamesHaveChanged was called for Living Room but no ChannelMapSet info found
+May-31 2:27:20 PM 	  	Sonos 	ZoneNameChanged called with OldZoneName = Living Room and NewZoneName = Bedroom2
+May-31 2:27:20 PM 	  	Sonos 	DeviceTrigger called for Zone - Living Room with Trigger = Sonos Player Config Change
+May-31 2:27:20 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Living Room with ChangeType = ConfigChange and Changevalue = ZoneName and SendDeviceTrigger = True
+May-31 2:27:20 PM 	  	Sonos 	DevicePropertiesStateChange: Zone Name Changed from = Living Room to Bedroom2
+May-31 2:27:20 PM 	  	Sonos 	GetMuteState called. DeviceStatus =Online
+May-31 2:27:20 PM 	  	Sonos 	UpdateBalance is setting HS Status for ZoneName - Living Room with Value = 0 and HSRef = 3803
+May-31 2:27:20 PM 	  	Sonos 	GetVolumeLevel called for ZonePlayer = Living Room with values Channel=RF and DeviceStatus =Online
+May-31 2:27:20 PM 	  	Sonos 	GetVolumeLevel called for ZonePlayer = Living Room with values Channel=LF and DeviceStatus =Online
+May-31 2:27:20 PM 	  	Sonos 	GetVolumeLevel called for ZonePlayer = Living Room with values Channel=Master and DeviceStatus =Online
+May-31 2:27:20 PM 	  	Sonos 	DeviceTrigger called for Zone - Living Room with Trigger = Sonos Player Online
+May-31 2:27:20 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Living Room with ChangeType = DeviceStatusChanged and Changevalue = Online and SendDeviceTrigger = True
+May-31 2:27:20 PM 	  	Sonos 	AlarmClock ControlCallback added for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	ContentDirectory ControlCallback added for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	RenderingControlCallback added for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	AvTransportCallback added for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	DevicePropertiesCallback added for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	service = urn:tencent-com:serviceId:QPlay found for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	service = urn:upnp-org:serviceId:GroupManagement found for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	service = urn:upnp-org:serviceId:ZoneGroupTopology found for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	service = urn:upnp-org:serviceId:SystemProperties found for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	service = urn:upnp-org:serviceId:DeviceProperties found for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	service = urn:upnp-org:serviceId:MusicServices found for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	service = urn:upnp-org:serviceId:AlarmClock found for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	service = urn:upnp-org:serviceId:SystemProperties found for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	service = urn:upnp-org:serviceId:DeviceProperties found for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	service = urn:upnp-org:serviceId:MusicServices found for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	service = urn:upnp-org:serviceId:AlarmClock found for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	service = urn:upnp-org:serviceId:GroupManagement found for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	service = urn:upnp-org:serviceId:ZoneGroupTopology found for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	service = urn:upnp-org:serviceId:SystemProperties found for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	service = urn:upnp-org:serviceId:DeviceProperties found for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	service = urn:upnp-org:serviceId:AlarmClock found for zoneplayer = Living Room
+May-31 2:27:20 PM 	  	Sonos 	DirectConnect for zoneplayer = Living Room added Image = /images/Sonos/Artwork/PlayerIcon_S1.png for HSRef = 3754
+May-31 2:27:20 PM 	  	Sonos 	DirectConnect for zoneplayer = Living Room found Icon already stored at /images/Sonos/Artwork/PlayerIcon_S1.png
+May-31 2:27:20 PM 	  	Sonos 	DirectConnect for zoneplayer = Living Room found IconURL = http://192.168.1.208:1400/img/icon-S1.png
+May-31 2:27:20 PM 	  	Sonos 	DirectConnect called for Zone Living Room with device name = uuid:RINCON_000E58C174F201400 and Model = S1
+May-31 2:27:20 PM 	  	Sonos 	AddNewDiscoveredDevice for zoneplayer = Bedroom2 found IconURL = http://192.168.1.208:1400/img/icon-S1.png
+May-31 2:27:20 PM 	  	Sonos 	AddNewDiscoveredDevice found Zone Name = Bedroom2 with UDN = uuid:RINCON_000E58C174F201400 Friendly Name = 192.168.1.208 - Sonos PLAY:1 and Icon = bedroom
+May-31 2:27:20 PM 	  	Sonos 	AddNewDiscoveredDevice dequeued UDN = RINCON_000E58C174F201400
+May-31 2:27:20 PM 	  	Sonos 	AddNewDiscoveredDevice is processing Notification queue with # elements = 1
+May-31 2:27:20 PM 	  	Sonos Warning 	NewDeviceFound called with UDN = RINCON_000E58C174F201400
+May-31 2:27:13 PM 	  	Sonos 	Disconnect: Disconnected from ZonePlayer - Living Room
+May-31 2:27:13 PM 	  	Sonos 	DeviceTrigger called for Zone - Living Room with Trigger = Sonos Player Offline
+May-31 2:27:13 PM 	  	Sonos 	DeviceTrigger called for Zone - Living Room with Trigger = Sonos Player Offline
+May-31 2:27:13 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Living Room with ChangeType = DeviceStatusChanged and Changevalue = Offline and SendDeviceTrigger = True
+May-31 2:27:13 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Living Room with ChangeType = DeviceStatusChanged and Changevalue = Offline and SendDeviceTrigger = True
+May-31 2:27:13 PM 	  	Sonos 	UPnP connection to ZonePlayer Living Room was lost in AlarmClockDied.
+May-31 2:27:13 PM 	  	Sonos Warning 	ZonePlayer Living Room has been disconnected from the network in myDeviceFinderCallBack_DeviceLost.
+May-31 2:27:13 PM 	  	Sonos 	AlarmClock Callback Died. ZonePlayer - Living Room
+May-31 2:27:11 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Living Room with HTSatChanMapSet = RINCON_B8E9377C7E2601400:LF,RF;RINCON_000E5898164001400:SW
+May-31 2:27:11 PM 	  	Sonos 	ZonePairingChanged called for Zone = Living Room with ChannelMapSet
+May-31 2:27:08 PM 	  	Sonos Warning 	ZonePlayer Living Room has been disconnected from the network in myDeviceFinderCallBack_DeviceLost.
+May-31 2:27:07 PM 	  	Sonos Warning 	ZonePlayer Living Room has been disconnected from the network in myDeviceFinderCallBack_DeviceLost.
+May-31 2:27:05 PM 	  	Sonos 	Disconnect: Disconnected from ZonePlayer - Living Room
+May-31 2:27:05 PM 	  	Sonos 	Disconnect: Disconnected from ZonePlayer - Living Room
+May-31 2:27:05 PM 	  	Sonos 	DeviceTrigger called for Zone - Living Room with Trigger = Sonos Player Offline
+May-31 2:27:05 PM 	  	Sonos 	DeviceTrigger called for Zone - Living Room with Trigger = Sonos Player Offline
+May-31 2:27:05 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Living Room with ChangeType = DeviceStatusChanged and Changevalue = Offline and SendDeviceTrigger = True
+May-31 2:27:05 PM 	  	Sonos 	PlayChangeNotifyCallback called for Zone - Living Room with ChangeType = DeviceStatusChanged and Changevalue = Offline and SendDeviceTrigger = True
+May-31 2:27:05 PM 	  	Sonos 	UPnP connection to ZonePlayer Living Room was lost in DeviceProperties.
+May-31 2:27:05 PM 	  	Sonos 	UPnP connection to ZonePlayer Living Room was lost in AlarmClockDied.
+May-31 2:27:05 PM 	  	Sonos 	Device Property Callback Died. ZonePlayer - Living Room
+May-31 2:27:05 PM 	  	Sonos 	AlarmClock Callback Died. ZonePlayer - Living Room
+May-31 2:27:02 PM 	  	Sonos 	PlaybarPairingChanged called for Zone = Living Room with HTSatChanMapSet = RINCON_B8E9377C7E2601400:LF,RF;RINCON_000E5898164001400:SW;RINCON_000E58C174DE01400:RR
+May-31 2:27:02 PM 	  	Sonos 	ZonePairingChanged called for Zone = Living Room with ChannelMapSet 
