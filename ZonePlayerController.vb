@@ -694,7 +694,7 @@ Partial Public Class HSPI 'HSMusicAPI
                 RenderingControl.AddCallback(myRenderingControlCallback)
                 If g_bDebug Then Log("RenderingControlCallback added for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
             Catch ex As Exception
-                Log("Error in Adding RenderingControl Call Back for zoneplayer = " & ZoneName & ". Error=" & ex.Message, LogType.LOG_TYPE_ERROR)
+                If AVTransport IsNot Nothing Then Log("Error in Adding RenderingControl Call Back for zoneplayer = " & ZoneName & ". Error=" & ex.Message, LogType.LOG_TYPE_ERROR) ' if no AVTransport, this is a 5:1 surround sound speaker
             End Try
         End If
 
@@ -971,7 +971,7 @@ Partial Public Class HSPI 'HSMusicAPI
                 RenderingControl.AddCallback(myRenderingControlCallback)
                 If g_bDebug Then Log("RenderingControlCallback added for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
             Catch ex As Exception
-                Log("Error in Adding RenderingControl Call Back for zoneplayer = " & ZoneName & ". Error=" & ex.Message, LogType.LOG_TYPE_ERROR)
+                If AVTransport IsNot Nothing Then Log("Error in Adding RenderingControl Call Back for zoneplayer = " & ZoneName & ". Error=" & ex.Message, LogType.LOG_TYPE_ERROR) ' if no AVTransport, this is a 5:1 surround sound speaker
             End Try
         End If
         If Not ContentDirectory Is Nothing Then
@@ -2543,7 +2543,7 @@ Partial Public Class HSPI 'HSMusicAPI
                     If TrackInfo(4) = "" Then
                         TrackInfo(4) = NoArtPath '"http://" & hs.GetIPAddress & "/Sonos/images/noart.jpg"  '"file:///" & EncodeURI(hs.getAppPath) & "\html\Sonos\images\noart.jpg"
                     Else
-                        TrackInfo(4) = DecodeURI(TrackInfo(4))
+                        'TrackInfo(4) = DecodeURI(TrackInfo(4)) remove in version 3.1.0.19 because failing to retrieve the Art
                         TrackInfo(4) = BuildArtURL(TrackInfo(4))
                         TrackInfo(4) = GetAlbumArtPath(TrackInfo(4), False)
                     End If
@@ -2728,26 +2728,48 @@ Partial Public Class HSPI 'HSMusicAPI
             End If
 
             If InternetRadio Then
-                If (MyZoneSourceExt = "Sirius") Or (MyZoneSourceExt = "SiriusXM" And TrackInfo(15).ToString.Contains("BR P|")) Then
+                If (MyZoneSourceExt = "Sirius") Or (MyZoneSourceExt = "SiriusXM" And TrackInfo(15).ToString.Contains("BR P|")) Or (TrackInfo(15).ToString.Contains("TYPE=SNG|")) Then
                     ' Sirius Provides Info in the following Form
                     ' BR P|TYPE=SNG|TITLE Billionaire|ARTIST Travie McCoy
+                    ' New form I believe from Apple Music TYPE=SNG|TITLE Rapture|ARTIST Blondie|ALBUM Autoamerican 
                     Dim Tempstring As String
                     Tempstring = TrackInfo(15).ToString ' changed in v109 from TrackInfo (2) to trackinfo (15) = r:streamContent
                     infos = Tempstring.Split("|")
-                    If UBound(infos) >= 2 Then
-                        Mid(infos(2), 1, 5) = "     " ' Remove the Title part
-                        infos(2) = Trim(infos(2))
-                        TransportState(5) = infos(2)
-                    Else
-                        TransportState(5) = "" ' added in V110
+                    Dim Title As String = ""
+                    Dim Artist As String = ""
+                    Dim Album As String = ""
+                    If infos IsNot Nothing And (UBound(infos) > 0) Then
+                        For Each Field As String In infos
+                            If Field.IndexOf("TITLE") = 0 Then
+                                Mid(Field, 1, 5) = "     " ' Remove the Title part
+                                Title = Trim(Field)
+                                TransportState(5) = infos(2)
+                            ElseIf Field.IndexOf("ARTIST") = 0 Then
+                                Mid(Field, 1, 6) = "      " ' Remove the ARTIST part
+                                Artist = Trim(Field)
+                            ElseIf Field.IndexOf("ALBUM") = 0 Then
+                                Mid(Field, 1, 5) = "     " ' Remove the ALBUM part
+                                Album = Trim(Field)
+                            End If
+                        Next
                     End If
-                    If UBound(infos) >= 3 Then
-                        Mid(infos(3), 1, 6) = "      " ' Remove the ARTIST part
-                        infos(3) = Trim(infos(3))
-                        TransportState(4) = Trim(infos(3))
-                    Else
-                        TransportState(4) = "" ' added in V110
-                    End If
+                    TransportState(5) = Title
+                    TransportState(4) = Artist
+                    TransportState(6) = Album
+                    'If UBound(infos) >= 2 Then
+                    'Mid(infos(2), 1, 5) = "     " ' Remove the Title part
+                    'infos(2) = Trim(infos(2))
+                    'TransportState(5) = infos(2)
+                    'Else
+                    'TransportState(5) = "" ' added in V110
+                    'End If
+                    'If UBound(infos) >= 3 Then
+                    'Mid(infos(3), 1, 6) = "      " ' Remove the ARTIST part
+                    'infos(3) = Trim(infos(3))
+                    'TransportState(4) = Trim(infos(3))
+                    'Else
+                    'TransportState(4) = "" ' added in V110
+                    'End If
                     If TrackInfo(11) <> "" Then
                         ' we have a radio station name, don't lose it
                         MyZoneSourceExt = MyZoneSourceExt & " - " & TrackInfo(11)
@@ -2986,7 +3008,7 @@ updateHSDevices:
 
     Private Sub DevicePropertiesStateChange(ByVal StateVarName As String, ByVal Value As String) Handles myDevicePropertiesCallback.ControlStateChange
         If SuperDebug Then Log("DevicePropertiesStateChange for ZonePlayer " & ZoneName & ": Var Name = " & StateVarName & " Value = " & Value.ToString, LogType.LOG_TYPE_INFO)
-        If g_bDebug And Not SuperDebug Then Log("DevicePropertiesStateChange for ZonePlayer " & ZoneName & ": Var Name = " & StateVarName, LogType.LOG_TYPE_INFO)
+        'If g_bDebug And Not SuperDebug Then Log("DevicePropertiesStateChange for ZonePlayer " & ZoneName & ": Var Name = " & StateVarName, LogType.LOG_TYPE_INFO)
         Try
             If (StateVarName = "ZoneName") Then
                 Properties(0) = Value.ToString
@@ -2999,7 +3021,7 @@ updateHSDevices:
                 'If g_bDebug Then Log("DevicePropertiesStateChange: Zone Name Changed from = " & ZoneName & " to " & Value.ToString, LogType.LOG_TYPE_INFO)
                 'PlayChangeNotifyCallback(player_status_change.ConfigChange, player_state_values.ZoneName)
                 'End If
-                If Not (MyZoneModel = "S5" Or MyZoneModel = "S3" Or MyZoneModel = "S1" Or MyZoneModel = "S6") Then
+                If Not CheckPlayerIsPairable(MyZoneModel) Then
                     ' the User just changed the Zone Name
                     If (ZoneName <> Value.ToString) And (MyZonePairMasterZoneName <> Value.ToString) And (Value.ToString <> "") Then ZoneNameChanged(Value.ToString)
                 Else
@@ -4336,7 +4358,7 @@ updateHSDevices:
                     If Track = "" Then 'If Track = "" And StartWithTrack = "" Then '
                         QueryString = QueryString & " Name = 'All Playlists' AND Artist = '" & PrepareForQuery(PlayList) & "' AND "
                     Else
-                        ' dcor, this is problematic as I have no way (yet) to store Track+Playlist. This would require first to get tracks from the  playlist
+                        ' this is problematic as I have no way (yet) to store Track+Playlist. This would require first to get tracks from the  playlist
                         ' then search for track, then play. So let's get the play list first, we can later retrieve the exact track 
                         QueryString = QueryString & " Name = 'All Playlists' AND Artist = '" & PrepareForQuery(PlayList) & "' AND "
                     End If
@@ -4767,7 +4789,7 @@ updateHSDevices:
     Public Sub PlayTV()
         If g_bDebug Then Log("PlayTV called for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
         If DeviceStatus = "Offline" Then Exit Sub
-        If ZoneModel <> "S9" Then Exit Sub
+        If (ZoneModel <> "S9") And (ZoneModel <> "S11") And (ZoneModel <> "S14") Then Exit Sub
         PlayURI("x-sonos-htastream:" & UDN & ":spdif", "", False)
     End Sub
 
@@ -4830,12 +4852,17 @@ updateHSDevices:
         End If
     End Sub
 
-    Private Function BuildArtURL(ByVal AlbumArtURL) As String ' example /getaa?u=aac://4723.live.streamtheworld.com:3690/KLLCFMAACCMP3&v=269
+    Private Function BuildArtURL(ByVal AlbumArtURL As String) As String ' example /getaa?u=aac://4723.live.streamtheworld.com:3690/KLLCFMAACCMP3&v=269
         'If g_bDebug Then Log( "BuildArtURL. Input = " & strAlbumArtURL)
         ' removed because art work wouldn't show up if spaces or other characters are included in filename    strAlbumArtURL = DecodeURI(strAlbumArtURL)
         If Mid(AlbumArtURL, 1, 9) = "/getaa?u=" Then
             AlbumArtURL = "http://" & IPAddress.ToString & ":" & IPPort.ToString & AlbumArtURL
         ElseIf Mid(AlbumArtURL, 1, 9) = "/getaa?s=" Then ' example /getaa?s=1&amp;u=x-sonos-mms:track:33491428?sid=0&flags=32
+            AlbumArtURL = Replace(AlbumArtURL, "&amp;", "&")  ' added v21 on Sept 26/2017 because the &amp; was giving errors on Amazon radio
+            '            If Mid(AlbumArtURL, 1, 14) = "getaa?s=1&amp;" Then 
+            '           AlbumArtURL = "/getaa?s=1&" & AlbumArtURL.Remove(1, 14)
+            '          AlbumArtURL = Replace(AlbumArtURL, "&amp;", "&")
+            '     End If
             AlbumArtURL = "http://" & IPAddress & ":" & IPPort.ToString & AlbumArtURL
         ElseIf Mid(AlbumArtURL, 1, 9) = "/getaa?m=" Then ' example /getaa?m=1&u=http%3a%2f%2f79f84a69-0f02-4bd8-b6b0-f72f89ed86f3.x-udn%2fWMPNSSv4%2f33788882%2f1_ezBFQTc3NUU2LTUyNDctNEJDNS05QkVBLTYzMUJBMkZCMDIyRn0uMC5EOUQ4QTBDRQ.mp3%3falbumArt%3dtrue
             AlbumArtURL = "http://" & IPAddress & ":" & IPPort.ToString & AlbumArtURL
@@ -5201,7 +5228,7 @@ updateHSDevices:
         GetQueueElement = Nothing
         If DeviceStatus = "Offline" Then Exit Function
         If ZoneModel = "WD100" Then Exit Function
-        'If g_bDebug Then Log("GetQueueElement called for ZonePlayer = " & ZoneName & ", ElementID = " & ElementID.ToString & ", ElementTitle = " & ElementTitle, LogType.LOG_TYPE_INFO) ' DCORMEDIAAPI
+        If SuperDebug Or DCORMEDIAAPITrace Then Log("GetQueueElement called for ZonePlayer = " & ZoneName & ", ElementID = " & ElementID.ToString & ", ElementTitle = " & ElementTitle, LogType.LOG_TYPE_INFO)
         Dim xmlData As XmlDocument = New XmlDocument
         Dim I As Integer = 0
         Dim StartIndex As Integer = 0
@@ -5213,11 +5240,11 @@ updateHSDevices:
         Dim Result As HomeSeerAPI.Lib_Entry
         Result.Album = ""
         Result.Artist = ""
-        Result.Cover_Back_path = ""
-        Result.Cover_path = ""
+        Result.Cover_Back_path = NoArtPath
+        Result.Cover_path = NoArtPath
         Result.Genre = ""
         Result.Key.iKey = 1
-        Result.Key.Library = 0
+        Result.Key.Library = MyLibraryTypes.LibraryQueue
         Result.Key.sKey = ""
         Result.Key.Title = ElementTitle
         Result.Key.WhichKey = eKey_Type.eEither
@@ -5257,7 +5284,7 @@ updateHSDevices:
             NumberReturned = OutArg(1)
             TotalMatches = OutArg(2)
 
-            'If g_bDebug Then Log("GetQueueElement found " & TotalMatches.ToString & " queue entries for ZonePlayer - " & ZoneName & " and NbrRet= " & NumberReturned.ToString, LogType.LOG_TYPE_INFO)
+            If SuperDebug Or DCORMEDIAAPITrace Then Log("GetQueueElement found " & TotalMatches.ToString & " queue entries for ZonePlayer - " & ZoneName & " and NbrRet= " & NumberReturned.ToString, LogType.LOG_TYPE_INFO)
             If NumberReturned < 1 Then
                 GetQueueElement = Nothing
                 Exit Function
@@ -5307,7 +5334,7 @@ updateHSDevices:
                     MetaData = OutArg(0)
                     NumberReturned = OutArg(1)
                     If NumberReturned < 1 Then Exit Do
-                    'If g_bDebug Then Log("GetQueueElement found " & TotalMatches.ToString & " queue entries for ZonePlayer - " & ZoneName & " at Index = " & StartIndex.ToString & " and NbrRet= " & NumberReturned.ToString, LogType.LOG_TYPE_INFO)
+                    If SuperDebug Or DCORMEDIAAPITrace Then Log("GetQueueElement found " & TotalMatches.ToString & " queue entries for ZonePlayer - " & ZoneName & " at Index = " & StartIndex.ToString & " and NbrRet= " & NumberReturned.ToString, LogType.LOG_TYPE_INFO)
                 Loop
             End If
             ' we're searching by index ID
@@ -5326,7 +5353,8 @@ updateHSDevices:
             Catch ex As Exception
             End Try
             Try
-                Result.Cover_path = BuildArtURL(DecodeURI(xmlData.GetElementsByTagName("upnp:albumArtURI").Item(0).InnerText))
+                'Result.Cover_path = BuildArtURL(DecodeURI(xmlData.GetElementsByTagName("upnp:albumArtURI").Item(0).InnerText))
+                Result.Cover_path = BuildArtURL(xmlData.GetElementsByTagName("upnp:albumArtURI").Item(0).InnerText) ' removed in R3.1.0.19 due failure to retrieve art
             Catch ex As Exception
             End Try
 
@@ -5334,7 +5362,7 @@ updateHSDevices:
             Log("Error in GetQueueElement with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Function
         End Try
-        'If g_bDebug Then Log("GetQueueElement called for ZonePlayer = " & ZoneName & ", ElementID = " & ElementID.ToString & ", ElementTitle = " & ElementTitle & ", Title = " & Result.Title & ", Album = " & Result.Album & ", Artist = " & Result.Artist & ", CoverPath = " & Result.Cover_path, LogType.LOG_TYPE_INFO) ' DCORMEDIAAPI
+        If SuperDebug Or DCORMEDIAAPITrace Then Log("GetQueueElement called for ZonePlayer = " & ZoneName & ", ElementID = " & ElementID.ToString & ", ElementTitle = " & ElementTitle & ", Title = " & Result.Title & ", Album = " & Result.Album & ", Artist = " & Result.Artist & ", CoverPath = " & Result.Cover_path, LogType.LOG_TYPE_INFO)
         Return Result
 
     End Function
@@ -5466,7 +5494,7 @@ updateHSDevices:
         End Try
     End Function
 
-    Public Function TracksInQueue() As Integer ' this will return the number of tracks in the queue
+    Public Function TracksInQueue(QueueID As String) As Integer ' this will return the number of tracks in the queue
         TracksInQueue = 0
         If DeviceStatus = "Offline" Then Exit Function
         If ZoneModel = "WD100" Then Exit Function
@@ -5474,7 +5502,7 @@ updateHSDevices:
         Dim InArg(5)
         Dim OutArg(3)
 
-        InArg(0) = "Q:0"
+        InArg(0) = "Q:" & QueueID
         InArg(1) = "BrowseDirectChildren"
         InArg(2) = "*"
         InArg(3) = "0"
@@ -5602,7 +5630,7 @@ updateHSDevices:
                 Catch ex As Exception
                 End Try
                 Try
-                    TrackInfo(4) = DecodeURI(xmlData.GetElementsByTagName("upnp:albumArtURI").Item(0).InnerText)
+                    'TrackInfo(4) = DecodeURI(xmlData.GetElementsByTagName("upnp:albumArtURI").Item(0).InnerText) removed in version 3.1.0.19 because failure to retrieve art
                     TrackInfo(4) = BuildArtURL(TrackInfo(4))
                     If g_bDebug Then Log(ZoneName & " TrackInfo (albumArtURI) = " & TrackInfo(4).ToString, LogType.LOG_TYPE_INFO)
                 Catch ex As Exception
@@ -5738,6 +5766,7 @@ updateHSDevices:
             ZoneSource = "TV"
             MyZoneSourceExt = "TV"
             If g_bDebug Then Log(ZoneName & " TrackInfo () = TV " & TrackInfo(2).ToString, LogType.LOG_TYPE_INFO)
+            ' ElseIF .... x-rincon-cpcontainer probably need to add this , this is Google Music podcasts
         Else
             ' Probably some Internet streaming. Save URI and MetaData
             TrackInfo(9) = "Unknown"
@@ -5817,7 +5846,7 @@ updateHSDevices:
         End Try
         Try
             If TrackInfo(4) = NoArtPath Or TrackInfo(4).trim = "" Then 'Else the info was already retrieved from the radio station
-                TrackInfo(4) = DecodeURI(xmlData.GetElementsByTagName("upnp:albumArtURI").Item(0).InnerText)
+                'TrackInfo(4) = DecodeURI(xmlData.GetElementsByTagName("upnp:albumArtURI").Item(0).InnerText) removed in v3.1.0.19 because of failure to retrieve art
                 TrackInfo(4) = BuildArtURL(TrackInfo(4))
                 ' /getaa?m=1&u=http%3a%2f%2f79f84a69-0f02-4bd8-b6b0-f72f89ed86f3.x-udn%2fWMPNSSv4%2f33788882%2f1_ezBFQTc3NUU2LTUyNDctNEJDNS05QkVBLTYzMUJBMkZCMDIyRn0uMC5EOUQ4QTBDRQ.mp3%3falbumArt%3dtrue
                 If g_bDebug Then Log(ZoneName & " TrackInfo PositionInfo (albumArtURI) = " & TrackInfo(4).ToString, LogType.LOG_TYPE_INFO)
@@ -5903,9 +5932,9 @@ updateHSDevices:
         End If
         MyPlayerStateBeforeAnnouncement = CurrentPlayerState
         LinkgroupInfo.MySavedZoneisLinked = MyZoneIsLinked
-        If g_bDebug Then Log("SaveCurrentTrackInfo  for zoneplayer " & ZoneName & " saved ZoneIsLinked = " & LinkgroupInfo.MySavedZoneisLinked.ToString, LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("SaveCurrentTrackInfo for zoneplayer " & ZoneName & " saved ZoneIsLinked = " & LinkgroupInfo.MySavedZoneisLinked.ToString, LogType.LOG_TYPE_INFO)
         LinkgroupInfo.MySavedSourceLinkedZone = MySourceLinkedZone
-        If g_bDebug Then Log("SaveCurrentTrackInfo  for zoneplayer " & ZoneName & " saved SourceLinkedZone = " & LinkgroupInfo.MySavedSourceLinkedZone.ToString, LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("SaveCurrentTrackInfo for zoneplayer " & ZoneName & " saved SourceLinkedZone = " & LinkgroupInfo.MySavedSourceLinkedZone.ToString, LogType.LOG_TYPE_INFO)
         Try
             ' now that we don't call GetCurrentTrackInfo anymore, the trackposition info is wrong. I can use the own tracking of the Musicapi
             MyCurrentTrackInfo(5) = ConvertSecondsToTimeFormat(SonosPlayerPosition)
@@ -5940,26 +5969,42 @@ updateHSDevices:
 
         Try
 
-            If (SaveQueueFlag Or (MySWVersion < 420)) And TracksInQueue() <> 0 Then
-                ' we also need to save the queue info
-                LinkgroupInfo.MySavedQueueObjectID = SaveQueue("SCQueue" & "-" & ZoneName & "-" & LinkgroupName)
-                If LastStoredQueueID = LinkgroupInfo.MySavedQueueObjectID Then ' this has failed where the queueid of one but last player suddenly shows up
-                    ' OK, this is a problem
-                    If g_bDebug Then Log("WARNING : SaveCurrentTrackInfo for zoneplayer " & ZoneName & " saved Queue with ID = " & LinkgroupInfo.MySavedQueueObjectID & " but this QueueID is already in use, re-try ....", LogType.LOG_TYPE_WARNING)
-                    wait(1)  ' needed to let all players sync
-                    LinkgroupInfo.MySavedQueueObjectID = SaveQueue("SCQueue" & "-" & ZoneName & "-" & LinkgroupName)
-                    If LastStoredQueueID = LinkgroupInfo.MySavedQueueObjectID Then
-                        ' OK, this is a problem
-                        If g_bDebug Then Log("ERROR : SaveCurrentTrackInfo for zoneplayer " & ZoneName & " saved Queue with ID = " & LinkgroupInfo.MySavedQueueObjectID & " but this QueueID is already in use", LogType.LOG_TYPE_ERROR)
-                    Else
-                        LastStoredQueueID = LinkgroupInfo.MySavedQueueObjectID
-                        If g_bDebug Then Log("SaveCurrentTrackInfo for zoneplayer " & ZoneName & " saved Queue with ID = " & LinkgroupInfo.MySavedQueueObjectID, LogType.LOG_TYPE_INFO)
+            If (SaveQueueFlag Or (MySWVersion < 420)) Then '  And TracksInQueue("0") <> 0 Then ' removed in V21
+                SaveQueueFlag = False
+                If MyCurrentTrackInfo IsNot Nothing Then ' added in v21 on Sept 26,2017
+                    If Mid(MyCurrentTrackInfo(3), 1, 15) = "x-rincon-queue:" Then
+                        ' ok we are playing from our queue, question is which one .. x-rincon-queue:RINCON_5CAAFD9CFF5601400#16
+                        Dim QueueParts As String() = Split(MyCurrentTrackInfo(3), "#")
+                        If QueueParts IsNot Nothing Then
+                            If UBound(QueueParts) > 0 Then
+                                Dim QueueNbr As String = QueueParts(1)
+                                If QueueNbr = "0" And TracksInQueue("0") <> 0 Then
+                                    ' we also need to save the queue info
+                                    LinkgroupInfo.MySavedQueueObjectID = SaveQueue("SCQueue" & "-" & ZoneName & "-" & LinkgroupName)
+                                    If LastStoredQueueID = LinkgroupInfo.MySavedQueueObjectID Then ' this has failed where the queueid of one but last player suddenly shows up
+                                        ' OK, this is a problem
+                                        If g_bDebug Then Log("WARNING : SaveCurrentTrackInfo for zoneplayer " & ZoneName & " saved Queue with ID = " & LinkgroupInfo.MySavedQueueObjectID & " but this QueueID is already in use, re-try ....", LogType.LOG_TYPE_WARNING)
+                                        wait(1)  ' needed to let all players sync
+                                        LinkgroupInfo.MySavedQueueObjectID = SaveQueue("SCQueue" & "-" & ZoneName & "-" & LinkgroupName)
+                                        If LastStoredQueueID = LinkgroupInfo.MySavedQueueObjectID Then
+                                            ' OK, this is a problem
+                                            If g_bDebug Then Log("ERROR : SaveCurrentTrackInfo for zoneplayer " & ZoneName & " saved Queue with ID = " & LinkgroupInfo.MySavedQueueObjectID & " but this QueueID is already in use", LogType.LOG_TYPE_ERROR)
+                                        Else
+                                            LastStoredQueueID = LinkgroupInfo.MySavedQueueObjectID
+                                            If g_bDebug Then Log("SaveCurrentTrackInfo for zoneplayer " & ZoneName & " saved Queue with ID = " & LinkgroupInfo.MySavedQueueObjectID, LogType.LOG_TYPE_INFO)
+                                            SaveQueueFlag = True
+                                        End If
+                                    Else
+                                        LastStoredQueueID = LinkgroupInfo.MySavedQueueObjectID
+                                        If g_bDebug Then Log("SaveCurrentTrackInfo for zoneplayer " & ZoneName & " saved Queue with ID = " & LinkgroupInfo.MySavedQueueObjectID, LogType.LOG_TYPE_INFO)
+                                        SaveQueueFlag = True
+                                    End If
+                                    If MySWVersion < 420 Then wait(0.5) ' needed to let all players sync. Changed from .25 to .50 in v.92 because problem still appears
+                                End If
+                            End If
+                        End If
                     End If
-                Else
-                    LastStoredQueueID = LinkgroupInfo.MySavedQueueObjectID
-                    If g_bDebug Then Log("SaveCurrentTrackInfo for zoneplayer " & ZoneName & " saved Queue with ID = " & LinkgroupInfo.MySavedQueueObjectID, LogType.LOG_TYPE_INFO)
                 End If
-                If MySWVersion < 420 Then wait(0.5) ' needed to let all players sync. Changed from .25 to .50 in v.92 because problem still appears
             End If
             If MyCurrentTrackInfo(9) = "Linked" And InStr(MyCurrentTrackInfo(3), "-sonos-dock:") <> 0 Then ' this zone is linked to a wireless dock. First pause it
                 MyWirelessDockSourcePlayer.SetTransportState("Pause")
@@ -6092,11 +6137,9 @@ updateHSDevices:
         ' check wether this zone was part of a pair or linked. If it was linked before the announcement and some of the other players did not participate in the announcement then we need to restore them
         If LinkgroupInfo.MySavedChannelMapSet <> "" And LinkgroupInfo.MySavedZoneIsPairMaster Then
             ' this zone was part of a pair group before being saved
-            ' dcor01 CreateStereoPair(LinkgroupInfo.MySavedZonePairSlaveUDN)
         ElseIf LinkgroupInfo.MySavedZoneIsPairSlave Then
             Dim MasterPairZonePlayer As HSPI ' HSMusicAPI
             MasterPairZonePlayer = MyHSPIControllerRef.GetAPIByUDN(LinkgroupInfo.MySavedZonePairMasterUDN)
-            ' dcor01 MasterPairZonePlayer.CreateStereoPair(LinkgroupInfo.MySavedZonePairSlaveUDN)
         End If
         LinkgroupInfo.FlushInfo()
         If MyPlayerStateBeforeAnnouncement <> player_state_values.playing Then
@@ -6436,14 +6479,15 @@ updateHSDevices:
         If g_bDebug Then Log("GetZoneSourceName called for ZoneName " & ZoneName & " ZoneIsLinked = " & MyZoneIsLinked.ToString & " and SourceLinkedZone = " & MySourceLinkedZone, LogType.LOG_TYPE_INFO)
         If MyZoneIsLinked And MySourceLinkedZone <> "" Then
             ' MySourceLinkedZone holds the UDN to the zone it is linked to. Retrieve the Zone Name from the .ini file
-            Dim SourceZoneName As String()
-            SourceZoneName = MySourceLinkedZone.Split(":")
-            If UBound(SourceZoneName) > 0 Then
-                GetZoneSourceName = GetStringIniFile(SourceZoneName(1), DeviceInfoIndex.diFriendlyName.ToString, "")
+            Dim SourceZoneUDN As String()
+            SourceZoneUDN = MySourceLinkedZone.Split(":") ' this is used to remove the uuid: if it is there
+            If UBound(SourceZoneUDN) > 0 Then
+                GetZoneSourceName = GetStringIniFile(SourceZoneUDN(1), DeviceInfoIndex.diFriendlyName.ToString, "")
+                If g_bDebug Then Log("GetZoneSourceName called for ZoneName " & ZoneName & " Sourcename = " & GetZoneSourceName & " and SourceUDN = " & SourceZoneUDN(1), LogType.LOG_TYPE_INFO)
             Else
-                GetZoneSourceName = GetStringIniFile(SourceZoneName(0), DeviceInfoIndex.diFriendlyName.ToString, "")
+                GetZoneSourceName = GetStringIniFile(SourceZoneUDN(0), DeviceInfoIndex.diFriendlyName.ToString, "")
+                If g_bDebug Then Log("GetZoneSourceName called for ZoneName " & ZoneName & " Sourcename = " & GetZoneSourceName & " and SourceUDN = " & SourceZoneUDN(0), LogType.LOG_TYPE_INFO)
             End If
-            If g_bDebug Then Log("GetZoneSourceName called for ZoneName " & ZoneName & " Sourcename = " & SourceZoneName(0) & " and SourceUDN = " & SourceZoneName(1), LogType.LOG_TYPE_INFO)
         End If
     End Function
 
@@ -6458,6 +6502,20 @@ updateHSDevices:
         End Try
     End Function
 
+    Public Function GetZoneSourceUDN() As String
+        GetZoneSourceUDN = ""
+        If g_bDebug Then Log("GetZoneSourceUDN called for ZoneName " & ZoneName & " ZoneIsLinked = " & MyZoneIsLinked.ToString & " and SourceLinkedZone = " & MySourceLinkedZone, LogType.LOG_TYPE_INFO)
+        If MyZoneIsLinked And MySourceLinkedZone <> "" Then
+            ' MySourceLinkedZone holds the UDN to the zone it is linked to. Retrieve the Zone Name from the .ini file
+            Dim SourceZoneUDN As String()
+            SourceZoneUDN = MySourceLinkedZone.Split(":") ' this is used to remove the uuid: if it is there
+            If UBound(SourceZoneUDN) > 0 Then
+                GetZoneSourceUDN = SourceZoneUDN(1)
+            Else
+                GetZoneSourceUDN = SourceZoneUDN(0)
+            End If
+        End If
+    End Function
 
     Public Function PlayModeNormal()
         PlayModeNormal = ""
@@ -6856,7 +6914,7 @@ updateHSDevices:
     Public Function CreateStereoPair(ByVal OtherZoneUDN As String) As String ' Creates a Stereo pair with this Zone Master (Left) 
         CreateStereoPair = ""
         If DeviceStatus = "Offline" Then Exit Function
-        If ZoneModel <> "S5" And ZoneModel <> "S3" And ZoneModel <> "S1" And ZoneModel <> "S6" Then Exit Function
+        If Not CheckPlayerIsPairable(ZoneModel) Then Exit Function
         Dim InArg(0)
         Dim OutArg(0)
         ' the Channelmap looks like this RINCON_000E5858C97A01400:LF,LF;RINCON_000E5859008A0xxxx:RF,RF;RINCON_000E5898164001400:SW,SW
@@ -6896,7 +6954,7 @@ updateHSDevices:
             End If
         End If
         If DeviceStatus = "Offline" Then Exit Function
-        If ZoneModel <> "S5" And ZoneModel <> "S3" And ZoneModel <> "S1" And ZoneModel <> "S6" Then Exit Function
+        If Not CheckPlayerIsPairable(ZoneModel) Then Exit Function
         If MyChannelMapSet = "" Then Exit Function ' nothing to unpair
         Dim InArg(0)
         Dim OutArg(0)
@@ -6982,7 +7040,7 @@ updateHSDevices:
         ' hs.SetDeviceString(MasterHSDeviceRef, "Connected", False)
         hs.SetDeviceValueByRef(MasterHSDeviceRef, msConnected, True)
         MusicDBIsBeingEstablished = False
-        Log("BuildTrackDatabase Done  for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("BuildTrackDatabase Done  for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
         GC.Collect()
     End Function
 
@@ -7111,7 +7169,8 @@ updateHSDevices:
                             Tracks(StartIndex + LoopIndex, 2) = ""
                         End Try
                         Try
-                            Tracks(StartIndex + LoopIndex, 4) = DecodeURI(OuterXML.GetElementsByTagName("upnp:albumArtURI").Item(0).InnerText)
+                            'Tracks(StartIndex + LoopIndex, 4) = DecodeURI(OuterXML.GetElementsByTagName("upnp:albumArtURI").Item(0).InnerText)
+                            Tracks(StartIndex + LoopIndex, 4) = OuterXML.GetElementsByTagName("upnp:albumArtURI").Item(0).InnerText ' removed in v3.1.0.19 because of failure to retrieve art
                         Catch ex As Exception
                             Tracks(StartIndex + LoopIndex, 4) = ""
                         End Try
@@ -7226,7 +7285,7 @@ updateHSDevices:
 
             NumberReturned = OutArg(1)
             TotalMatches = OutArg(2)
-            Log("BuildTrackDB found " & TotalMatches.ToString & " for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
+            If g_bDebug Then Log("BuildTrackDB found " & TotalMatches.ToString & " for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
             StartIndex = 0
             Do
                 InArg(3) = CStr(StartIndex)
@@ -7343,7 +7402,7 @@ updateHSDevices:
             If Not IsNothing(objConn) Then objConn.Dispose()
         Catch ex As Exception
         End Try
-        Log("Finished Building TrackDB for zoneplayer = " & ZoneName & "", LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("Finished Building TrackDB for zoneplayer = " & ZoneName & "", LogType.LOG_TYPE_INFO)
     End Function
 
     Public Function BuildArtistDB(ByVal DatabasePath As String, ByVal ObjectID As String)
@@ -7417,7 +7476,7 @@ updateHSDevices:
             End Try
             NumberReturned = OutArg(1)
             TotalMatches = OutArg(2)
-            Log("BuildArtistDB found " & TotalMatches.ToString & " for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
+            If g_bDebug Then Log("BuildArtistDB found " & TotalMatches.ToString & " for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
 
             StartIndex = 0
             ' <DIDL-Lite xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/" xmlns:r="urn:schemas-rinconnetworks-com:metadata-1-0/" xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/">
@@ -7521,7 +7580,7 @@ updateHSDevices:
             If Not IsNothing(objConn) Then objConn.Dispose()
         Catch ex As Exception
         End Try
-        Log("Finished Building ArtistDB for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("Finished Building ArtistDB for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
     End Function
 
     Public Function BuildAlbumDB(ByVal DatabasePath As String, ByVal ObjectID As String)
@@ -7595,7 +7654,7 @@ updateHSDevices:
             End Try
             NumberReturned = OutArg(1)
             TotalMatches = OutArg(2)
-            Log("BuildAlbumDB found " & TotalMatches.ToString & " for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
+            If g_bDebug Then Log("BuildAlbumDB found " & TotalMatches.ToString & " for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
             '
             StartIndex = 0
             '
@@ -7708,7 +7767,7 @@ updateHSDevices:
             If Not IsNothing(objConn) Then objConn.Dispose()
         Catch ex As Exception
         End Try
-        Log("Finished Building AlbumDB for zoneplayer = " & ZoneName & "", LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("Finished Building AlbumDB for zoneplayer = " & ZoneName & "", LogType.LOG_TYPE_INFO)
 
     End Function
 
@@ -7785,11 +7844,11 @@ updateHSDevices:
             Exit Function
         End Try
 
-        Log("BuildRadioStationDB found " & OutArg(2).ToString & " Radiostations for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("BuildRadioStationDB found " & OutArg(2).ToString & " Radiostations for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
 
         NumberReturned = OutArg(1)
         TotalMatches = OutArg(2)
-        Log("BuildRadioStationDB found " & TotalMatches.ToString & " for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("BuildRadioStationDB found " & TotalMatches.ToString & " for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
         '
         StartIndex = 0
         '
@@ -7899,7 +7958,7 @@ updateHSDevices:
             If Not IsNothing(objConn) Then objConn.Dispose()
         Catch ex As Exception
         End Try
-        Log("Finished Building RadioStationDB for zoneplayer = " & ZoneName & "", LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("Finished Building RadioStationDB for zoneplayer = " & ZoneName & "", LogType.LOG_TYPE_INFO)
 
     End Function
 
@@ -7977,7 +8036,7 @@ updateHSDevices:
         ' OutArg (0) = Result
         NumberReturned = OutArg(1)
         TotalMatches = OutArg(2)
-        Log("BuildPlaylistDB found " & TotalMatches.ToString & " for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("BuildPlaylistDB found " & TotalMatches.ToString & " for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
 
         StartIndex = 0
 
@@ -8074,7 +8133,7 @@ updateHSDevices:
             If Not IsNothing(objConn) Then objConn.Dispose()
         Catch ex As Exception
         End Try
-        Log("Finished Building BuildPlaylistDB for zoneplayer = " & ZoneName & "", LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("Finished Building BuildPlaylistDB for zoneplayer = " & ZoneName & "", LogType.LOG_TYPE_INFO)
 
     End Function
 
@@ -8151,7 +8210,7 @@ updateHSDevices:
 
         NumberReturned = OutArg(1)
         TotalMatches = OutArg(2)
-        Log("BuildSonosPlaylistDB found " & TotalMatches.ToString & " for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("BuildSonosPlaylistDB found " & TotalMatches.ToString & " for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
 
         StartIndex = 0
         ' <DIDL-Lite xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/" xmlns:r="urn:schemas-rinconnetworks-com:metadata-1-0/" xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/">
@@ -8250,7 +8309,7 @@ updateHSDevices:
             If Not IsNothing(objConn) Then objConn.Dispose()
         Catch ex As Exception
         End Try
-        Log("Finished Building BuildSonosPlaylistDB for zoneplayer = " & ZoneName & "", LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("Finished Building BuildSonosPlaylistDB for zoneplayer = " & ZoneName & "", LogType.LOG_TYPE_INFO)
 
     End Function
 
@@ -8327,7 +8386,7 @@ updateHSDevices:
 
         NumberReturned = OutArg(1)
         TotalMatches = OutArg(2)
-        Log("BuildGenreDB found " & TotalMatches.ToString & " for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("BuildGenreDB found " & TotalMatches.ToString & " for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
 
         StartIndex = 0
 
@@ -8420,7 +8479,7 @@ updateHSDevices:
             If Not IsNothing(objConn) Then objConn.Dispose()
         Catch ex As Exception
         End Try
-        Log("Finished Building BuildGenreDB for zoneplayer = " & ZoneName & "", LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("Finished Building BuildGenreDB for zoneplayer = " & ZoneName & "", LogType.LOG_TYPE_INFO)
 
     End Function
 
@@ -8965,7 +9024,7 @@ updateHSDevices:
             Exit Function
         End Try
 
-        Log("BuildSpecificObjectDB found " & OutArg(2).ToString & " Objects for ZonePlayer - " & ZoneName & " with ObjectDBName = " & ObjectDBName, LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("BuildSpecificObjectDB found " & OutArg(2).ToString & " Objects for ZonePlayer - " & ZoneName & " with ObjectDBName = " & ObjectDBName, LogType.LOG_TYPE_INFO)
 
         NumberReturned = OutArg(1)
         TotalMatches = OutArg(2)
@@ -9077,7 +9136,7 @@ updateHSDevices:
             If Not IsNothing(objConn) Then objConn.Dispose()
         Catch ex As Exception
         End Try
-        Log("Finished Building BuildSpecificObjectDB for zoneplayer = " & ZoneName & " with ObjectDBName = " & ObjectDBName, LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("Finished Building BuildSpecificObjectDB for zoneplayer = " & ZoneName & " with ObjectDBName = " & ObjectDBName, LogType.LOG_TYPE_INFO)
 
     End Function
 
@@ -9920,7 +9979,7 @@ updateHSDevices:
                 Return Nothing
                 Exit Function
             End If
-            If Not (url.ToLower().StartsWith("http://") Or url.ToLower().StartsWith("file:")) Then url = "http://" & url
+            If Not (url.ToLower().StartsWith("http://") Or url.ToLower().StartsWith("https://") Or url.ToLower().StartsWith("file:")) Then url = "http://" & url
             Dim image_stream As New MemoryStream(web_client.DownloadData(url))
             GetPicture = Image.FromStream(image_stream, True, True)
         Catch ex As Exception
@@ -10155,7 +10214,12 @@ updateHSDevices:
         Dim LoopIndex As Integer = 0
         Dim StartTime As String = ""
         Dim RoomUUID As String = ""
-        Dim SonosTime As DateTime = GetTimeNow()        ' Format is 2011-01-27 07:32:30
+        Dim SonosTime As DateTime ' = GetTimeNow()        ' Format is 2011-01-27 07:32:30
+        Try
+            SonosTime = GetTimeNow()    ' added 11/7/2018 because it failed on a paired player and returned an empty string
+        Catch ex As Exception
+            Exit Function
+        End Try
         'Dim Now As DateTime = DateTime.Now
         Dim NowinMinutes As Integer = 0
         NowinMinutes = SonosTime.Hour * 60 + SonosTime.Minute
@@ -10516,7 +10580,7 @@ updateHSDevices:
     End Function
 
     Private Sub ZoneNameChanged(ByVal NewZoneName As String)
-        If MyHSPIControllerRef.ZoneNameChanged(ZoneName, GetUDN, NewZoneName) Then
+        If MyHSPIControllerRef.ZoneNameChanged(ZoneName, GetUDN, NewZoneName, False) Then
             If g_bDebug Then Log("ZoneNameChanged called for Zone = " & ZoneName & " and changed name to " & NewZoneName.ToString, LogType.LOG_TYPE_INFO)
             PlayChangeNotifyCallback(player_status_change.ConfigChange, player_state_values.ZoneName)
             ZoneName = NewZoneName
@@ -10532,7 +10596,7 @@ updateHSDevices:
         ' The SW,SW indicated a SubWoofer
         If g_bDebug Then Log("ZonePairingChanged called for Zone = " & ZoneName & " with ChannelMapSet " & ChannelMapSet, LogType.LOG_TYPE_INFO)
         If MyChannelMapSet = ChannelMapSet Then Exit Sub ' nothing changed
-        MyChannelMapSet = ChannelMapSet ' dcor I may have to check on the subwoofer here because it is used to unpair, not sure whether I unpair with the subwoofer in the string or without
+        MyChannelMapSet = ChannelMapSet ' I may have to check on the subwoofer here because it is used to unpair, not sure whether I unpair with the subwoofer in the string or without
         If ChannelMapSet = "" Then
             ' this is Unpairing. We don't really have to do anything, we will receive a zone name change which will correct the zone name and we'll get an unlink
             MyZoneIsPairMaster = False
@@ -10612,10 +10676,11 @@ updateHSDevices:
         ' S9:  Var Name = HTSatChanMapSet Value = RINCON_B8E9377C7E2601400:LF,RF;RINCON_000E5898164001400:SW;RINCON_000E58C174F201400:LR;RINCON_000E58C174DE01400:RR
         ' S1:  Var Name = HTSatChanMapSet Value = RINCON_B8E9377C7E2601400:LF,RF;RINCON_000E58C174DE01400:RR <- note this is from the S1 at the Rear LEFT!!!
         ' SUB:  Var Name = HTSatChanMapSet Value = RRINCON_B8E9377C7E2601400:LF,RF;RINCON_000E5898164001400:SW;RINCON_000E58C174F201400:LR;RINCON_000E58C174DE01400:RR
-
+        ' if a connect:Amp is added it shows up like this HTSatChanMapSet = RINCON_7828CA57993B01400:LF,RF;RINCON_5CAAFDED681A01400:LR,RR
+        ' 
         If g_bDebug Then Log("PlaybarPairingChanged called for Zone = " & ZoneName & " with HTSatChanMapSet = " & HTSatChanMapSet, LogType.LOG_TYPE_INFO)
         If MyHTSatChanMapSet = HTSatChanMapSet Then Exit Sub ' nothing changed
-        MyHTSatChanMapSet = HTSatChanMapSet ' dcor I may have to check on the subwoofer here because it is used to unpair, not sure whether I unpair with the subwoofer in the string or without
+        MyHTSatChanMapSet = HTSatChanMapSet ' I may have to check on the subwoofer here because it is used to unpair, not sure whether I unpair with the subwoofer in the string or without
         If HTSatChanMapSet = "" Then
             ' this is Unpairing. We don't really have to do anything, we will receive a zone name change which will correct the zone name and we'll get an unlink
             MyZoneIsPlaybarMaster = False

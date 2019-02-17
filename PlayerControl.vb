@@ -223,9 +223,9 @@ Class PlayerControl
             If ClientID <> "" Then MyClientID = "?clientid=" & ClientID Else MyClientID = ""
 
             ButTV.visible = False
-            If ZoneModel = "S9" Then
+            If (ZoneModel = "S9") Or (ZoneModel = "S11") Or (ZoneModel = "S14") Then
                 ButTV.visible = True
-            ElseIf ZoneModel <> "S5" And ZoneModel <> "S3" And ZoneModel <> "S1" And ZoneModel <> "S6" Then
+            ElseIf Not MusicAPI.CheckPlayerIsPairable(ZoneModel) Then
                 ButPair.visible = False
                 ButUnpair.visible = False
             Else
@@ -384,7 +384,7 @@ Class PlayerControl
 
 
             stb.Append("<div style='position: absolute; left: 300px; top: -185px'>")
-            stb.Append("<img src=" & MusicAPI.PlayerIconURL & " style='height:50px; width:50px'>")
+            stb.Append("<img src='" & MusicAPI.PlayerIconURL & "' style='height:50px; width:50px'>")    ' added ' quotes around img src in v023
             stb.Append("</div>")
             stb.Append("<div style='position: absolute; left: 360px; top: -190px'>")
             stb.Append("<h1>" & ZoneName & "</h1>")
@@ -1643,7 +1643,7 @@ Class PlayerControl
                 End If
             End If
 
-            If ZoneModel = "S5" Or ZoneModel = "S3" Or ZoneModel = "S1" Or ZoneModel = "S6" Then
+            If MusicAPI.CheckPlayerIsPairable(ZoneModel) Then
                 If (MyPlayerisPairMaster <> MusicAPI.ZoneIsPairMaster) Or (MyPlayerisPairSlave <> MusicAPI.ZoneIsPairSlave) Then
                     MyPlayerisPairMaster = MusicAPI.ZoneIsPairMaster
                     MyPlayerisPairSlave = MusicAPI.ZoneIsPairSlave

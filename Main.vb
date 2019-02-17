@@ -34,7 +34,7 @@ Module Main
         If g_bDebug Then Log("AddInstance called with InstanceName = " & InstanceName, LogType.LOG_TYPE_INFO)
         AddInstance = Nothing
         If AllInstances.Contains(InstanceName) Then
-            If g_bDebug Then Log("AddInstance called with InstanceName = " & InstanceName & " but instance already exists", LogType.LOG_TYPE_WARNING)
+            If g_bDebug Then Log("Warning AddInstance called with InstanceName = " & InstanceName & " but instance already exists", LogType.LOG_TYPE_WARNING)
             Exit Function
         End If
         Dim PlugAPI As HSPI = New HSPI
@@ -61,7 +61,6 @@ Module Main
 
         Try
             lhost.Connect(sIFACE_NAME, InstanceName)
-
             ' everything is ok, save instance
             Dim ih As New InstanceHolder
             ih.client = lclient
@@ -69,6 +68,7 @@ Module Main
             ih.host = lhost
             ih.hspi = PlugAPI
             AllInstances.Add(InstanceName, ih)
+            If g_bDebug Then Log("AddInstance successfully added InstanceName = " & InstanceName & ", Count = " & AllInstances.Count.ToString & ", Capacity = " & AllInstances.Capacity.ToString, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
             PlugAPI.DestroyPlayer(True)
             PlugAPI = Nothing
@@ -141,7 +141,8 @@ Module Main
             MusicDBPath = "/html/" & tIFACE_NAME & "/MusicDB/SonosDB.sdb"
             RadioStationsDBPath = "/html/" & tIFACE_NAME & "/MusicDB/SonosRadioStationsDB.sdb"
             DockedPlayersDBPath = "/html/" & tIFACE_NAME & "/MusicDB/"
-            AnnouncementPath = "/" & tIFACE_NAME & "/Announcements/"
+            AnnouncementURL = "/" & tIFACE_NAME & "/Announcements/"
+            AnnouncementPath = "\" & tIFACE_NAME & "\Announcements\"
             ArtWorkPath = "/images/" & tIFACE_NAME & "/Artwork/"
             URLArtWorkPath = "/images/" & tIFACE_NAME & "/Artwork/"  '"/" & tIFACE_NAME & "/Artwork/"  
             FileArtWorkPath = tIFACE_NAME & "\Artwork\"
@@ -218,7 +219,6 @@ TryAgain:
                 Console.WriteLine("Shutting down plugin")
             End If
             ' disconnect from server for good here
-            hs = Nothing
             client.Disconnect()
             clientCallback.Disconnect()
             wait(2)
@@ -239,7 +239,7 @@ TryAgain:
 
 
     Private Sub wait(ByVal secs As Integer)
-        If g_bDebug Then Log("Wait in Main called with Wait = " & secs.ToString, LogType.LOG_TYPE_INFO)
+        'If g_bDebug Then Log("Wait in Main called with Wait = " & secs.ToString, LogType.LOG_TYPE_INFO) causes and error as HS has already disconnected
         Threading.Thread.Sleep(secs * 1000)
     End Sub
 

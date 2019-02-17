@@ -1151,7 +1151,7 @@ Class SonosConfig
                     Dim Player As HSPI = HSDevice.ZonePlayerControllerRef
                     If Player IsNot Nothing Then
                         Dim DeviceUDN As String = Player.GetUDN
-                        Player.DeleteWebLink(DeviceUDN, Player.ZonePlayerName)
+                        'Player.DeleteWebLink(DeviceUDN, Player.ZonePlayerName) ' this is done when we stop the instance and receive an shutdownio change in v3.1.0.25
                         If MainInstance <> "" Then
                             RemoveInstance(MainInstance & "-" & DeviceUDN)
                         Else
