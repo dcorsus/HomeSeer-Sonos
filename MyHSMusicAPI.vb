@@ -218,6 +218,8 @@ Partial Public Class HSPI
                 myZonegroupTopologyCallback = Nothing
                 myGroupManagementCallback = Nothing
                 myConnectionManagerCallback = Nothing
+                myQueueServiceCallback = Nothing
+                myVirtualLineInCallBack = Nothing
                 MediaServer = Nothing
                 MediaRenderer = Nothing
                 AudioIn = Nothing
@@ -228,6 +230,8 @@ Partial Public Class HSPI
                 AlarmClock = Nothing
                 ZoneGroupTopology = Nothing
                 MusicServices = Nothing
+                QueueService = Nothing
+                VirtualLineIn = Nothing
                 MyHSPIControllerRef = Nothing
                 MyWirelessDockSourcePlayer = Nothing
                 MyWirelessDockDestinationPlayer = Nothing

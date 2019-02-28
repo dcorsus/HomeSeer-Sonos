@@ -30,6 +30,7 @@ Partial Public Class HSPI 'HSMusicAPI
     Public WithEvents myGroupManagementCallback As New myUPnPControlCallback
     Public WithEvents myConnectionManagerCallback As New myUPnPControlCallback
     Public WithEvents myQueueServiceCallback As New myUPnPControlCallback
+    Public WithEvents myVirtualLineInCallback As New myUPnPControlCallback
 
     Private MyUPnPDevice As MyUPnPDevice
     Private MediaServer As MyUPnPDevice = Nothing
@@ -42,6 +43,8 @@ Partial Public Class HSPI 'HSMusicAPI
     Private AlarmClock As MyUPnPService = Nothing
     Private ZoneGroupTopology As MyUPnPService = Nothing
     Private MusicServices As MyUPnPService = Nothing
+    Private QueueService As MyUPnPService = Nothing     ' added 2/24/2019 version 3.1.0.29
+    Private VirtualLineIn As MyUPnPService = Nothing    ' added 2/24/2019 version 3.1.0.29
 
     Private Properties(4) As String
     Public AudioInState(6)
@@ -151,6 +154,7 @@ Partial Public Class HSPI 'HSMusicAPI
     Private MyThirdPartyMediaServicesX As String = ""
     Private MyEnqueuedTransportURI As String = ""
     Private MyEnqueuedTransportURIMetaData As String = ""
+    Private MyQueueServiceLastInfo As String = ""
 
     ' here is more info on how to browse the Sonos Player
     'A: Music Library (organized by id3tags) 'used device spy and type in A: 
@@ -298,6 +302,16 @@ Partial Public Class HSPI 'HSMusicAPI
         Catch ex As Exception
         End Try
         ContentDirectory = Nothing
+        Try ' added 2/24/2019 in v 3.1.0.29
+            If QueueService IsNot Nothing Then QueueService.RemoveCallback()
+        Catch ex As Exception
+        End Try
+        QueueService = Nothing
+        Try ' added 2/24/2019 in v 3.1.0.29
+            If VirtualLineIn IsNot Nothing Then VirtualLineIn.RemoveCallback()
+        Catch ex As Exception
+        End Try
+        VirtualLineIn = Nothing
         MediaServer = Nothing
         MediaRenderer = Nothing
         Try
@@ -637,6 +651,16 @@ Partial Public Class HSPI 'HSMusicAPI
                 If SuperDebug And (RenderingControl IsNot Nothing) Then Log("RenderingControl service found for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
             Catch ex As Exception
             End Try
+            Try ' added 2/24/2019 in v3.1.0.29
+                QueueService = MediaRenderer.Services.Item("urn:sonos-com:serviceId:Queue")
+                If SuperDebug And (QueueService IsNot Nothing) Then Log("Queue service found for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+            Catch ex As Exception
+            End Try
+            Try ' added 2/24/2019 in v3.1.0.29
+                VirtualLineIn = MediaRenderer.Services.Item("urn:upnp-org:serviceId:VirtualLineIn")
+                If SuperDebug And (VirtualLineIn IsNot Nothing) Then Log("VirtualLineIn service found for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+            Catch ex As Exception
+            End Try
         End If
 
         If Not MediaServer Is Nothing Then
@@ -704,6 +728,24 @@ Partial Public Class HSPI 'HSMusicAPI
                 If g_bDebug Then Log("ContentDirectory ControlCallback added for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
             Catch ex As Exception
                 Log("Error in Adding ContentDirectoryControl Call Back for zoneplayer = " & ZoneName & ". Error=" & ex.Message, LogType.LOG_TYPE_ERROR)
+            End Try
+        End If
+
+        If Not QueueService Is Nothing Then  ' added 2/24/2019 in v3.1.0.29
+            Try
+                QueueService.AddCallback(myQueueServiceCallback)
+                If g_bDebug Then Log("QueueService added for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+            Catch ex As Exception
+                Log("Error in Adding QueueService Call Back for zoneplayer = " & ZoneName & ". Error=" & ex.Message, LogType.LOG_TYPE_ERROR)
+            End Try
+        End If
+
+        If Not VirtualLineIn Is Nothing Then  ' added 2/24/2019 in v3.1.0.29
+            Try
+                VirtualLineIn.AddCallback(myVirtualLineInCallback)
+                If g_bDebug Then Log("VirtualLineIn added for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+            Catch ex As Exception
+                Log("Error in Adding VirtualLineIn Call Back for zoneplayer = " & ZoneName & ". Error=" & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
         End If
 
@@ -914,6 +956,16 @@ Partial Public Class HSPI 'HSMusicAPI
                 If SuperDebug And (RenderingControl IsNot Nothing) Then Log("RenderingControl service found for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
             Catch ex As Exception
             End Try
+            Try ' added 2/24/2019 in v3.1.0.29
+                QueueService = MediaRenderer.Services.Item("urn:sonos-com:serviceId:Queue")
+                If SuperDebug And (QueueService IsNot Nothing) Then Log("Queue service found for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+            Catch ex As Exception
+            End Try
+            Try ' added 2/24/2019 in v3.1.0.29
+                VirtualLineIn = MediaRenderer.Services.Item("urn:upnp-org:serviceId:VirtualLineIn")
+                If SuperDebug And (VirtualLineIn IsNot Nothing) Then Log("VirtualLineIn service found for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+            Catch ex As Exception
+            End Try
         End If
 
         If Not MediaServer Is Nothing Then
@@ -980,6 +1032,24 @@ Partial Public Class HSPI 'HSMusicAPI
                 If g_bDebug Then Log("ContentDirectoryControlCallback added for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
             Catch ex As Exception
                 Log("Error in Adding ContentDirectoryControl Call Back for zoneplayer = " & ZoneName & ". Error=" & ex.Message, LogType.LOG_TYPE_ERROR)
+            End Try
+        End If
+
+        If Not QueueService Is Nothing Then  ' added 2/24/2019 in v3.1.0.29
+            Try
+                QueueService.AddCallback(myQueueServiceCallback)
+                If g_bDebug Then Log("QueueService added for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+            Catch ex As Exception
+                Log("Error in Adding QueueService Call Back for zoneplayer = " & ZoneName & ". Error=" & ex.Message, LogType.LOG_TYPE_ERROR)
+            End Try
+        End If
+
+        If Not VirtualLineIn Is Nothing Then  ' added 2/24/2019 in v3.1.0.29
+            Try
+                VirtualLineIn.AddCallback(myVirtualLineInCallback)
+                If g_bDebug Then Log("VirtualLineIn added for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+            Catch ex As Exception
+                Log("Error in Adding VirtualLineIn Call Back for zoneplayer = " & ZoneName & ". Error=" & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
         End If
 
@@ -3133,7 +3203,6 @@ updateHSDevices:
     End Sub
 
 
-
     Private Sub AudioInStateChange(ByVal StateVarName As String, ByVal Value As String) Handles myAudioInCallback.ControlStateChange
         If g_bDebug Then Log("AudioInCallback for ZonePlayer - " & ZoneName & " Statename = " & StateVarName & " Value = " & Value.ToString, LogType.LOG_TYPE_INFO)
         Try
@@ -3567,7 +3636,26 @@ updateHSDevices:
 
     Private Sub QueueServiceStateChange(ByVal StateVarName As String, ByVal Value As String) Handles myQueueServiceCallback.ControlStateChange
         If g_bDebug Then Log("QueueServiceStateChange callback ZonePlayer " & ZoneName & ": Var Name = " & StateVarName & " Value = " & Value.ToString, LogType.LOG_TYPE_INFO)
-        ' ServiceListVersion
+        ' 
+        If StateVarName = "LastChange" Then
+            ' it appears all updates are done through XML
+            If Value <> "" Then
+                MyQueueServiceLastInfo = Value
+                Try
+                    Dim xmlData As XmlDocument = New XmlDocument
+                    xmlData.LoadXml(Value)
+                    ' examples:
+                    ' <Event xmlns="urn:schemas-sonos-com:metadata-1-0/Queue/"><QueueID val="0"><UpdateID val="34"/><Curated val="0"/><QueueOwnerID val=""/></QueueID><QueueID val="5"><UpdateID val="1"/><Curated val="0"/><QueueOwnerID val=""/></QueueID></Event>
+                    ' <Event xmlns="urn:schemas-sonos-com:metadata-1-0/Queue/"><QueueID val="6"><UpdateID val="2"/><QueueOwnerID val="alexa.bridgeAlexa"/></QueueID><QueueID val="5"><UpdateID val="0"/></QueueID></Event>
+                    ' <Event xmlns="urn:schemas-sonos-com:metadata-1-0/Queue/"><QueueID val="6"><UpdateID val="3"/></QueueID></Event>
+                    ' fields of interest are QueueID, QueueOwnerID, UpdateID
+                    ' I wonder when the UpdateID is set to 0 whether that means the queue is released??
+                    ' note !!! there can be more than one node of QueueID
+                Catch ex As Exception
+                    Log("Error in QueueServiceStateChange callback for ZonePlayer " & ZoneName & " with XML = " & Value.ToString & " And Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                End Try
+            End If
+        End If
 
     End Sub
 
@@ -3583,6 +3671,20 @@ updateHSDevices:
 
 
 
+    Private Sub VirtualLineInStateChange(ByVal StateVarName As String, ByVal Value As String) Handles myVirtualLineInCallback.ControlStateChange
+        If g_bDebug Then Log("VirtualLineInStateChange callback ZonePlayer " & ZoneName & ": Var Name = " & StateVarName & " Value = " & Value.ToString, LogType.LOG_TYPE_INFO)
+
+    End Sub
+
+    Private Sub VirtualLineInDied() Handles myVirtualLineInCallback.ControlDied
+        Log("VirtualLineInCallback Callback Died. ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
+        Try
+            Log("UPnP connection to ZonePlayer " & ZoneName & " was lost in VirtualLineInCallback.", LogType.LOG_TYPE_INFO)
+            Disconnect(False)
+        Catch ex As Exception
+            Log("ERROR: Something went wrong in VirtualLineInCallback Callback for ZonePlayer - " & ZoneName & " Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+        End Try
+    End Sub
 
     Private Function GetSeconds(ByVal Time As String) As Integer
         GetSeconds = 0
@@ -5525,7 +5627,74 @@ updateHSDevices:
     End Function
 
 
-    Public Function DestroySonosObject(ByVal ObjectID As String)
+    Public Function BrowseQueue(QueueID As String, ByRef UpdateID As Integer) As String
+        BrowseQueue = ""
+        If g_bDebug Then Log("BrowseQueue called for zoneplayer " & ZoneName, LogType.LOG_TYPE_INFO)
+        If DeviceStatus = "Offline" Or QueueService Is Nothing Then Exit Function
+        Try
+            Dim InArg(2)
+            Dim OutArg(3)
+            InArg(0) = QueueID
+            InArg(1) = "0"  ' StartingIndex
+            InArg(2) = "0"  ' RequestedCount 0 means all
+            ' Output is Result, NumberReturned, TotalMatches, UpdateID
+            QueueService.InvokeAction("Browse", InArg, OutArg)
+            If g_bDebug Then Log("BrowseQueue succesfully called for zoneplayer " & ZoneName & " with Result = " & OutArg(0).ToString & " with NumberReturned = " & OutArg(1).ToString & " with TotalMatched = " & OutArg(2).ToString & " NUpdateId=" & OutArg(3).ToString, LogType.LOG_TYPE_INFO)
+            BrowseQueue = OutArg(0)
+            UpdateID = OutArg(3)
+        Catch ex As Exception
+            If g_bDebug Then Log("Warning in BrowseQueue for zoneplayer = " & ZoneName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_WARNING)
+        End Try
+    End Function
+
+
+    Public Function AddURI(QueueID As Integer, UpdateID As Integer, ByVal EnqueuedURI As String, ByVal EnqueuedMetaData As String, ByVal DesiredFirstTrackNumber As Integer, ByVal EnqueuedAsNext As Boolean) As Integer
+        AddURI = 0
+        If g_bDebug Then Log("AddURI called for zoneplayer " & ZoneName & " with QueueID = " & QueueID & " with UpdateID = " & UpdateID & " with EnqueuedURI = " & EnqueuedURI & " EnqueuedMetaData=" & EnqueuedMetaData & " DesiredFirstTrackNumber=" & DesiredFirstTrackNumber.ToString & " EnqueuedAsNext=" & EnqueuedAsNext.ToString, LogType.LOG_TYPE_INFO)
+        If DeviceStatus = "Offline" Or QueueService Is Nothing Then Exit Function
+        Try
+            Dim InArg(5)
+            Dim OutArg(3)
+            InArg(0) = QueueID
+            InArg(1) = UpdateID
+            InArg(2) = EnqueuedURI
+            InArg(3) = EnqueuedMetaData
+            InArg(4) = DesiredFirstTrackNumber
+            InArg(5) = EnqueuedAsNext
+            QueueService.InvokeAction("AddURI", InArg, OutArg)
+            If g_bDebug Then Log("AddURI succesfully called for zoneplayer " & ZoneName & " with FirstTrackNumberEnqueued = " & OutArg(0).ToString & " with NumTracksAdded = " & OutArg(1).ToString & " with NewQueueLength = " & OutArg(2).ToString & " NewUpdateId=" & OutArg(3).ToString, LogType.LOG_TYPE_INFO)
+            MyQueueHasChanged = True
+            AddURI = OutArg(3)
+        Catch ex As Exception
+            Log("ERROR in AddURI for zoneplayer = " & ZoneName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("AddURI called for zoneplayer " & ZoneName & " with QueueID = " & QueueID & " with UpdateID = " & UpdateID & " with EnqueuedURI = " & EnqueuedURI & " EnqueuedMetaData=" & EnqueuedMetaData & " DesiredFirstTrackNumber=" & DesiredFirstTrackNumber.ToString & " EnqueuedAsNext=" & EnqueuedAsNext.ToString, LogType.LOG_TYPE_ERROR)
+            AddURI = 0
+        End Try
+    End Function
+
+    Public Function CreateQueue(QueueOwnerID As String, QueueOwnerContext As String, ByVal QueuePolicy As String) As Integer
+        CreateQueue = 0
+        If g_bDebug Then Log("CreatQueue called for zoneplayer " & ZoneName & " with QueueOwnerID = " & QueueOwnerID & " with QueueOwnerContext = " & QueueOwnerContext & " with QueuePolicy = " & QueuePolicy, LogType.LOG_TYPE_INFO)
+        If DeviceStatus = "Offline" Or QueueService Is Nothing Then Exit Function
+        Try
+            Dim InArg(2)
+            Dim OutArg(0)
+            InArg(0) = QueueOwnerID
+            InArg(1) = QueueOwnerContext
+            InArg(2) = QueuePolicy
+            QueueService.InvokeAction("CreateQueue", InArg, OutArg)
+            If g_bDebug Then Log("CreateQueue succesfully called for zoneplayer " & ZoneName & " with QueueID = " & OutArg(0).ToString, LogType.LOG_TYPE_INFO)
+            MyQueueHasChanged = True
+            CreateQueue = OutArg(0)
+        Catch ex As Exception
+            Log("ERROR in CreateQueue for zoneplayer = " & ZoneName & " with UPNP Error = " & UPnP_Error(Err.Number) & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("CreatQueue called for zoneplayer " & ZoneName & " with QueueOwnerID = " & QueueOwnerID & " with QueueOwnerContext = " & QueueOwnerContext & " with QueuePolicy = " & QueuePolicy, LogType.LOG_TYPE_ERROR)
+            CreateQueue = 0
+        End Try
+    End Function
+
+
+    Public Function DestroySonosObject(ByVal ObjectID As String) As String
         DestroySonosObject = ""
         If DeviceStatus = "Offline" Then Exit Function
         If g_bDebug Then Log("DestroySonosObject called with ObjectID = " & ObjectID & " for Zone = " & ZoneName, LogType.LOG_TYPE_INFO)
@@ -6000,6 +6169,14 @@ updateHSDevices:
                                         SaveQueueFlag = True
                                     End If
                                     If MySWVersion < 420 Then wait(0.5) ' needed to let all players sync. Changed from .25 to .50 in v.92 because problem still appears
+                                Else    ' added 2/24/2019 in v3.1.0.29
+                                    ' this means the player is playing something from their non standard queue like for example playing through Alexa!
+                                    ' I will have to save the queue the old way, including restoring it using the new queue service as opposed to functions under AVTransport
+                                    ' dcorAlexa
+                                    Dim UpdateId As Integer = 0
+                                    LinkgroupInfo.MySavedQueue = BrowseQueue(QueueNbr, UpdateId)
+                                    LinkgroupInfo.MySavedTrackInfo(3) = QueueParts(0)  ' remove the queueID , which will be added when restored AFTER a new queue was created
+                                    SaveQueueFlag = True
                                 End If
                             End If
                         End If
@@ -6083,7 +6260,7 @@ updateHSDevices:
             End If
         End If
 
-        PlayURI(LinkgroupInfo.MySavedTrackInfo(3), LinkgroupInfo.MySavedTrackInfo(12))
+        If LinkgroupInfo.MySavedQueue = "" Then PlayURI(LinkgroupInfo.MySavedTrackInfo(3), LinkgroupInfo.MySavedTrackInfo(12))  ' not sure why I do this before I restore the queue ???
 
         wait(0.25) ' give it some breathing room
 
@@ -6102,20 +6279,36 @@ updateHSDevices:
             Catch ex As Exception
                 Log("Error in RestoreCurrentTrackInfo while restoring queueinfo for zoneplayer " & ZoneName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
-        ElseIf LinkgroupInfo.MySavedSavedQueueFlag And Not LinkgroupInfo.MySavedQueue Is Nothing Then
+        ElseIf LinkgroupInfo.MySavedSavedQueueFlag And LinkgroupInfo.MySavedQueue <> "" Then ' totally rewritten 2/26/2019 in v3.1.0.29
             ' we also need to restore the queue info
-            If g_bDebug Then Log("RestoreCurrentTrackInfo is restored a queue from memory for zoneplayer " & ZoneName, LogType.LOG_TYPE_INFO)
-            ClearQueue()
-            Dim QueueIndex As Integer = 0
+            If g_bDebug Then Log("RestoreCurrentTrackInfo is restoring a queue from memory for zoneplayer " & ZoneName, LogType.LOG_TYPE_INFO)
+            Dim QueueURI As String = ""
             Try
-                For QueueIndex = 0 To UBound(LinkgroupInfo.MySavedQueue, 1) - 1
-                    AddTrackToQueue(LinkgroupInfo.MySavedQueue(QueueIndex, 0), LinkgroupInfo.MySavedQueue(QueueIndex, 1), QueueIndex + 1, True)
-                Next
+                xmlData.LoadXml(LinkgroupInfo.MySavedQueue)
+                Dim Items As XmlNodeList = Nothing
+                Items = xmlData.GetElementsByTagName("item")
+                If Items IsNot Nothing Then
+                    ' creata a new queue 
+                    Dim UpdateID As Integer = 1
+                    Dim QueueID As Integer = CreateQueue("MediaController", "", "")
+                    If QueueID <> 0 Then
+                        For Each Item As XmlNode In Items
+                            Dim ItemxmlData As New XmlDocument
+                            ItemxmlData.LoadXml(Item.OuterXml)
+                            QueueURI = ItemxmlData.GetElementsByTagName("res").Item(0).InnerText
+                            UpdateID = AddURI(QueueID, UpdateID, QueueURI, ItemxmlData.OuterXml, 0, True)
+                            If UpdateID = 0 Then Exit For
+                        Next
+                        PlayURI(LinkgroupInfo.MySavedTrackInfo(3) & "#" & QueueID.ToString, "")
+                    Else
+                        If g_bDebug Then Log("Error in RestoreCurrentTrackInfo for zoneplayer " & ZoneName & ". Can't create a Queue", LogType.LOG_TYPE_ERROR)
+                    End If
+                End If
             Catch ex As Exception
-                Log("Error 1 in RestoreCurrentTrackInfo for zoneplayer " & ZoneName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                Log("Error in RestoreCurrentTrackInfo for zoneplayer " & ZoneName & " restoring queue from memory with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
         End If
-        If Mid(LinkgroupInfo.MySavedTrackInfo(3), 1, 15) = "x-rincon-queue:" Then ' And UCase(LinkgroupInfo.MySavedTransportState) <> "STOPPED" And UCase(LinkgroupInfo.MySavedTransportState) <> "STOP" Then
+        If Mid(LinkgroupInfo.MySavedTrackInfo(3), 1, 15) = "x-rincon-queue:" Then
             If LinkgroupInfo.MySavedTrackInfo(7) <> "" And LinkgroupInfo.MySavedTrackInfo(7) <> "0" Then
                 SeekTrack(LinkgroupInfo.MySavedTrackInfo(7))
                 'End If
@@ -11022,7 +11215,7 @@ Public Class SavedLinkInfo
     Public MySavedTrackInfo
     Public MySavedQueuePosition As Integer = 0
     Public MySavedTransportState As String = ""
-    Public MySavedQueue(,)
+    Public MySavedQueue As String = ""
     Public MySavedQueueObjectID As String = ""
     Public MySavedMasterVolumeLevel As Integer = 0
     Public MySavedMuteState As Boolean = False
@@ -11053,7 +11246,7 @@ Public Class SavedLinkInfo
         MySavedTrackInfo = {"", "", "", "", "", "", "", "0", "", "", "False", "", ""}
         MySavedQueuePosition = 0
         MySavedTransportState = ""
-        MySavedQueue = Nothing
+        MySavedQueue = ""
         MySavedQueueObjectID = ""
         MySavedMasterVolumeLevel = 0
         MySavedMuteState = False
