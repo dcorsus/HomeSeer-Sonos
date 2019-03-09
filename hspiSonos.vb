@@ -344,12 +344,14 @@ Public Class HSPI
         PluginIPPort = hs.GetINISetting("Settings", "gWebSvrPort", "")
         'Dim Ethernetports As Dictionary(Of String, String) = GetEthernetPorts() ' test dcor
         Dim HSServerIPBinding = hs.GetINISetting("Settings", "gServerAddressBind", "")
-        If HSServerIPBinding.ToLower <> "(no binding)" Then
-            ' HS has a non default setting
-            If HSServerIPBinding = PlugInIPAddress Then
-                ' all cool here
-            Else
-                If g_bDebug Then Log("Warning in InitIO for Instance = " & instance & " received (" & PlugInIPAddress & "), which is a different IP adress from it's server binding (" & HSServerIPBinding & ")", LogType.LOG_TYPE_WARNING)
+        If HSServerIPBinding <> "" Then
+            If HSServerIPBinding.ToLower <> "(no binding)" Then
+                ' HS has a non default setting
+                If HSServerIPBinding = PlugInIPAddress Then
+                    ' all cool here
+                Else
+                    If g_bDebug Then Log("Warning in InitIO for Instance = " & instance & " received (" & PlugInIPAddress & "), which is a different IP adress from it's server binding (" & HSServerIPBinding & ")", LogType.LOG_TYPE_WARNING)
+                End If
             End If
         End If
         If ServerIPAddress <> "" Then
