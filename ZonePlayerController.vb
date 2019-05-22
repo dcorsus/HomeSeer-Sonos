@@ -5135,6 +5135,13 @@ updateHSDevices:
                             PlayURI("x-rincon-queue:" & GetUDN() & "#0", "")
                             PlayURI = "OK"
                             Exit Function
+                        ElseIf UPnPClass.ToUpper = "#PLAYLISTVIEW" Then ' this case was added to support Apple Music Playlists which have class = object.container.playlistContainer.#PlaylistView
+                            ' added 5/22/2019 in v3.1.0.30
+                            ClearQueue()
+                            AddTrackToQueue(URI, MetaData, 0, True)
+                            PlayURI("x-rincon-queue:" & GetUDN() & "#0", "")
+                            PlayURI = "OK"
+                            Exit Function
                         End If
                     Catch ex As Exception
                     End Try
@@ -10165,6 +10172,8 @@ updateHSDevices:
     Private Function GetPicture(ByVal url As String) As Image
         ' Get the picture at a given URL.
         Dim web_client As New WebClient()
+        web_client.UseDefaultCredentials = True                         ' added 5/2/2019
+        ' web_client.Credentials = CredentialCache.DefaultCredentials     ' added 5/2/2019
         GetPicture = Nothing
         Try
             url = Trim(url)
