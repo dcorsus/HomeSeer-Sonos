@@ -1927,7 +1927,7 @@ Partial Public Class HSPI 'HSMusicAPI
     Private Sub CreateOnOffTogglePairs(HSRef As Integer, DeviceType As DeviceInfoIndex)
         hs.DeviceVSP_ClearAll(HSRef, True)
         Dim Pair As VSPair
-                Dim GraphicsPair As VGPair
+        Dim GraphicsPair As VGPair
 
         Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
         Pair.PairType = VSVGPairType.SingleValue
@@ -2183,8 +2183,8 @@ Partial Public Class HSPI 'HSMusicAPI
 
 
     Public Sub TreatSetIOEx(CC As CAPIControl)
-        If g_bDebug Then Log("TreatSetIOEx called for Zone = " & ZoneName & " with  Ref = " & CC.Ref.ToString & ", Index " & CC.CCIndex.ToString & ", controlFlag = " & CC.ControlFlag.ToString & _
-                 ", ControlString" & CC.ControlString.ToString & ", ControlType = " & CC.ControlType.ToString & ", ControlValue = " & CC.ControlValue.ToString & _
+        If g_bDebug Then Log("TreatSetIOEx called for Zone = " & ZoneName & " with  Ref = " & CC.Ref.ToString & ", Index " & CC.CCIndex.ToString & ", controlFlag = " & CC.ControlFlag.ToString &
+                 ", ControlString" & CC.ControlString.ToString & ", ControlType = " & CC.ControlType.ToString & ", ControlValue = " & CC.ControlValue.ToString &
                   ", Label = " & CC.Label.ToString, LogType.LOG_TYPE_INFO)
         Dim SonosPlayer As HSPI = Me
         If ZoneModel = "WD100" Then
@@ -2368,7 +2368,7 @@ Partial Public Class HSPI 'HSMusicAPI
     End Sub
 
 
-    
+
     Private Sub DockedDeviceCallbackDeviceFound(ByVal pDevice As MyUPnPDevice)
         Log("Callback received for Docked ZonePlayer " & ZoneName & " with device name = " & pDevice.UniqueDeviceName & " and Model = " & pDevice.ModelNumber, LogType.LOG_TYPE_INFO)
         If Mid(pDevice.UniqueDeviceName, 1, 16) <> "uuid:DOCKRINCON_" Then
@@ -5170,7 +5170,7 @@ updateHSDevices:
             Catch ex As Exception
             End Try
         End If
-      
+
         Try
             Dim InArg(2)
             Dim OutArg(0)
