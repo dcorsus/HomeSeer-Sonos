@@ -223,7 +223,7 @@ Class PlayerControl
             If ClientID <> "" Then MyClientID = "?clientid=" & ClientID Else MyClientID = ""
 
             ButTV.visible = False
-            If (ZoneModel = "S9") Or (ZoneModel = "S11") Or (ZoneModel = "S14") Then
+            If MusicAPI.CheckPlayerCanPlayTV(ZoneModel) Then   ' changed on 7/12/2019 in v3.1.0.31
                 ButTV.visible = True
             ElseIf Not MusicAPI.CheckPlayerIsPairable(ZoneModel) Then
                 ButPair.visible = False

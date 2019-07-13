@@ -1214,99 +1214,120 @@ Partial Public Class HSPI 'HSMusicAPI
         Try
             xmlData.LoadXml(inVar.ToString)
         Catch ex As Exception
-            Log("Error in  ProcessZoneGroupState loading xml for ZonePlayer - " & ZoneName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("Error in ProcessZoneGroupState loading xml for ZonePlayer - " & ZoneName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Sub
         End Try
-        If xmlData.HasChildNodes Then
-            Try
-                'Get a list of all the child elements
-                Dim nodelist As XmlNodeList = xmlData.DocumentElement.ChildNodes
-                If nodelist Is Nothing Then Exit Try
-                If nodelist.Count = 0 Then Exit Try
-                'Parse through all nodes
-                For Each outerNode As XmlNode In nodelist
-                    If outerNode.Name.ToUpper = "ZONEGROUP" Then
-                        Try
-                            'Log("ZonePlayer = " & ZoneName & " ----->ZoneGroup Coordinator = " & outerNode.Attributes("Coordinator").Value & " ID = " & outerNode.Attributes("ID").Value, LogType.LOG_TYPE_INFO)
-                        Catch ex As Exception
-                        End Try
-                        Dim ZoneGroupCoordinatorUDN As String = ""
-                        Try
-                            ZoneGroupCoordinatorUDN = outerNode.Attributes("Coordinator").Value
-                        Catch ex As Exception
-                        End Try
-                        If outerNode.HasChildNodes Then
-                            For Each Level1Node As XmlNode In outerNode.ChildNodes
-                                Dim ZoneGroupMember As String = ""
-                                If Level1Node.Name.ToUpper = "ZONEGROUPMEMBER" Then
+        Dim ZoneGroupsList As XmlNodeList = Nothing
+        Dim ZoneGroupList As XmlNode = Nothing
+        Try ' added 7/12/2019 in V3.1.0.31
+            ZoneGroupsList = xmlData.DocumentElement.GetElementsByTagName("ZoneGroups") ' changed on 7/12/2019 in V3.1.0.31 from "ChildNodes"
+        Catch ex As Exception
+            Log("Error in ProcessZoneGroupState loading ZoneGroups xml for ZonePlayer - " & ZoneName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Exit Sub
+        End Try
+        If ZoneGroupsList Is Nothing Then
+            Log("Error in ProcessZoneGroupState there are no ZoneGroups in xml for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_ERROR)
+            Exit Sub
+        End If
+        Try
+            ZoneGroupList = ZoneGroupsList.Item(0)
+            ZoneGroupsList = ZoneGroupList.ChildNodes()
+        Catch ex As Exception
+            Log("Error in ProcessZoneGroupState finding ZoneGroups in xml for ZonePlayer - " & ZoneName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Exit Sub
+        End Try
+        If ZoneGroupList Is Nothing Then
+            Log("Error in ProcessZoneGroupState there is no ZoneGroup in xml for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_ERROR)
+            Exit Sub
+        End If
+
+        Try
+            If ZoneGroupsList.Count = 0 Then Exit Try
+            'Parse through all nodes
+            For Each outerNode As XmlNode In ZoneGroupsList
+                If outerNode.Name.ToUpper = "ZONEGROUP" Then
+                    Try
+                        If SuperDebug Then Log("ZonePlayer = " & ZoneName & " ProcessZoneGroupState ----->ZoneGroup Coordinator = " & outerNode.Attributes("Coordinator").Value & " ID = " & outerNode.Attributes("ID").Value, LogType.LOG_TYPE_INFO)
+                    Catch ex As Exception
+                    End Try
+                    Dim ZoneGroupCoordinatorUDN As String = ""
+                    Try
+                        ZoneGroupCoordinatorUDN = outerNode.Attributes("Coordinator").Value
+                    Catch ex As Exception
+                    End Try
+                    If outerNode.HasChildNodes Then
+                        For Each Level1Node As XmlNode In outerNode.ChildNodes
+                            Dim ZoneGroupMember As String = ""
+                            If Level1Node.Name.ToUpper = "ZONEGROUPMEMBER" Then
+                                Try
+                                    ZoneGroupMember = Level1Node.Attributes("UUID").Value
+                                    If SuperDebug Then Log("ProcessZoneGroupState ---------->ZoneGroupMember UUID = " & Level1Node.Attributes("UUID").Value, LogType.LOG_TYPE_INFO)
+                                Catch ex As Exception
+                                End Try
+                                Dim HTSatChanMapSet As String = ""
+                                Dim ChannelMapSet As String = ""
+                                If ZoneGroupMember = UDN Then
                                     Try
-                                        ZoneGroupMember = Level1Node.Attributes("UUID").Value
-                                        'Log("---------->ZoneGroupMember UUID = " & InnerNode.Attributes("UUID").Value, LogType.LOG_TYPE_INFO)
+                                        HTSatChanMapSet = Level1Node.Attributes("HTSatChanMapSet").Value
                                     Catch ex As Exception
                                     End Try
-                                    Dim HTSatChanMapSet As String = ""
-                                    Dim ChannelMapSet As String = ""
-                                    If ZoneGroupMember = UDN Then
-                                        Try
-                                            HTSatChanMapSet = Level1Node.Attributes("HTSatChanMapSet").Value
-                                        Catch ex As Exception
-                                        End Try
-                                        Try
-                                            ChannelMapSet = Level1Node.Attributes("ChannelMapSet").Value
-                                        Catch ex As Exception
-                                        End Try
-                                        If MyHTSatChanMapSet <> HTSatChanMapSet Then
-                                            PlaybarPairingChanged(HTSatChanMapSet)
-                                            If g_bDebug Then Log("ProcessZoneGroupState for ZonePlayer = " & ZoneName & " and UDN = " & UDN & " updated HTSatChanMapSet = " & HTSatChanMapSet, LogType.LOG_TYPE_INFO)
-                                        End If
-                                        If MyChannelMapSet <> ChannelMapSet Then
-                                            ZonePairingChanged(ChannelMapSet)
-                                            If g_bDebug Then Log("ProcessZoneGroupState for ZonePlayer = " & ZoneName & " and UDN = " & UDN & " updated ChannelMapSet = " & ChannelMapSet, LogType.LOG_TYPE_INFO)
-                                        End If
+                                    Try
+                                        ChannelMapSet = Level1Node.Attributes("ChannelMapSet").Value
+                                    Catch ex As Exception
+                                    End Try
+                                    If SuperDebug Then Log("ProcessZoneGroupState ------------>matching UDNs at Memberlevel with HTSatChanMapSet = " & HTSatChanMapSet & " and ChannelMapSet = " & ChannelMapSet, LogType.LOG_TYPE_INFO)
+                                    If MyHTSatChanMapSet <> HTSatChanMapSet Then
+                                        PlaybarPairingChanged(HTSatChanMapSet)
+                                        If g_bDebug Then Log("ProcessZoneGroupState for ZonePlayer = " & ZoneName & " and UDN = " & UDN & " updated HTSatChanMapSet = " & HTSatChanMapSet, LogType.LOG_TYPE_INFO)
                                     End If
-                                    If Level1Node.HasChildNodes Then
-                                        For Each Level2Node As XmlNode In Level1Node.ChildNodes
-                                            If Level2Node.Name.ToUpper = "SATELLITE" Then
-                                                Dim SatelliteZoneMember As String = ""
+                                    If MyChannelMapSet <> ChannelMapSet Then
+                                        ZonePairingChanged(ChannelMapSet)
+                                        If g_bDebug Then Log("ProcessZoneGroupState for ZonePlayer = " & ZoneName & " and UDN = " & UDN & " updated ChannelMapSet = " & ChannelMapSet, LogType.LOG_TYPE_INFO)
+                                    End If
+                                End If
+                                If Level1Node.HasChildNodes Then
+                                    For Each Level2Node As XmlNode In Level1Node.ChildNodes
+                                        If Level2Node.Name.ToUpper = "SATELLITE" Then
+                                            Dim SatelliteZoneMember As String = ""
+                                            Try
+                                                SatelliteZoneMember = Level2Node.Attributes("UUID").Value
+                                                If SuperDebug Then Log("ProcessZoneGroupState ---------->ZoneGroupMember UUID = " & Level2Node.Attributes("UUID").Value, LogType.LOG_TYPE_INFO)
+                                            Catch ex As Exception
+                                            End Try
+                                            If SatelliteZoneMember = UDN Then
                                                 Try
-                                                    SatelliteZoneMember = Level2Node.Attributes("UUID").Value
-                                                    'Log("---------->ZoneGroupMember UUID = " & InnerNode.Attributes("UUID").Value, LogType.LOG_TYPE_INFO)
+                                                    HTSatChanMapSet = Level2Node.Attributes("HTSatChanMapSet").Value
                                                 Catch ex As Exception
                                                 End Try
-                                                If SatelliteZoneMember = UDN Then
-                                                    Try
-                                                        HTSatChanMapSet = Level2Node.Attributes("HTSatChanMapSet").Value
-                                                    Catch ex As Exception
-                                                    End Try
-                                                    Try
-                                                        ChannelMapSet = Level2Node.Attributes("ChannelMapSet").Value
-                                                    Catch ex As Exception
-                                                    End Try
-                                                    If MyHTSatChanMapSet <> HTSatChanMapSet Then
-                                                        PlaybarPairingChanged(HTSatChanMapSet)
-                                                        If g_bDebug Then Log("ProcessZoneGroupState for ZonePlayer = " & ZoneName & " and UDN = " & UDN & " updated HTSatChanMapSet = " & HTSatChanMapSet, LogType.LOG_TYPE_INFO)
-                                                    End If
-                                                    If MyChannelMapSet <> ChannelMapSet Then
-                                                        ZonePairingChanged(ChannelMapSet)
-                                                        If g_bDebug Then Log("ProcessZoneGroupState for ZonePlayer = " & ZoneName & " and UDN = " & UDN & " updated ChannelMapSet = " & ChannelMapSet, LogType.LOG_TYPE_INFO)
-                                                    End If
+                                                Try
+                                                    ChannelMapSet = Level2Node.Attributes("ChannelMapSet").Value
+                                                Catch ex As Exception
+                                                End Try
+                                                If SuperDebug Then Log("ProcessZoneGroupState ------------>matching UDNs at Sattelite level with HTSatChanMapSet = " & HTSatChanMapSet & " and ChannelMapSet = " & ChannelMapSet, LogType.LOG_TYPE_INFO)
+                                                If MyHTSatChanMapSet <> HTSatChanMapSet Then
+                                                    PlaybarPairingChanged(HTSatChanMapSet)
+                                                    If g_bDebug Then Log("ProcessZoneGroupState for ZonePlayer = " & ZoneName & " and UDN = " & UDN & " updated HTSatChanMapSet = " & HTSatChanMapSet, LogType.LOG_TYPE_INFO)
                                                 End If
-                                            Else
-                                                If g_bDebug Then Log("Warning in ProcessZoneGroupState for ZonePlayer = " & ZoneName & " and UDN = " & UDN & " found unknown Level2Node = " & Level2Node.Name, LogType.LOG_TYPE_WARNING)
+                                                If MyChannelMapSet <> ChannelMapSet Then
+                                                    ZonePairingChanged(ChannelMapSet)
+                                                    If g_bDebug Then Log("ProcessZoneGroupState for ZonePlayer = " & ZoneName & " and UDN = " & UDN & " updated ChannelMapSet = " & ChannelMapSet, LogType.LOG_TYPE_INFO)
+                                                End If
                                             End If
-                                        Next
-                                    End If
-                                Else
-                                    If g_bDebug Then Log("Warning in ProcessZoneGroupState for ZonePlayer = " & ZoneName & " and UDN = " & UDN & " found unknown Level1Node = " & Level1Node.Name, LogType.LOG_TYPE_WARNING)
+                                        Else
+                                            If g_bDebug Then Log("Warning in ProcessZoneGroupState for ZonePlayer = " & ZoneName & " and UDN = " & UDN & " found unknown Level2Node = " & Level2Node.Name, LogType.LOG_TYPE_WARNING)
+                                        End If
+                                    Next
                                 End If
-                            Next
-                        End If
+                            Else
+                                If g_bDebug Then Log("Warning in ProcessZoneGroupState for ZonePlayer = " & ZoneName & " and UDN = " & UDN & " found unknown Level1Node = " & Level1Node.Name, LogType.LOG_TYPE_WARNING)
+                            End If
+                        Next
                     End If
-                Next
-            Catch ex As Exception
-                Log("Error in ProcessZoneGroupState for ZonePlayer = " & ZoneName & " processing XML with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
-            End Try
-        End If
+                End If
+            Next
+        Catch ex As Exception
+            Log("Error in ProcessZoneGroupState for ZonePlayer = " & ZoneName & " processing XML with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+        End Try
         MyZoneGroupState = inVar
     End Sub
 
@@ -3086,7 +3107,7 @@ updateHSDevices:
                 ' this could indicate that the zone name has changed.
                 ' Two posibilities
                 ' a/ Name Changed by user
-                ' b/ this is an S5 player and it was just paired or unpaired
+                ' b/ this is an Sxx player and it was just paired or unpaired
                 'If ZoneName <> Value.ToString Then ' this was moved to the ZoneNameChanged procedure
                 'If g_bDebug Then Log("DevicePropertiesStateChange: Zone Name Changed from = " & ZoneName & " to " & Value.ToString, LogType.LOG_TYPE_INFO)
                 'PlayChangeNotifyCallback(player_status_change.ConfigChange, player_state_values.ZoneName)
@@ -4891,7 +4912,7 @@ updateHSDevices:
     Public Sub PlayTV()
         If g_bDebug Then Log("PlayTV called for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
         If DeviceStatus = "Offline" Then Exit Sub
-        If (ZoneModel <> "S9") And (ZoneModel <> "S11") And (ZoneModel <> "S14") Then Exit Sub
+        If Not CheckPlayerCanPlayTV(ZoneModel) Then Exit Sub ' changed on 7/12/2019 in v3.1.0.31
         PlayURI("x-sonos-htastream:" & UDN & ":spdif", "", False)
     End Sub
 
@@ -5131,13 +5152,6 @@ updateHSDevices:
                         End If
                         Dim UPnPClass As String = ProcessClassInfo(MetaDataDoc.GetElementsByTagName("upnp:class").Item(0).InnerText)
                         If UPnPClass.ToUpper = "MUSICTRACK" Or UPnPClass.ToUpper = "" Or UPnPClass.ToUpper = "MUSICALBUM" Then
-                            AddTrackToQueue(URI, MetaData, 0, True)
-                            PlayURI("x-rincon-queue:" & GetUDN() & "#0", "")
-                            PlayURI = "OK"
-                            Exit Function
-                        ElseIf UPnPClass.ToUpper = "#PLAYLISTVIEW" Then ' this case was added to support Apple Music Playlists which have class = object.container.playlistContainer.#PlaylistView
-                            ' added 5/22/2019 in v3.1.0.30
-                            ClearQueue()
                             AddTrackToQueue(URI, MetaData, 0, True)
                             PlayURI("x-rincon-queue:" & GetUDN() & "#0", "")
                             PlayURI = "OK"
@@ -6267,6 +6281,12 @@ updateHSDevices:
             End If
         End If
 
+        ' Some folks have been complaining that they have a brief high volume restored track afer an announcement is over.
+        ' The volume adjustment was adjusted later in the flow but I'm going to add it here. 7/9/2019 version 3.1.0.31
+        ' I believe it was done later in the flow because I had issues where I was setting the volume and the player wasn't unlinked yet, causing the command to be refused.
+        SetVolumeLevel("Master", LinkgroupInfo.MySavedMasterVolumeLevel) ' restore volume
+        SetMute("Master", LinkgroupInfo.MySavedMuteState)
+
         If LinkgroupInfo.MySavedQueue = "" Then PlayURI(LinkgroupInfo.MySavedTrackInfo(3), LinkgroupInfo.MySavedTrackInfo(12))  ' not sure why I do this before I restore the queue ???
 
         wait(0.25) ' give it some breathing room
@@ -6286,7 +6306,7 @@ updateHSDevices:
             Catch ex As Exception
                 Log("Error in RestoreCurrentTrackInfo while restoring queueinfo for zoneplayer " & ZoneName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
-        ElseIf LinkgroupInfo.MySavedSavedQueueFlag And LinkgroupInfo.MySavedQueue <> "" Then ' totally rewritten 2/26/2019 in v3.1.0.29
+        ElseIf LinkgroupInfo.MySavedSavedQueueFlag And LinkgroupInfo.MySavedQueue <> "" Then ' totally rewritten 2/26/2019 in v3.1.0f
             ' we also need to restore the queue info
             If g_bDebug Then Log("RestoreCurrentTrackInfo is restoring a queue from memory for zoneplayer " & ZoneName, LogType.LOG_TYPE_INFO)
             Dim QueueURI As String = ""
@@ -10172,8 +10192,6 @@ updateHSDevices:
     Private Function GetPicture(ByVal url As String) As Image
         ' Get the picture at a given URL.
         Dim web_client As New WebClient()
-        web_client.UseDefaultCredentials = True                         ' added 5/2/2019
-        ' web_client.Credentials = CredentialCache.DefaultCredentials     ' added 5/2/2019
         GetPicture = Nothing
         Try
             url = Trim(url)

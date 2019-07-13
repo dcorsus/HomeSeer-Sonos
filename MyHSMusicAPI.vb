@@ -3153,7 +3153,6 @@ Partial Public Class HSPI
                 Dim ZoneNameInfos As Object
                 ZoneNameInfos = Split(ZoneInfos, ";:;")
                 If ZoneNameInfos(1) = PlayerType And ZoneNameInfos(0) <> ZonePlayerName Then
-                    '  If ZoneNameInfos(1) = "S5" And ZoneNameInfos(0) <> ZonePlayerName Then
                     ReDim Preserve MyPlayerList(Index)
                     MyPlayerList(Index) = ZoneNameInfos(0)
                     Index = Index + 1

@@ -1169,7 +1169,7 @@ Public Class HSPI
                     Dim PlayerUDN As String = HSDevice.ZonePlayerControllerRef.UDN
                     If HSDevice.ZonePlayerControllerRef.ZoneModel.ToUpper <> "SUB" Then
                         If CommandIndex = "Play TV" Then
-                            If (HSDevice.ZonePlayerControllerRef.ZoneModel = "S9") Or (HSDevice.ZonePlayerControllerRef.ZoneModel = "S11") Or (HSDevice.ZonePlayerControllerRef.ZoneModel = "S14") Then
+                            If CheckPlayerCanPlayTV(HSDevice.ZonePlayerControllerRef.ZoneModel) Then  ' changed 7/12/2019. Moved check into ONE place
                                 PlayerList.AddItem(Playername, PlayerUDN, PlayerIndex = PlayerUDN)
                             End If
                         Else
@@ -1374,7 +1374,7 @@ Public Class HSPI
                             ' special case, just find the first player with a reference
                             Dim Playername As String = HSDevice.ZonePlayerControllerRef.ZoneName
                             Dim PlayerUDN As String = HSDevice.ZonePlayerControllerRef.UDN
-                            If (HSDevice.ZonePlayerControllerRef.ZoneModel.ToUpper <> "SUB") And (HSDevice.ZonePlayerControllerRef.ZoneModel <> "WD100") And (HSDevice.ZonePlayerControllerRef.ZoneModel <> "S1") And (HSDevice.ZonePlayerControllerRef.ZoneModel <> "S12") And (HSDevice.ZonePlayerControllerRef.ZoneModel <> "S13") And (HSDevice.ZonePlayerControllerRef.ZoneModel <> "S3") Then
+                            If CheckPlayerHasAudioInput(HSDevice.ZonePlayerControllerRef.ZoneModel.ToUpper) Then ' Changed on 7/12/2019 in v3.1.0.31 
                                 AudioInputPlayerList.AddItem(Playername, PlayerUDN, AudioInputPlayer = PlayerUDN)
                             End If
                         End If
@@ -2426,6 +2426,7 @@ Public Class HSPI
                 CommandList.AddItem("isOnline", "isOnline", CommandIndex = "isOnline")
                 CommandList.AddItem("isOffline", "isOffline", CommandIndex = "isOffline")
                 CommandList.AddItem("isPlayingAnnouncement", "isPlayingAnnouncement", CommandIndex = "isPlayingAnnouncement")
+                CommandList.AddItem("isNotPlayingAnnouncement", "isNotPlayingAnnouncement", CommandIndex = "isNotPlayingAnnouncement")  ' added 7/12/2019 in v3.1.0.31
         End Select
 
         For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
@@ -2455,7 +2456,7 @@ Public Class HSPI
         stb.Append("Select Command:")
         stb.Append(CommandList.Build)
 
-        If CommandIndex = "Sonos Announcement Start" Or CommandIndex = "Sonos Announcement Stop" Or CommandIndex = "isPlayingAnnouncement" Then
+        If CommandIndex = "Sonos Announcement Start" Or CommandIndex = "Sonos Announcement Stop" Or CommandIndex = "isPlayingAnnouncement" Or CommandIndex = "isNotPlayingAnnouncement" Then   ' added 7/12/2019 in v3.1.0.31
             stb.Append("Select Linkgroup:")
             stb.Append(LinkgroupList.Build)
         ElseIf CommandIndex <> "" Then
@@ -2579,7 +2580,7 @@ Public Class HSPI
                         stb.Append(CommandPrefix & " Condition - " & Command & " = " & InputBox & " for player - " & PlayerName)
                     Case "hasArtist"
                         stb.Append(CommandPrefix & " Condition - " & Command & " = " & InputBox & " for player - " & PlayerName)
-                    Case "isPlayingAnnouncement"
+                    Case "isPlayingAnnouncement", "isNotPlayingAnnouncement" ' added 7/12/2019 in v3.1.0.31
                         stb.Append(CommandPrefix & " Condition - " & Command & " = " & InputBox & " for Linkgroup - " & Linkgroup)
                     Case Else
                         stb.Append(CommandPrefix & " Condition - " & Command & " for player - " & PlayerName)
@@ -2685,6 +2686,15 @@ Public Class HSPI
                 End If
             End If
             Return False
+        End If
+
+        If Command = "isNotPlayingAnnouncement" Then    ' added 7/12/2019 in v3.1.0.31
+            If AnnouncementLink IsNot Nothing Then
+                If AnnouncementLink.LinkGroupName = Linkgroup Then
+                    Return False
+                End If
+            End If
+            Return True
         End If
 
         Dim MusicApi As HSPI = Nothing
@@ -3447,7 +3457,28 @@ Public Class HSPI
 
     Public Function CheckPlayerIsPairable(PlayerType As String) As Boolean
         CheckPlayerIsPairable = False
-        If PlayerType = "S5" Or PlayerType = "S3" Or PlayerType = "S1" Or PlayerType = "S12" Or PlayerType = "S13" Or PlayerType = "S6" Then
+        If PlayerType = "S5" Or PlayerType = "S3" Or PlayerType = "S1" Or PlayerType = "S12" Or PlayerType = "S13" Or PlayerType = "S6" Or PlayerType = "S18" Then
+            ' added playertype 18 (S1 type) on 7/12/2019 in v3.1.0.31
+            Return True
+        End If
+    End Function
+
+    'added 7/12/2019 in v3.1.0.31
+    Public Function CheckPlayerCanPlayTV(PlayerType As String) As Boolean
+        CheckPlayerCanPlayTV = False
+        If PlayerType = "S9" Or PlayerType = "S11" Or PlayerType = "S14" Or PlayerType = "S16" Then ' added S16 (amp) on 7/12/2019 in v3.1.0.31
+            ' S9 in playbar
+            ' S11 is playbase
+            ' S14 is playbeam
+            ' S16 AMP
+            Return True
+        End If
+    End Function
+
+    'added 7/12/2019 in v3.1.0.31
+    Private Function CheckPlayerHasAudioInput(PlayerType As String) As Boolean
+        CheckPlayerHasAudioInput = False
+        If (PlayerType <> "SUB") And (PlayerType <> "WD100") And (PlayerType <> "S1") And (PlayerType <> "S12") And (PlayerType <> "S13") And (PlayerType <> "S3") Then
             Return True
         End If
     End Function
@@ -3495,8 +3526,6 @@ Public Class HSPI
                 Dim SonosPlayer As HSPI = Nothing
                 SonosPlayer = GetAPIByUDN(HSDevice.ZoneUDN)
                 If SonosPlayer IsNot Nothing Then
-                    'If SonosPlayer.ZoneModel = "S5" Or SonosPlayer.ZoneModel = "S3" Or SonosPlayer.ZoneModel = "S1" Or SonosPlayer.ZoneModel = "S12" Or SonosPlayer.ZoneModel = "S6" Then
-                    ' Only important for those players that can be linked/combined
                     If SonosPlayer.ZoneIsASlave Then
                         If CheckZoneNameAlreadyExists(SonosPlayer.ZoneName, SonosPlayer.UDN) Then
                             ' we need to rename the zone
@@ -5553,6 +5582,7 @@ Public Class HSPI
         If IsFile Then
             ' we need to save the Source as well
             If SourceSonosPlayer.ZoneIsASlave Then
+                If g_bDebug Then Log("HandleLinkingOn found source player to be a slave and switched to the master", LogType.LOG_TYPE_INFO) ' added 7/12/2019 in v3.1.0.31
                 SourceSonosPlayer = MyHSPIControllerRef.GetAPIByUDN(SourceSonosPlayer.ZoneMasterUDN)
             End If
             SourceSonosPlayer.SaveCurrentTrackInfo(LinkgroupName, True, False)
@@ -6166,6 +6196,14 @@ Public Class HSPI
             AnnouncementItem.AbsoluteTime = Now
             If SuperDebug Then Log("DoCheckAnnouncementQueue done calling HandleLinking", LogType.LOG_TYPE_INFO)
             If AnnouncementItem.IsFile Then
+                Try ' added on 7/12/2019 in v3.1.0.31 If source player is not the master, the monitoring and other actions won't work
+                    If AnnouncementItem.SourceZoneMusicAPI.ZoneIsASlave Then
+                        If g_bDebug Then Log("DoCheckAnnouncementQueue found source player to be a slave and switched to the master", LogType.LOG_TYPE_INFO)
+                        AnnouncementItem.SourceZoneMusicAPI = MyHSPIControllerRef.GetAPIByUDN(AnnouncementItem.SourceZoneMusicAPI.ZoneMasterUDN)
+                    End If
+                Catch ex As Exception
+                    If g_bDebug Then Log("Error in DoCheckAnnouncementQueue switching to the master with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                End Try
                 Try
                     AnnouncementItem.SourceZoneMusicAPI.ClearQueue()
                     ' Also reset shuffle and repeat to avoid reordering and endless repeats

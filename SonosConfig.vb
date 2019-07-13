@@ -846,7 +846,7 @@ Class SonosConfig
     End Enum
 
     Public Sub ItemChange(LinkTableItem As LinkTableItems, Value As String, RowIndex As Integer, Optional CellIndex As Integer = 0)
-        If g_bDebug Then Log("ItemChange called with LinbktableItem = " & LinkTableItem.ToString & " and Value = " & Value.ToString & " and RowIndex = " & RowIndex.ToString & " and CellIndex = " & CellIndex.ToString, LogType.LOG_TYPE_INFO)
+        If g_bDebug Then Log("ItemChange called with LinktableItem = " & LinkTableItem.ToString & " and Value = " & Value.ToString & " and RowIndex = " & RowIndex.ToString & " and CellIndex = " & CellIndex.ToString, LogType.LOG_TYPE_INFO)
         Value = Trim(Value)
         Dim KeyValue As New System.Collections.Generic.KeyValuePair(Of String, String)
         Dim LinkgroupName As String = ""
