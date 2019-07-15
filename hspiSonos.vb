@@ -344,7 +344,7 @@ Public Class HSPI
         PluginIPPort = hs.GetINISetting("Settings", "gWebSvrPort", "")
         'Dim Ethernetports As Dictionary(Of String, String) = GetEthernetPorts() ' test dcor
         Dim HSServerIPBinding = hs.GetINISetting("Settings", "gServerAddressBind", "")
-        If HSServerIPBinding <> "" Then
+        If HSServerIPBinding <> "" Then ' added in v3.1.0.30
             If HSServerIPBinding.ToLower <> "(no binding)" Then
                 ' HS has a non default setting
                 If HSServerIPBinding = PlugInIPAddress Then
@@ -3531,14 +3531,20 @@ Public Class HSPI
                             ' we need to rename the zone
                             Dim NewSuffix As String = ""
                             If SonosPlayer.MyZoneIsPairSlave Then
-                                NewSuffix = "_RF"
-                            ElseIf SonosPlayer.MyZonePlayBarLeftRearUDN <> "" Then
+                                If SonosPlayer.MyZonePairLeftFrontUDN = SonosPlayer.UDN Then
+                                    NewSuffix = "_LF"
+                                Else
+                                    NewSuffix = "_RF"
+                                End If
+                            ElseIf (SonosPlayer.MyZonePlayBarLeftRearUDN = SonosPlayer.UDN) And (SonosPlayer.MyZonePlayBarRightRearUDN = SonosPlayer.UDN) Then
+                                NewSuffix = "_LRR"
+                            ElseIf SonosPlayer.MyZonePlayBarLeftRearUDN = SonosPlayer.UDN Then
                                 NewSuffix = "_LR"
-                            ElseIf SonosPlayer.MyZonePlayBarRightRearUDN <> "" Then
+                            ElseIf SonosPlayer.MyZonePlayBarRightRearUDN = SonosPlayer.UDN Then
                                 NewSuffix = "_RR"
-                            ElseIf SonosPlayer.MyZonePlayBarLeftFrontUDN <> "" Then
+                            ElseIf SonosPlayer.MyZonePlayBarLeftFrontUDN = SonosPlayer.UDN Then
                                 NewSuffix = "_LF"
-                            ElseIf SonosPlayer.MyZonePlayBarRightFrontUDN <> "" Then
+                            ElseIf SonosPlayer.MyZonePlayBarRightFrontUDN = SonosPlayer.UDN Then
                                 NewSuffix = "_RF"
                             End If
                             If NewSuffix <> "" Then ZoneNameChanged(SonosPlayer.ZoneName, SonosPlayer.UDN, SonosPlayer.ZoneName & NewSuffix, True)

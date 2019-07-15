@@ -129,6 +129,8 @@ Partial Public Class HSPI 'HSMusicAPI
 
     Private MyZoneIsPairMaster As Boolean = False
     Private MyZoneIsPairSlave As Boolean = False
+    Private MyZonePairLeftFrontUDN As String = ""
+    Private MyZonePairRightFrontUDN As String = ""
 
     Private MyZonePairMasterZoneName As String = ""
     Private MyZonePairMasterZoneUDN As String = ""
@@ -687,6 +689,13 @@ Partial Public Class HSPI 'HSMusicAPI
         If Not ZoneGroupTopology Is Nothing Then
             GetZoneGroupState()
         End If
+
+        If MyZoneIsPlaybarSlave Then
+            RenderingControl = Nothing    ' added 7/13/2019 in v3.1.0.34 to prevent errors for players that are paired to a play bar/beam/base
+            QueueService = Nothing
+            VirtualLineIn = Nothing
+        End If
+
         If Not AudioIn Is Nothing Then
             Try
                 AudioIn.AddCallback(myAudioInCallback)
@@ -713,7 +722,7 @@ Partial Public Class HSPI 'HSMusicAPI
             End Try
         End If
 
-        If Not RenderingControl Is Nothing Then
+        If RenderingControl IsNot Nothing Then
             Try
                 RenderingControl.AddCallback(myRenderingControlCallback)
                 If g_bDebug Then Log("RenderingControlCallback added for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
@@ -731,7 +740,7 @@ Partial Public Class HSPI 'HSMusicAPI
             End Try
         End If
 
-        If Not QueueService Is Nothing Then  ' added 2/24/2019 in v3.1.0.29
+        If QueueService IsNot Nothing Then  ' added 2/24/2019 in v3.1.0.29
             Try
                 QueueService.AddCallback(myQueueServiceCallback)
                 If g_bDebug Then Log("QueueService added for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
@@ -740,7 +749,7 @@ Partial Public Class HSPI 'HSMusicAPI
             End Try
         End If
 
-        If Not VirtualLineIn Is Nothing Then  ' added 2/24/2019 in v3.1.0.29
+        If VirtualLineIn IsNot Nothing Then  ' added 2/24/2019 in v3.1.0.29  
             Try
                 VirtualLineIn.AddCallback(myVirtualLineInCallback)
                 If g_bDebug Then Log("VirtualLineIn added for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
@@ -992,6 +1001,13 @@ Partial Public Class HSPI 'HSMusicAPI
         If Not ZoneGroupTopology Is Nothing Then
             GetZoneGroupState()
         End If
+
+        If MyZoneIsPlaybarSlave Then
+            RenderingControl = Nothing    ' added 7/13/2019 in v3.1.0.34 to prevent errors for players that are paired to a play bar/beam/base
+            QueueService = Nothing
+            VirtualLineIn = Nothing
+        End If
+
         If Not AudioIn Is Nothing Then
             Try
                 AudioIn.AddCallback(myAudioInCallback)
@@ -1018,7 +1034,7 @@ Partial Public Class HSPI 'HSMusicAPI
             End Try
         End If
 
-        If Not RenderingControl Is Nothing Then
+        If RenderingControl IsNot Nothing Then
             Try
                 RenderingControl.AddCallback(myRenderingControlCallback)
                 If g_bDebug Then Log("RenderingControlCallback added for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
@@ -1035,7 +1051,7 @@ Partial Public Class HSPI 'HSMusicAPI
             End Try
         End If
 
-        If Not QueueService Is Nothing Then  ' added 2/24/2019 in v3.1.0.29
+        If QueueService IsNot Nothing Then  ' added 2/24/2019 in v3.1.0.29
             Try
                 QueueService.AddCallback(myQueueServiceCallback)
                 If g_bDebug Then Log("QueueService added for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
@@ -1044,7 +1060,7 @@ Partial Public Class HSPI 'HSMusicAPI
             End Try
         End If
 
-        If Not VirtualLineIn Is Nothing Then  ' added 2/24/2019 in v3.1.0.29
+        If VirtualLineIn IsNot Nothing Then  ' added 2/24/2019 in v3.1.0.29 
             Try
                 VirtualLineIn.AddCallback(myVirtualLineInCallback)
                 If g_bDebug Then Log("VirtualLineIn added for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
@@ -1164,7 +1180,6 @@ Partial Public Class HSPI 'HSMusicAPI
     Private Sub ProcessZoneGroupState(inVar As String)
         If g_bDebug Then Log("ProcessZoneGroupState called for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
 
-
         ' example
         '<ZoneGroups>
         '   <ZoneGroup Coordinator="RINCON_000E5860905A01400" ID="RINCON_000E5860905A01400:0">
@@ -1246,42 +1261,59 @@ Partial Public Class HSPI 'HSMusicAPI
             'Parse through all nodes
             For Each outerNode As XmlNode In ZoneGroupsList
                 If outerNode.Name.ToUpper = "ZONEGROUP" Then
-                    Try
-                        If SuperDebug Then Log("ZonePlayer = " & ZoneName & " ProcessZoneGroupState ----->ZoneGroup Coordinator = " & outerNode.Attributes("Coordinator").Value & " ID = " & outerNode.Attributes("ID").Value, LogType.LOG_TYPE_INFO)
-                    Catch ex As Exception
-                    End Try
+                    ' rewritten 7/14/2019 in version v3.1.0.34 because S18 players are following some new schema as to who is master (right player)
                     Dim ZoneGroupCoordinatorUDN As String = ""
                     Try
                         ZoneGroupCoordinatorUDN = outerNode.Attributes("Coordinator").Value
                     Catch ex As Exception
                     End Try
+                    Dim ZoneGroupID As String = ""
+                    Try
+                        ZoneGroupID = outerNode.Attributes("ID").Value
+                    Catch ex As Exception
+                    End Try
+                    Try
+                        If SuperDebug Then Log("ZonePlayer = " & ZoneName & " ProcessZoneGroupState ----->ZoneGroup Coordinator = " & ZoneGroupCoordinatorUDN & " ID = " & ZoneGroupID, LogType.LOG_TYPE_INFO)
+                    Catch ex As Exception
+                    End Try
+                    ' now we need to figure out whether this zonegroup is
+                    ' a/ just a player by itself so it only has itself as member (ZoneGroupMember)
+                    ' b/ a bunch of grouped players that all play the same content (multiple ZonegroupMember, no ChannelMapSet & no HTSatChanMapSet)
+                    ' c/ a stereo pair such as two s5, s1, one ... (multiple ZonegroupMember with ChannelMapSet)
+                    ' d/ a HomeTheater (HT) pairing such as playbar/beam/base with S1, SubWoofer as satellite members (multiple Satellite with HTSatChanMapSet)
+                    ' 
+                    ' There are two scenarios we need to extract from this data
+                    ' a/ this player instance is ZoneGroupCoordinator and we need to mark up out local data reflecting that this player is master of something
+                    ' b/ this player is a member of another group but it is not the coordinator so we also need to mark up our local data to reflect this player is a slave of something
                     If outerNode.HasChildNodes Then
                         For Each Level1Node As XmlNode In outerNode.ChildNodes
                             Dim ZoneGroupMember As String = ""
                             If Level1Node.Name.ToUpper = "ZONEGROUPMEMBER" Then
                                 Try
                                     ZoneGroupMember = Level1Node.Attributes("UUID").Value
-                                    If SuperDebug Then Log("ProcessZoneGroupState ---------->ZoneGroupMember UUID = " & Level1Node.Attributes("UUID").Value, LogType.LOG_TYPE_INFO)
+                                    If SuperDebug Then Log("ProcessZoneGroupState ---------->ZoneGroupMember UUID = " & ZoneGroupMember, LogType.LOG_TYPE_INFO)
                                 Catch ex As Exception
                                 End Try
                                 Dim HTSatChanMapSet As String = ""
                                 Dim ChannelMapSet As String = ""
                                 If ZoneGroupMember = UDN Then
+                                    ' so this entry is about THIS player
+                                    ' if we now check whether the ZoneGroupCoordinatorUDN is this player as well, we know it is master of something. Now we need to check what
                                     Try
-                                        HTSatChanMapSet = Level1Node.Attributes("HTSatChanMapSet").Value
+                                        HTSatChanMapSet = Level1Node.Attributes("HTSatChanMapSet").Value    ' HomeTheater settings. The coordinator has a full view. Members only theirs and coordinator
                                     Catch ex As Exception
                                     End Try
                                     Try
-                                        ChannelMapSet = Level1Node.Attributes("ChannelMapSet").Value
+                                        ChannelMapSet = Level1Node.Attributes("ChannelMapSet").Value    ' StereoPairing setting.
                                     Catch ex As Exception
                                     End Try
                                     If SuperDebug Then Log("ProcessZoneGroupState ------------>matching UDNs at Memberlevel with HTSatChanMapSet = " & HTSatChanMapSet & " and ChannelMapSet = " & ChannelMapSet, LogType.LOG_TYPE_INFO)
                                     If MyHTSatChanMapSet <> HTSatChanMapSet Then
-                                        PlaybarPairingChanged(HTSatChanMapSet)
+                                        PlaybarPairingChanged(HTSatChanMapSet, ZoneGroupCoordinatorUDN)
                                         If g_bDebug Then Log("ProcessZoneGroupState for ZonePlayer = " & ZoneName & " and UDN = " & UDN & " updated HTSatChanMapSet = " & HTSatChanMapSet, LogType.LOG_TYPE_INFO)
                                     End If
                                     If MyChannelMapSet <> ChannelMapSet Then
-                                        ZonePairingChanged(ChannelMapSet)
+                                        ZonePairingChanged(ChannelMapSet, ZoneGroupCoordinatorUDN)
                                         If g_bDebug Then Log("ProcessZoneGroupState for ZonePlayer = " & ZoneName & " and UDN = " & UDN & " updated ChannelMapSet = " & ChannelMapSet, LogType.LOG_TYPE_INFO)
                                     End If
                                 End If
@@ -1291,25 +1323,26 @@ Partial Public Class HSPI 'HSMusicAPI
                                             Dim SatelliteZoneMember As String = ""
                                             Try
                                                 SatelliteZoneMember = Level2Node.Attributes("UUID").Value
-                                                If SuperDebug Then Log("ProcessZoneGroupState ---------->ZoneGroupMember UUID = " & Level2Node.Attributes("UUID").Value, LogType.LOG_TYPE_INFO)
+                                                If SuperDebug Then Log("ProcessZoneGroupState ---------->ZoneGroupMember UUID = " & SatelliteZoneMember, LogType.LOG_TYPE_INFO)
                                             Catch ex As Exception
                                             End Try
                                             If SatelliteZoneMember = UDN Then
+                                                ' So this entry is our player. It can now only be a slave of a HT pairing
                                                 Try
                                                     HTSatChanMapSet = Level2Node.Attributes("HTSatChanMapSet").Value
                                                 Catch ex As Exception
                                                 End Try
-                                                Try
+                                                Try ' I don't think this is a valid case. When players are paired in Stereo they will show up as a ZoneGroupMember not Sattelite but no harm to leave it here
                                                     ChannelMapSet = Level2Node.Attributes("ChannelMapSet").Value
                                                 Catch ex As Exception
                                                 End Try
                                                 If SuperDebug Then Log("ProcessZoneGroupState ------------>matching UDNs at Sattelite level with HTSatChanMapSet = " & HTSatChanMapSet & " and ChannelMapSet = " & ChannelMapSet, LogType.LOG_TYPE_INFO)
                                                 If MyHTSatChanMapSet <> HTSatChanMapSet Then
-                                                    PlaybarPairingChanged(HTSatChanMapSet)
+                                                    PlaybarPairingChanged(HTSatChanMapSet, ZoneGroupCoordinatorUDN)
                                                     If g_bDebug Then Log("ProcessZoneGroupState for ZonePlayer = " & ZoneName & " and UDN = " & UDN & " updated HTSatChanMapSet = " & HTSatChanMapSet, LogType.LOG_TYPE_INFO)
                                                 End If
                                                 If MyChannelMapSet <> ChannelMapSet Then
-                                                    ZonePairingChanged(ChannelMapSet)
+                                                    ZonePairingChanged(ChannelMapSet, ZoneGroupCoordinatorUDN)
                                                     If g_bDebug Then Log("ProcessZoneGroupState for ZonePlayer = " & ZoneName & " and UDN = " & UDN & " updated ChannelMapSet = " & ChannelMapSet, LogType.LOG_TYPE_INFO)
                                                 End If
                                             End If
@@ -3203,10 +3236,12 @@ updateHSDevices:
                 ' Office2: Var Name = ChannelMapSet Value = RINCON_000E5858C97A01400:LF,LF;RINCON_000E5859008Axxxx:RF,RF
                 '  with the UDN on the left being the "Master"
                 ' When they Unpair, the value is empty ""
-                ZonePairingChanged(Value)
+                'ZonePairingChanged(Value) removed on 7/14/2019 in v3.1.0.34
             ElseIf (StateVarName = "HTSatChanMapSet") Then
-                PlaybarPairingChanged(Value)
+                'PlaybarPairingChanged(Value) removed on 7/14/2019 in v3.1.0.34
             ElseIf (StateVarName = "Configuration") Then
+            ElseIf (StateVarName = "ZoneGroupState") Then ' added on 7/14/2019 in v3.1.0.34
+                ProcessZoneGroupState(Value)
             End If
         Catch ex As Exception
             Log("ERROR: " & ZoneName & " : Something went wrong in Device Property Callback" & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -3929,17 +3964,18 @@ updateHSDevices:
             Return MyWirelessDockDestinationPlayer.GetMuteState(Channel)
             Exit Function
         End If
-        If ZoneIsASlave Then
-            Dim LinkedZone As HSPI  'HSMusicAPI
-            LinkedZone = MyHSPIControllerRef.GetAPIByUDN(ZoneMasterUDN)
-            Try
-                Return LinkedZone.GetMuteState(Channel)
-            Catch ex As Exception
-                If g_bDebug Then Log("GetMuteState called for Zone - " & ZoneName & " which was linked to " & ZoneMasterUDN.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
-                Return False
-            End Try
-            Exit Function
-        End If
+        ' removed this 7/13/2019 in v3.1.0.34 It appears you can get the volume from the slave player, it will actually show the right side volume. If you however set it for a slave, it will cause balance to shift
+        'If ZoneIsASlave Then
+        'Dim LinkedZone As HSPI  'HSMusicAPI
+        'LinkedZone = MyHSPIControllerRef.GetAPIByUDN(ZoneMasterUDN)
+        'Try
+        'Return LinkedZone.GetMuteState(Channel)
+        'Catch ex As Exception
+        'If g_bDebug Then Log("GetMuteState called for Zone - " & ZoneName & " which was linked to " & ZoneMasterUDN.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+        'Return False
+        'End Try
+        'Exit Function
+        'End If
         If DeviceStatus = "Offline" Or RenderingControl Is Nothing Or MyZoneModel = "WD100" Then Exit Function
         Try
             Dim InArg(1)                'InstanceID UI4
@@ -3966,17 +4002,18 @@ updateHSDevices:
             Return MyWirelessDockDestinationPlayer.GetVolumeLevel(Channel)
             Exit Function
         End If
-        If ZoneIsASlave Then
-            Dim LinkedZone As HSPI  'HSMusicAPI
-            LinkedZone = MyHSPIControllerRef.GetAPIByUDN(ZoneMasterUDN)
-            Try
-                Return LinkedZone.GetVolumeLevel(Channel)
-            Catch ex As Exception
-                If g_bDebug Then Log("GetVolumeLevel called for Zone - " & ZoneName & " which was linked to " & ZoneMasterUDN.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
-                Return ""
-            End Try
-            Exit Function
-        End If
+        ' removed this 7/13/2019 in v3.1.0.34 It appears you can get the volume from the slave player, it will actually show the right side volume. If you however set it for a slave, it will cause balance to shift
+        'If ZoneIsASlave Then
+        'Dim LinkedZone As HSPI  'HSMusicAPI
+        'LinkedZone = MyHSPIControllerRef.GetAPIByUDN(ZoneMasterUDN)
+        'Try
+        'Return LinkedZone.GetVolumeLevel(Channel)
+        'Catch ex As Exception
+        'If g_bDebug Then Log("GetVolumeLevel called for Zone - " & ZoneName & " which was linked to " & ZoneMasterUDN.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+        'Return ""
+        'End Try
+        'Exit Function
+        'End If
         If DeviceStatus = "Offline" Or RenderingControl Is Nothing Or MyZoneModel = "WD100" Then Exit Function
         Try
             Dim InArg(1)
@@ -3997,17 +4034,18 @@ updateHSDevices:
             Return MyWirelessDockDestinationPlayer.GetLoudnessState(Channel)
             Exit Function
         End If
-        If ZoneIsASlave Then
-            Dim LinkedZone As HSPI  'HSMusicAPI
-            LinkedZone = MyHSPIControllerRef.GetAPIByUDN(ZoneMasterUDN)
-            Try
-                Return LinkedZone.GetLoudnessState(Channel)
-            Catch ex As Exception
-                If g_bDebug Then Log("GetLoudnessState called for Zone - " & ZoneName & " which was linked to " & ZoneMasterUDN.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
-                Return False
-            End Try
-            Exit Function
-        End If
+        ' removed this 7/13/2019 in v3.1.0.34 It appears you can get the volume from the slave player, it will actually show the right side volume. If you however set it for a slave, it will cause balance to shift
+        'If ZoneIsASlave Then
+        'Dim LinkedZone As HSPI  'HSMusicAPI
+        'LinkedZone = MyHSPIControllerRef.GetAPIByUDN(ZoneMasterUDN)
+        'Try
+        'Return LinkedZone.GetLoudnessState(Channel)
+        'Catch ex As Exception
+        'If g_bDebug Then Log("GetLoudnessState called for Zone - " & ZoneName & " which was linked to " & ZoneMasterUDN.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+        'Return False
+        'End Try
+        'Exit Function
+        'End If
         If DeviceStatus = "Offline" Or RenderingControl Is Nothing Or MyZoneModel = "WD100" Then Exit Function
         Try
             Dim InArg(1)                'InstanceID UI4
@@ -4322,7 +4360,7 @@ updateHSDevices:
             SQLconnect = New SQLiteConnection(ConnectionString)
             'Open the connection
             SQLconnect.Open()
-            SQLcommand = SQLconnect.CreateCommand
+            SQLCommand = SQLconnect.CreateCommand
             SQLCommand.CommandText = QueryString
             SQLreader = SQLCommand.ExecuteReader()
         Catch ex As Exception
@@ -6136,7 +6174,7 @@ updateHSDevices:
             ' now that we don't call GetCurrentTrackInfo anymore, the trackposition info is wrong. I can use the own tracking of the Musicapi
             MyCurrentTrackInfo(5) = ConvertSecondsToTimeFormat(SonosPlayerPosition)
             LinkgroupInfo.MySavedTrackInfo = MyCurrentTrackInfo 'GetCurrentTrackInfo()
-            If SuperDebug Then
+            If g_bDebug Then ' changed on 7/14/2019 in v3.1.0.34 from superdebug
                 Dim Index As Integer
                 For Index = 0 To 12
                     Log("SaveCurrentTrackInfo for zoneplayer " & ZoneName & " with Track(" & Index.ToString & ") = " & LinkgroupInfo.MySavedTrackInfo(Index).ToString, LogType.LOG_TYPE_INFO)
@@ -10816,14 +10854,15 @@ updateHSDevices:
         End If
     End Sub
 
-    Private Sub ZonePairingChanged(ByVal ChannelMapSet As String)
+    Private Sub ZonePairingChanged(ByVal ChannelMapSet As String, Coordinator As String)
         ' when an S5 is paired, you get something like this
         ' Office:  Var Name = ChannelMapSet Value = RINCON_000E5858C97A01400:LF,LF;RINCON_000E5859008Axxxx:RF,RF;RINCON_000E5898164001400:SW,SW
         ' Office2: Var Name = ChannelMapSet Value = RINCON_000E5858C97A01400:LF,LF;RINCON_000E5859008Axxxx:RF,RF
         '  with the UDN on the left being the "Master"
         ' When they Unpair, the value is empty ""
         ' The SW,SW indicated a SubWoofer
-        If g_bDebug Then Log("ZonePairingChanged called for Zone = " & ZoneName & " with ChannelMapSet " & ChannelMapSet, LogType.LOG_TYPE_INFO)
+        ' rewritten on 7/14/2019 in v3.1.0.34 to support S18 players who have right as master but the statement still holds, the FIRST UDN in the string is the master
+        If g_bDebug Then Log("ZonePairingChanged called for Zone = " & ZoneName & " with ChannelMapSet " & ChannelMapSet & " and Coordinator = " & Coordinator, LogType.LOG_TYPE_INFO)
         If MyChannelMapSet = ChannelMapSet Then Exit Sub ' nothing changed
         MyChannelMapSet = ChannelMapSet ' I may have to check on the subwoofer here because it is used to unpair, not sure whether I unpair with the subwoofer in the string or without
         If ChannelMapSet = "" Then
@@ -10834,6 +10873,8 @@ updateHSDevices:
             MyZonePairSlaveZoneUDN = ""
             MyZonePairMasterZoneUDN = ""
             MyZonePairSubWooferZoneUDN = ""
+            MyZonePairLeftFrontUDN = ""
+            MyZonePairRightFrontUDN = ""
             Exit Sub
         End If
         ' this is pairing
@@ -10845,25 +10886,28 @@ updateHSDevices:
                 ' this should not be
                 Exit Sub
             End If
-            Dim LeftFrontUDN As String = ""
-            Dim RightFrontUDN As String = ""
-            Dim LeftRearUDN As String = ""
-            Dim RightRearUDN As String = ""
+            'Dim LeftFrontUDN As String = ""
+            'Dim RightFrontUDN As String = ""
+            'Dim LeftRearUDN As String = ""
+            'Dim RightRearUDN As String = ""
             Dim SubUDN As String = ""
+            Dim FirstUDN As String = ""
             ZoneInfos = Split(ChannelMapSetInfos(0), ":")
             If ZoneInfos(1).ToString.ToUpper = "LF,LF" Then
-                LeftFrontUDN = ZoneInfos(0)
+                MyZonePairLeftFrontUDN = ZoneInfos(0)
+                FirstUDN = MyZonePairLeftFrontUDN
             ElseIf ZoneInfos(1).ToString.ToUpper = "RF,RF" Then
-                RightFrontUDN = ZoneInfos(0)
+                MyZonePairRightFrontUDN = ZoneInfos(0)
+                FirstUDN = MyZonePairRightFrontUDN
             ElseIf ZoneInfos(1).ToString.ToUpper = "SW,SW" Then
                 SubUDN = ZoneInfos(0)
             End If
             ZoneInfos = Split(ChannelMapSetInfos(1), ":")
 
             If ZoneInfos(1).ToString.ToUpper = "LF,LF" Then
-                LeftFrontUDN = ZoneInfos(0)
+                MyZonePairLeftFrontUDN = ZoneInfos(0)
             ElseIf ZoneInfos(1).ToString.ToUpper = "RF,RF" Then
-                RightFrontUDN = ZoneInfos(0)
+                MyZonePairRightFrontUDN = ZoneInfos(0)
             ElseIf ZoneInfos(1).ToString.ToUpper = "SW,SW" Then
                 SubUDN = ZoneInfos(0)
             End If
@@ -10871,25 +10915,35 @@ updateHSDevices:
                 ' there is a subwoofer involved
                 ZoneInfos = Split(ChannelMapSetInfos(2), ":")
                 If ZoneInfos(1).ToString.ToUpper = "LF,LF" Then
-                    LeftFrontUDN = ZoneInfos(0)
+                    MyZonePairLeftFrontUDN = ZoneInfos(0)
                 ElseIf ZoneInfos(1).ToString.ToUpper = "RF,RF" Then
-                    RightFrontUDN = ZoneInfos(0)
+                    MyZonePairRightFrontUDN = ZoneInfos(0)
                 ElseIf ZoneInfos(1).ToString.ToUpper = "SW,SW" Then
                     SubUDN = ZoneInfos(0)
                 End If
             End If
-            MyZonePairSlaveZoneUDN = RightFrontUDN
-            MyZonePairMasterZoneUDN = LeftFrontUDN
+            MyZonePairMasterZoneUDN = FirstUDN
+            If MyZonePairMasterZoneUDN <> UDN Then
+                ' this player is NOT the coordinator
+                MyZonePairSlaveZoneUDN = UDN
+            Else
+                ' the slave is the other player in the pairing
+                If MyZonePairMasterZoneUDN = MyZonePairLeftFrontUDN Then
+                    MyZonePairSlaveZoneUDN = MyZonePairRightFrontUDN
+                Else
+                    MyZonePairSlaveZoneUDN = MyZonePairLeftFrontUDN
+                End If
+            End If
             MyZonePairSubWooferZoneUDN = SubUDN
-            If LeftFrontUDN = GetUDN() And RightFrontUDN <> "" Then  ' it could be linked to a SUB hence check whether RightUDN is present
+            If (UDN = FirstUDN) And (MyZonePairSlaveZoneUDN <> "") Then ' check on slavezone is to avoid this player is just linked to a subwoofer
                 ' this zone is master
                 MyZoneIsPairMaster = True
                 MyZoneIsPairSlave = False
-                MyZonePairMasterZoneName = MyHSPIControllerRef.GetZoneNamebyUDN(LeftFrontUDN)
+                MyZonePairMasterZoneName = MyHSPIControllerRef.GetZoneNamebyUDN(Coordinator)
                 If g_bDebug Then Log("ZonePairingChanged for Zone = " & ZoneName & " and became Master", LogType.LOG_TYPE_INFO)
-            ElseIf RightFrontUDN <> "" And RightFrontUDN = GetUDN() Then
+            ElseIf (MyZonePairSlaveZoneUDN <> "") Then
                 ' this zone is Slave
-                MyZonePairMasterZoneName = MyHSPIControllerRef.GetZoneNamebyUDN(LeftFrontUDN)
+                MyZonePairMasterZoneName = MyHSPIControllerRef.GetZoneNamebyUDN(Coordinator)
                 MyZoneIsPairMaster = False
                 MyZoneIsPairSlave = True
                 If g_bDebug Then Log("ZonePairingChanged for Zone = " & ZoneName & " and became Slave", LogType.LOG_TYPE_INFO)
@@ -10900,14 +10954,15 @@ updateHSDevices:
 
     End Sub
 
-    Private Sub PlaybarPairingChanged(ByVal HTSatChanMapSet As String)
+    Private Sub PlaybarPairingChanged(ByVal HTSatChanMapSet As String, Coordinator As String)
         ' when an Playbar is paired, you get something like this
         ' S9:  Var Name = HTSatChanMapSet Value = RINCON_B8E9377C7E2601400:LF,RF;RINCON_000E5898164001400:SW;RINCON_000E58C174F201400:LR;RINCON_000E58C174DE01400:RR
         ' S1:  Var Name = HTSatChanMapSet Value = RINCON_B8E9377C7E2601400:LF,RF;RINCON_000E58C174DE01400:RR <- note this is from the S1 at the Rear LEFT!!!
         ' SUB:  Var Name = HTSatChanMapSet Value = RRINCON_B8E9377C7E2601400:LF,RF;RINCON_000E5898164001400:SW;RINCON_000E58C174F201400:LR;RINCON_000E58C174DE01400:RR
         ' if a connect:Amp is added it shows up like this HTSatChanMapSet = RINCON_7828CA57993B01400:LF,RF;RINCON_5CAAFDED681A01400:LR,RR
         ' 
-        If g_bDebug Then Log("PlaybarPairingChanged called for Zone = " & ZoneName & " with HTSatChanMapSet = " & HTSatChanMapSet, LogType.LOG_TYPE_INFO)
+        ' rewritten on 7/14/2019 in v3.1.0.34 to support S18 players who have right as master
+        If g_bDebug Then Log("PlaybarPairingChanged called for Zone = " & ZoneName & " with HTSatChanMapSet = " & HTSatChanMapSet & " and Coordinator = " & Coordinator, LogType.LOG_TYPE_INFO)
         If MyHTSatChanMapSet = HTSatChanMapSet Then Exit Sub ' nothing changed
         MyHTSatChanMapSet = HTSatChanMapSet ' I may have to check on the subwoofer here because it is used to unpair, not sure whether I unpair with the subwoofer in the string or without
         If HTSatChanMapSet = "" Then
@@ -10925,6 +10980,7 @@ updateHSDevices:
         ' this is pairing
 
         Dim ChannelMapSetInfos As String() = Nothing
+        Dim FirstUDN As String = ""
 
         Try
             ChannelMapSetInfos = Split(HTSatChanMapSet, ";")
@@ -10940,6 +10996,19 @@ updateHSDevices:
                 If ZoneInfos IsNot Nothing Then
                     If UBound(ZoneInfos) > 0 Then
                         Dim ZoneUDN As String = ZoneInfos(0)
+                        If FirstUDN = "" And ZoneUDN <> "" Then
+                            FirstUDN = ZoneUDN
+                            If FirstUDN = UDN Then
+                                If g_bDebug Then Log("PlaybarPairingChanged for Zone = " & ZoneName & " and became Master", LogType.LOG_TYPE_INFO)
+                                MyZoneIsPlaybarMaster = True
+                                MyZoneIsPlaybarSlave = False
+                                MyZonePlayBarUDN = ""
+                            Else
+                                MyZoneIsPlaybarMaster = False
+                                MyZoneIsPlaybarSlave = True
+                                MyZonePlayBarUDN = ZoneUDN
+                            End If
+                        End If
                         Dim ZoneLocationsString = ZoneInfos(1)
                         Dim ZoneLocations = Nothing
                         ZoneLocations = Split(ZoneLocationsString, ",")
@@ -10948,45 +11017,51 @@ updateHSDevices:
                                 Select Case Trim(UCase(zonelocation))
                                     Case "LF"
                                         ' this would be the playbar
-                                        MyZonePlayBarLeftFrontUDN = ZoneUDN
-                                        MyZonePlayBarUDN = ZoneUDN
                                         If ZoneUDN = UDN Then
-                                            MyZoneIsPlaybarMaster = True
-                                            MyZoneIsPlaybarSlave = False
-                                            MyZonePlayBarUDN = ""
-                                        Else
-                                            MyZoneIsPlaybarMaster = False
-                                            MyZoneIsPlaybarSlave = True
+                                            MyZonePlayBarLeftFrontUDN = ZoneUDN
+                                            If ZoneUDN <> FirstUDN Then HandleLinkedZones(MyZonePlayBarUDN)
                                         End If
+                                        'MyZonePlayBarUDN = ZoneUDN
+                                        'If ZoneUDN = UDN Then
+                                            'MyZoneIsPlaybarMaster = True
+                                            'MyZoneIsPlaybarSlave = False
+                                            'MyZonePlayBarUDN = ""
+                                        'Else
+                                            'MyZoneIsPlaybarMaster = False
+                                            'MyZoneIsPlaybarSlave = True
+                                        'End If
                                     Case "RF"
                                         ' this would be the playbar
-                                        MyZonePlayBarRightFrontUDN = ZoneUDN
-                                        MyZonePlayBarUDN = ZoneUDN
                                         If ZoneUDN = UDN Then
-                                            MyZoneIsPlaybarMaster = True
-                                            MyZoneIsPlaybarSlave = False
-                                            MyZonePlayBarUDN = ""
-                                        Else
-                                            MyZoneIsPlaybarMaster = False
-                                            MyZoneIsPlaybarSlave = True
+                                            MyZonePlayBarRightFrontUDN = ZoneUDN
+                                            If ZoneUDN <> FirstUDN Then HandleLinkedZones(MyZonePlayBarUDN)
                                         End If
+                                        'MyZonePlayBarUDN = ZoneUDN
+                                        'If ZoneUDN = UDN Then
+                                            'MyZoneIsPlaybarMaster = True
+                                            'MyZoneIsPlaybarSlave = False
+                                            'MyZonePlayBarUDN = ""
+                                        'Else
+                                            'MyZoneIsPlaybarMaster = False
+                                            'MyZoneIsPlaybarSlave = True
+                                        'End If
                                     Case "SW"
                                         ' this is the subwoofer
                                         If ZoneUDN = UDN Then
                                             MyZonePairSubWooferZoneUDN = ZoneUDN
-                                            MyZoneIsPlaybarSlave = True
+                                            'MyZoneIsPlaybarSlave = True
                                         End If
                                     Case "LR"
                                         If ZoneUDN = UDN Then
                                             MyZonePlayBarLeftRearUDN = ZoneUDN
-                                            MyZoneIsPlaybarSlave = True
-                                            HandleLinkedZones(MyZonePlayBarUDN)
+                                            'MyZoneIsPlaybarSlave = True
+                                            If ZoneUDN <> FirstUDN Then HandleLinkedZones(MyZonePlayBarUDN)
                                         End If
                                     Case "RR"
                                         If ZoneUDN = UDN Then
                                             MyZonePlayBarRightRearUDN = ZoneUDN
-                                            MyZoneIsPlaybarSlave = True
-                                            HandleLinkedZones(MyZonePlayBarUDN)
+                                            'MyZoneIsPlaybarSlave = True
+                                            If ZoneUDN <> FirstUDN Then HandleLinkedZones(MyZonePlayBarUDN)
                                         End If
                                 End Select
                             Next
