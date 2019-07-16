@@ -3155,16 +3155,16 @@ updateHSDevices:
                         'ChannelMapSet = DeviceProperties.QueryStateVariable("ChannelMapSet")
                         'Dim HTSatChanMapSet
                         'HTSatChanMapSet = DeviceProperties.QueryStateVariable("HTSatChanMapSet") ' this variable may not be available yet ... use ZoneGroupTopology:GetZoneGroupState
-                        If MyChannelMapSet <> "" Then
-                            If g_bDebug Then Log("DevicePropertiesStateChange: Player: " & ZoneName & " was paired and ZoneName changed to " & Value.ToString, LogType.LOG_TYPE_INFO)
+                        If MyChannelMapSet <> "" Then ' removed 7/16/2019 in v3.1.0.35
+                            'If g_bDebug Then Log("DevicePropertiesStateChange: Player: " & ZoneName & " was paired and ZoneName changed to " & Value.ToString, LogType.LOG_TYPE_INFO)
                             ' do nothing an event will fire on the ChannelMapSet Change where all updates will happen
-                        ElseIf MyHTSatChanMapSet <> "" Then
-                            If g_bDebug Then Log("DevicePropertiesStateChange: Player: " & ZoneName & " was paired to a Playbar and ZoneName changed to " & Value.ToString, LogType.LOG_TYPE_INFO)
+                        ElseIf MyHTSatChanMapSet <> "" Then ' removed 7/16/2019 in v3.1.0.35
+                            'If g_bDebug Then Log("DevicePropertiesStateChange: Player: " & ZoneName & " was paired to a Playbar and ZoneName changed to " & Value.ToString, LogType.LOG_TYPE_INFO)
                         Else
                             If ZoneName <> Value.ToString Then ZoneNameChanged(Value.ToString)
                         End If
                     Catch ex As Exception
-                        If ZoneName <> Value.ToString Then ZoneNameChanged(Value.ToString)
+                        'If ZoneName <> Value.ToString Then ZoneNameChanged(Value.ToString) ' removed 7/16/2019 in v3.1.0.35
                     End Try
                 End If
             ElseIf (StateVarName = "Icon") Then
@@ -3346,7 +3346,7 @@ updateHSDevices:
                 NewMasterVolumeString = xmlData.GetElementsByTagName("Volume").Item(0).Attributes("val").Value   ' this is Master Volume
                 If NewMasterVolumeString <> "" Then
                     NewMasterVolume = Val(NewMasterVolumeString)
-                    If g_bDebug Then Log(ZoneName & ", UDN = " & UDN & " : Rendering (Master Volume) = " & NewMasterVolume.ToString, LogType.LOG_TYPE_INFO)
+                    If g_bDebug Then Log("Rendering Change callback - ZonePlayer " & ZoneName & " : Rendering (Master Volume) = " & NewMasterVolume.ToString, LogType.LOG_TYPE_INFO)
                     SetVolume = NewMasterVolume
                     Dim FixedVolume As Integer
                     FixedVolume = GetIntegerIniFile("Fixed Volume", ZoneName, 200)
@@ -3369,7 +3369,7 @@ updateHSDevices:
                         MyLeftVolume = NewLeftVolume
                         UpdateBalance()
                     End If
-                    If g_bDebug Then Log(ZoneName & " : Rendering (LF Volume) = " & NewLeftVolume.ToString, LogType.LOG_TYPE_INFO)
+                    If g_bDebug Then Log("Rendering Change callback - ZonePlayer " & ZoneName & " : Rendering (LF Volume) = " & NewLeftVolume.ToString, LogType.LOG_TYPE_INFO)
                 End If
             Catch ex As Exception
             End Try
@@ -3381,7 +3381,7 @@ updateHSDevices:
                         MyRightVolume = NewRightVolume
                         UpdateBalance()
                     End If
-                    If g_bDebug Then Log(ZoneName & " : Rendering (RF Volume) = " & NewRightVolume.ToString, LogType.LOG_TYPE_INFO)
+                    If g_bDebug Then Log("Rendering Change callback - ZonePlayer " & ZoneName & " : Rendering (RF Volume) = " & NewRightVolume.ToString, LogType.LOG_TYPE_INFO)
                 End If
             Catch ex As Exception
             End Try
@@ -3389,7 +3389,7 @@ updateHSDevices:
                 NewMasterMuteString = xmlData.GetElementsByTagName("Mute").Item(0).Attributes("val").Value      ' this is Master Mute Volume Level 
                 If NewMasterMuteString <> "" Then
                     NewMasterMute = CBool(NewMasterMuteString)
-                    If g_bDebug Then Log(ZoneName & " : Rendering (Mute Master Volume) = " & NewMasterMute.ToString, LogType.LOG_TYPE_INFO)
+                    If g_bDebug Then Log("Rendering Change callback - ZonePlayer " & ZoneName & " : Rendering (Mute Master Volume) = " & NewMasterMute.ToString, LogType.LOG_TYPE_INFO)
                     If NewMasterMute <> MyCurrentMuteState Then
                         SetMuteState = NewMasterMute
                         'PlayChangeNotifyCallback(player_status_change.SongChanged, player_state_values.UpdateHSServerOnly, False) ' notify HS if they have the callback linked
@@ -3400,22 +3400,22 @@ updateHSDevices:
             End Try
             Try
                 Dim NewLeftMuteVolume As Integer = Val(xmlData.GetElementsByTagName("Mute").Item(1).Attributes("val").Value)     ' This is Left Mute Volume (Balance) between 0 and 100 - 100 is balanced in middle
-                If SuperDebug Then Log(ZoneName & " : Rendering (Mute LF Volume) = " & NewLeftMuteVolume.ToString, LogType.LOG_TYPE_INFO)
+                If SuperDebug Then Log("Rendering Change callback - ZonePlayer " & ZoneName & " : Rendering (Mute LF Volume) = " & NewLeftMuteVolume.ToString, LogType.LOG_TYPE_INFO)
             Catch ex As Exception
             End Try
             Try
                 Dim NewRightMuteVolume As Integer = Val(xmlData.GetElementsByTagName("Mute").Item(2).Attributes("val").Value)     ' This is Right Mute Volume (Balance) between 0 and 100 - 100 is balanced in middle
-                If SuperDebug Then Log(ZoneName & " : Rendering (Mute RF Volume) = " & NewRightMuteVolume.ToString, LogType.LOG_TYPE_INFO)
+                If SuperDebug Then Log("Rendering Change callback - ZonePlayer " & ZoneName & " : Rendering (Mute RF Volume) = " & NewRightMuteVolume.ToString, LogType.LOG_TYPE_INFO)
             Catch ex As Exception
             End Try
             Try
                 Dim NewTrebleValue As Integer = Val(xmlData.GetElementsByTagName("Treble").Item(0).Attributes("val").Value)    ' This is Treble value between -10 and +10
-                If SuperDebug Then Log(ZoneName & " : Rendering (Treble) = " & NewTrebleValue.ToString, LogType.LOG_TYPE_INFO)
+                If SuperDebug Then Log("Rendering Change callback - ZonePlayer " & ZoneName & " : Rendering (Treble) = " & NewTrebleValue.ToString, LogType.LOG_TYPE_INFO)
             Catch ex As Exception
             End Try
             Try
                 Dim NewBassValue As Integer = Val(xmlData.GetElementsByTagName("Bass").Item(0).Attributes("val").Value)     ' This is Bass value between -10 and +10
-                If SuperDebug Then Log(ZoneName & " : Rendering (Bass) = " & NewBassValue.ToString, LogType.LOG_TYPE_INFO)
+                If SuperDebug Then Log("Rendering Change callback - ZonePlayer " & ZoneName & " : Rendering (Bass) = " & NewBassValue.ToString, LogType.LOG_TYPE_INFO)
             Catch ex As Exception
             End Try
             Try
@@ -3426,13 +3426,13 @@ updateHSDevices:
                         SetLoudness = NewLoudnessState
                     End If
                     If NewLoudnessState = False Then MyCurrentLoudnessState = False Else MyCurrentLoudnessState = True
-                    If g_bDebug Then Log(ZoneName & " : Rendering (Loudness) = " & NewLoudnessState.ToString, LogType.LOG_TYPE_INFO)
+                    If g_bDebug Then Log("Rendering Change callback - ZonePlayer " & ZoneName & " : Rendering (Loudness) = " & NewLoudnessState.ToString, LogType.LOG_TYPE_INFO)
                 End If
             Catch ex As Exception
             End Try
             Try
                 Dim NewFixedOutputState As Boolean = CBool(xmlData.GetElementsByTagName("OutputFixed").Item(0).Attributes("val").Value)   ' Fixed = 1, Variable = 0 ; when you change this to fixed, the output level Master,lf and rf are all 100
-                If SuperDebug Then Log(ZoneName & " : Rendering (OutputFixed) = " & NewFixedOutputState.ToString, LogType.LOG_TYPE_INFO)
+                If SuperDebug Then Log("Rendering Change callback - ZonePlayer " & ZoneName & " : Rendering (OutputFixed) = " & NewFixedOutputState.ToString, LogType.LOG_TYPE_INFO)
                 MyCurrentFixedVolumeState = NewFixedOutputState
             Catch ex As Exception
             End Try
@@ -3450,32 +3450,32 @@ updateHSDevices:
             If SuperDebug Then
                 Try
                     MoreInfo = xmlData.GetElementsByTagName("SpeakerSize").Item(0).Attributes("val").Value
-                    Log(ZoneName & " : Rendering (SpeakerSize) = " & MoreInfo.ToString, LogType.LOG_TYPE_INFO)
+                    Log("Rendering Change callback - ZonePlayer " & ZoneName & " : Rendering (SpeakerSize) = " & MoreInfo.ToString, LogType.LOG_TYPE_INFO)
                 Catch ex As Exception
                 End Try
                 Try
                     MoreInfo = xmlData.GetElementsByTagName("SubGain").Item(0).Attributes("val").Value
-                    Log(ZoneName & " : Rendering (SubGain) = " & MoreInfo.ToString, LogType.LOG_TYPE_INFO)
+                    Log("Rendering Change callback - ZonePlayer " & ZoneName & " : Rendering (SubGain) = " & MoreInfo.ToString, LogType.LOG_TYPE_INFO)
                 Catch ex As Exception
                 End Try
                 Try
                     MoreInfo = xmlData.GetElementsByTagName("SubCrossover").Item(0).Attributes("val").Value
-                    Log(ZoneName & " : Rendering (SubCrossover) = " & MoreInfo.ToString, LogType.LOG_TYPE_INFO)
+                    Log("Rendering Change callback - ZonePlayer " & ZoneName & " : Rendering (SubCrossover) = " & MoreInfo.ToString, LogType.LOG_TYPE_INFO)
                 Catch ex As Exception
                 End Try
                 Try
                     MoreInfo = xmlData.GetElementsByTagName("SubPolarity").Item(0).Attributes("val").Value
-                    Log(ZoneName & " : Rendering (SubPolarity) = " & MoreInfo.ToString, LogType.LOG_TYPE_INFO)
+                    Log("Rendering Change callback - ZonePlayer " & ZoneName & " : Rendering (SubPolarity) = " & MoreInfo.ToString, LogType.LOG_TYPE_INFO)
                 Catch ex As Exception
                 End Try
                 Try
                     MoreInfo = xmlData.GetElementsByTagName("SubEnabled").Item(0).Attributes("val").Value
-                    Log(ZoneName & " : Rendering (SubEnabled) = " & MoreInfo.ToString, LogType.LOG_TYPE_INFO)
+                    Log("Rendering Change callback - ZonePlayer " & ZoneName & " : Rendering (SubEnabled) = " & MoreInfo.ToString, LogType.LOG_TYPE_INFO)
                 Catch ex As Exception
                 End Try
             End If
         Catch ex As Exception
-            Log("Error: This rendering didn't work too well for zoneplayer = " & ZoneName & ". Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("Error in Rendering Change callback - ZonePlayer " & ZoneName & ". This rendering didn't work too well with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
@@ -3485,7 +3485,7 @@ updateHSDevices:
             Log("UPnP connection to ZonePlayer " & ZoneName & " was lost in RenderingControlDied. Attempting to reconnect...", LogType.LOG_TYPE_INFO)
             Disconnect(False)
         Catch ex As Exception
-            Log("Error This rendering didn't work too well for zoneplayer = " & ZoneName & ". Error =" & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("Error in RenderingControlDied. This rendering didn't work too well for zoneplayer = " & ZoneName & ". Error =" & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
@@ -3514,7 +3514,7 @@ updateHSDevices:
             Log("UPnP connection to ZonePlayer " & ZoneName & " was lost in AlarmClockDied.", LogType.LOG_TYPE_INFO)
             Disconnect(False)
         Catch ex As Exception
-            Log("ERROR: Something went wrong in AlarmClockDied Callback for ZonePlayer - " & ZoneName & " Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+            Log("Error in AlarmClockControlDied: Something went wrong for ZonePlayer - " & ZoneName & " Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 

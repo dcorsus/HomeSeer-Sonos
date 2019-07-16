@@ -6431,10 +6431,13 @@ Public Class HSPI
                     ' this is the same, so do not unlink
                     NextAnnouncementItem.State_ = AnnouncementState.asLinked ' indicate we are already linked
                     If AnnouncementItem.SourceZoneMusicAPI IsNot Nothing Then AnnouncementItem.SourceZoneMusicAPI.ClearQueue()         ' clear the queue to avoid repeat , added in v023
+                    ' copy the sourceAPI to next announcement entry because there is no linking done, so this info will otherwise be lost - added 7/16/2019 in v3.1.0.35
+                    NextAnnouncementItem.SourceZoneMusicAPI = AnnouncementItem.SourceZoneMusicAPI
                     DeleteHeadOfAnnouncementQueue()
                     AnnouncementInProgress = False
                     AnnouncementReEntry = False
-                    If SuperDebug Then Log("DoCheckAnnouncementQueue was done but found new announcement item", LogType.LOG_TYPE_INFO)
+                    MyAnnouncementCountdown = MyMaxAnnouncementTime ' reset the clock
+                    If g_bDebug Then Log("DoCheckAnnouncementQueue was done but found new announcement item", LogType.LOG_TYPE_INFO)
                     Exit Sub
                 End If
             Catch ex As Exception
