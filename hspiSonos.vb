@@ -5590,6 +5590,10 @@ Public Class HSPI
             If SourceSonosPlayer.ZoneIsASlave Then
                 If g_bDebug Then Log("HandleLinkingOn found source player to be a slave and switched to the master", LogType.LOG_TYPE_INFO) ' added 7/12/2019 in v3.1.0.31
                 SourceSonosPlayer = MyHSPIControllerRef.GetAPIByUDN(SourceSonosPlayer.ZoneMasterUDN)
+                If SourceSonosPlayer Is Nothing Then    ' added 7/25/2019 in v3.1.0.36
+                    Log("Error in HandleLinkingOn: Controller for LinkgroupZoneSource = " & LinkgroupZoneSource & " after switching to master not found", LogType.LOG_TYPE_ERROR)
+                    Exit Function
+                End If
             End If
             SourceSonosPlayer.SaveCurrentTrackInfo(LinkgroupName, True, False)
             ' check whether the source is part of a linkgroup

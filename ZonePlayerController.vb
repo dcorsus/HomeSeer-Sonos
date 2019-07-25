@@ -10899,6 +10899,10 @@ updateHSDevices:
             ElseIf ZoneInfos(1).ToString.ToUpper = "RF,RF" Then
                 MyZonePairRightFrontUDN = ZoneInfos(0)
                 FirstUDN = MyZonePairRightFrontUDN
+            ElseIf ZoneInfos(1).ToString.ToUpper = "LF,RF" Then ' added 7/25/2019 in v3.1.0.36
+                MyZonePairLeftFrontUDN = ZoneInfos(0)
+                MyZonePairRightFrontUDN = ZoneInfos(0)
+                FirstUDN = MyZonePairRightFrontUDN
             ElseIf ZoneInfos(1).ToString.ToUpper = "SW,SW" Then
                 SubUDN = ZoneInfos(0)
             End If
@@ -10907,6 +10911,9 @@ updateHSDevices:
             If ZoneInfos(1).ToString.ToUpper = "LF,LF" Then
                 MyZonePairLeftFrontUDN = ZoneInfos(0)
             ElseIf ZoneInfos(1).ToString.ToUpper = "RF,RF" Then
+                MyZonePairRightFrontUDN = ZoneInfos(0)
+            ElseIf ZoneInfos(1).ToString.ToUpper = "LF,RF" Then  ' added 7/25/2019 in v3.1.0.36
+                MyZonePairLeftFrontUDN = ZoneInfos(0)
                 MyZonePairRightFrontUDN = ZoneInfos(0)
             ElseIf ZoneInfos(1).ToString.ToUpper = "SW,SW" Then
                 SubUDN = ZoneInfos(0)
@@ -10917,6 +10924,9 @@ updateHSDevices:
                 If ZoneInfos(1).ToString.ToUpper = "LF,LF" Then
                     MyZonePairLeftFrontUDN = ZoneInfos(0)
                 ElseIf ZoneInfos(1).ToString.ToUpper = "RF,RF" Then
+                    MyZonePairRightFrontUDN = ZoneInfos(0)
+                ElseIf ZoneInfos(1).ToString.ToUpper = "LF,RF" Then  ' added 7/25/2019 in v3.1.0.36
+                    MyZonePairLeftFrontUDN = ZoneInfos(0)
                     MyZonePairRightFrontUDN = ZoneInfos(0)
                 ElseIf ZoneInfos(1).ToString.ToUpper = "SW,SW" Then
                     SubUDN = ZoneInfos(0)
