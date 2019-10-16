@@ -12,10 +12,11 @@ Class SonosConfig
     Private MyPageName As String = ""
     Private stb As New StringBuilder
 
-    Private DebugChkBox As clsJQuery.jqCheckBox
-    Private SuperDebugChkBox As clsJQuery.jqCheckBox
+    'Private DebugChkBox As clsJQuery.jqCheckBox
+    'Private piDebuglevel > DebugLevel.dlEventsChkBox As clsJQuery.jqCheckBox
+    Private PIDebugLevelDropList As clsJQuery.jqDropList
     Private UPnPDebugLevelDropList As clsJQuery.jqDropList
-    Private LogErrorOnlyChkBox As clsJQuery.jqCheckBox
+    'Private LogErrorOnlyChkBox As clsJQuery.jqCheckBox
     Private LogToDiskChkBox As clsJQuery.jqCheckBox
     Private AutoUpdChkBox As clsJQuery.jqCheckBox
     Private ImmediateUpdChkBox As clsJQuery.jqCheckBox
@@ -40,14 +41,10 @@ Class SonosConfig
     Public Sub New(ByVal pagename As String)
         MyBase.New(pagename)
         MyPageName = pagename
-        DebugChkBox = New clsJQuery.jqCheckBox("DebugChkBox", " Debug Flag", MyPageName, True, False)
-        DebugChkBox.toolTip = "Turn normal debug logging on or off"
-        SuperDebugChkBox = New clsJQuery.jqCheckBox("SuperDebugChkBox", " Super Debug Flag", MyPageName, True, False)
-        SuperDebugChkBox.toolTip = "Turn very detailed debug logging on or off. Set this on top of the normal debug log"
+        PIDebugLevelDropList = New clsJQuery.jqDropList("PIDebugLvlBox", MyPageName, False)
+        PIDebugLevelDropList.toolTip = "Set the level of debug logging for the plugin functions"
         UPnPDebugLevelDropList = New clsJQuery.jqDropList("UPnPDebugLvlBox", MyPageName, False)
         UPnPDebugLevelDropList.toolTip = "Set the level of debug logging for the UPnP functions"
-        LogErrorOnlyChkBox = New clsJQuery.jqCheckBox("LogErrorOnlyChkBox", " Log Error Only Flag", MyPageName, True, False)
-        LogErrorOnlyChkBox.toolTip = "Not implemented"
         LogToDiskChkBox = New clsJQuery.jqCheckBox("LogToDiskChkBox", " Log to Disk Flag", MyPageName, True, False)
         LogToDiskChkBox.toolTip = "Log the plug-in errors to a standard txt file. Note this slows down performance substantial. Suggested use for remote ran PIs or capture issues when terminating the PI"
         AutoUpdChkBox = New clsJQuery.jqCheckBox("AutoUpdChkBox", " Auto Update Flag", MyPageName, True, False)
@@ -98,7 +95,7 @@ Class SonosConfig
 
     ' build and return the actual page
     Public Function GetPagePlugin(ByVal pageName As String, ByVal user As String, ByVal userRights As Integer, ByVal queryString As String) As String
-        If g_bDebug Then Log("GetPagePlugin for SonosControl called with pageName = " & pageName.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString & " and queryString = " & queryString.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetPagePlugin for SonosControl called with pageName = " & pageName.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString & " and queryString = " & queryString.ToString, LogType.LOG_TYPE_INFO)
 
         Dim stb As New StringBuilder
         Dim stbLinkTable As New StringBuilder
@@ -123,15 +120,18 @@ Class SonosConfig
 
             ' specific page starts here
 
-            DebugChkBox.checked = GetBooleanIniFile("Options", "Debug", False)
-            SuperDebugChkBox.checked = GetBooleanIniFile("Options", "SuperDebug", False)
-            Dim UPNPdeblevel As DebugLevel = GetIntegerIniFile("Options", "UPnPDebugLevel", DebugLevel.dlOff)
+            Dim PIdeblevel As DebugLevel = GetIntegerIniFile("Options", "PIDebugLevel", DebugLevel.dlErrorsOnly)
+            PIDebugLevelDropList.ClearItems()
+            PIDebugLevelDropList.AddItem("Off", DebugLevel.dlOff, PIdeblevel = DebugLevel.dlOff)
+            PIDebugLevelDropList.AddItem("Errors Only", DebugLevel.dlErrorsOnly, PIdeblevel = DebugLevel.dlErrorsOnly)
+            PIDebugLevelDropList.AddItem("Events and Errors", DebugLevel.dlEvents, PIdeblevel = DebugLevel.dlEvents)
+            PIDebugLevelDropList.AddItem("Verbose", DebugLevel.dlVerbose, PIdeblevel = DebugLevel.dlVerbose)
+            Dim UPNPdeblevel As DebugLevel = GetIntegerIniFile("Options", "UPnPDebugLevel", DebugLevel.dlErrorsOnly)
             UPnPDebugLevelDropList.ClearItems()
             UPnPDebugLevelDropList.AddItem("Off", DebugLevel.dlOff, UPNPdeblevel = DebugLevel.dlOff)
             UPnPDebugLevelDropList.AddItem("Errors Only", DebugLevel.dlErrorsOnly, UPNPdeblevel = DebugLevel.dlErrorsOnly)
             UPnPDebugLevelDropList.AddItem("Events and Errors", DebugLevel.dlEvents, UPNPdeblevel = DebugLevel.dlEvents)
             UPnPDebugLevelDropList.AddItem("Verbose", DebugLevel.dlVerbose, UPNPdeblevel = DebugLevel.dlVerbose)
-            LogErrorOnlyChkBox.checked = GetBooleanIniFile("Options", "LogErrorOnly", False)
             LogToDiskChkBox.checked = GetBooleanIniFile("Options", "LogToDisk", False)
             AutoUpdChkBox.checked = GetBooleanIniFile("Options", "Auto Update", False)
             ImmediateUpdChkBox.checked = GetBooleanIniFile("Options", "Immediate Auto Update", False)
@@ -205,15 +205,11 @@ Class SonosConfig
             stb.Append(clsPageBuilder.DivEnd)
 
 
-            stb.Append(DebugChkBox.Build)
-            stb.Append("</br>")
-            stb.Append(SuperDebugChkBox.Build)
-            stb.Append("</br>")
-            stb.Append(LogToDiskChkBox.Build)
-            stb.Append("</br>")
-            stb.Append(LogErrorOnlyChkBox.Build) ' 
+            stb.Append(PIDebugLevelDropList.Build & " Plugin Functions Debug Level")
             stb.Append("</br>")
             stb.Append(UPnPDebugLevelDropList.Build & " UPnP Functions Debug Level")
+            stb.Append("</br>")
+            stb.Append(LogToDiskChkBox.Build)
             stb.Append("<hr /> ")
             stb.Append(clsPageBuilder.DivStart("MusicDataBasePanel", "style=""color:#0000FF"" "))
             stb.Append("<h3>Music Database Settings</h3>" & vbCrLf)
@@ -427,7 +423,7 @@ Class SonosConfig
                                     End If
                                     stbLinkTable.Append(LinkBox.Build & VolumeBox.Build & MuteChkBox.Build & "</br>")
                                 End If
-                            End If                            
+                            End If
                         End If
                         CellRow += 1
                         NameIndex += 1
@@ -557,7 +553,7 @@ Class SonosConfig
     End Function
 
     Public Overrides Function postBackProc(page As String, data As String, user As String, userRights As Integer) As String
-        If g_bDebug Then Log("PostBackProc for SonosControl called with page = " & page.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PostBackProc for SonosControl called with page = " & page.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
 
         Dim parts As Collections.Specialized.NameValueCollection
         parts = HttpUtility.ParseQueryString(data)
@@ -569,29 +565,24 @@ Class SonosConfig
                     If Part IsNot Nothing Then
                         Dim ObjectNameParts As String()
                         ObjectNameParts = Split(Part, "_")
-                        If g_bDebug Then Log("postBackProc for SonosControl found Key = " & ObjectNameParts(0).ToString, LogType.LOG_TYPE_INFO)
-                        If g_bDebug Then Log("postBackProc for SonosControl found Value = " & parts(Part).ToString, LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc for SonosControl found Key = " & ObjectNameParts(0).ToString, LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc for SonosControl found Value = " & parts(Part).ToString, LogType.LOG_TYPE_INFO)
                         Dim ObjectValue As String = parts(Part)
                         Select Case ObjectNameParts(0).ToString
-                            Case "DebugChkBox"
+                            Case "PIDebugLvlBox"
                                 Try
-                                    WriteBooleanIniFile("Options", "Debug", ObjectValue.ToUpper = "CHECKED")
+                                    WriteIntegerIniFile("Options", "PIDebugLevel", Val(ObjectValue))
                                 Catch ex As Exception
-                                    Log("Error in postBackProc for SonosControl saving Debug flag. Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                                    Log("Error in postBackProc for PluginControl saving PIDebugLevel with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 End Try
-                            Case "SuperDebugChkBox"
-                                Try
-                                    WriteBooleanIniFile("Options", "SuperDebug", ObjectValue.ToUpper = "CHECKED")
-                                Catch ex As Exception
-                                    Log("Error in postBackProc for SonosControl saving SuperDebug flag. Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
-                                End Try
+                                piDebuglevel = GetIntegerIniFile("Options", "PIDebugLevel", DebugLevel.dlErrorsOnly)
                             Case "UPnPDebugLvlBox"
                                 Try
                                     WriteIntegerIniFile("Options", "UPnPDebugLevel", Val(ObjectValue))
                                 Catch ex As Exception
                                     Log("Error in postBackProc for PluginControl saving UPnPDebugLevel with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 End Try
-                                UPnPDebuglevel = GetIntegerIniFile("Options", "UPnPDebugLevel", DebugLevel.dlOff)
+                                upnpDebuglevel = GetIntegerIniFile("Options", "UPnPDebugLevel", DebugLevel.dlErrorsOnly)
                             Case "LogToDiskChkBox"
                                 Try
                                     WriteBooleanIniFile("Options", "LogToDisk", ObjectValue.ToUpper = "CHECKED")
@@ -599,12 +590,6 @@ Class SonosConfig
                                     If gLogToDisk Then OpenLogFile(DebugLogFileName) Else CloseLogFile()
                                 Catch ex As Exception
                                     Log("Error in postBackProc for SonosControl saving LogToDisk flag. Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
-                                End Try
-                            Case "LogErrorOnlyChkBox"
-                                Try
-                                    WriteBooleanIniFile("Options", "LogErrorOnly", ObjectValue.ToUpper = "CHECKED")
-                                Catch ex As Exception
-                                    Log("Error in postBackProc for SonosControl saving LogErrorOnly flag. Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 End Try
                             Case "AutoUpdChkBox"
                                 Try
@@ -827,7 +812,7 @@ Class SonosConfig
                 Log("Error in postBackProc for SonosControl calling Plugin to update values with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
         Else
-            If g_bDebug Then Log("postBackProc for SonosControl found parts to be empty", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc for SonosControl found parts to be empty", LogType.LOG_TYPE_INFO)
         End If
 
         Return MyBase.postBackProc(page, data, user, userRights)
@@ -846,7 +831,7 @@ Class SonosConfig
     End Enum
 
     Public Sub ItemChange(LinkTableItem As LinkTableItems, Value As String, RowIndex As Integer, Optional CellIndex As Integer = 0)
-        If g_bDebug Then Log("ItemChange called with LinktableItem = " & LinkTableItem.ToString & " and Value = " & Value.ToString & " and RowIndex = " & RowIndex.ToString & " and CellIndex = " & CellIndex.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ItemChange called with LinktableItem = " & LinkTableItem.ToString & " and Value = " & Value.ToString & " and RowIndex = " & RowIndex.ToString & " and CellIndex = " & CellIndex.ToString, LogType.LOG_TYPE_INFO)
         Value = Trim(Value)
         Dim KeyValue As New System.Collections.Generic.KeyValuePair(Of String, String)
         Dim LinkgroupName As String = ""
@@ -1120,7 +1105,7 @@ Class SonosConfig
     End Sub
 
     Public Sub DeletePlayerClick(PlayerTableItem As Integer)
-        If g_bDebug Then Log("DeletePlayerClick called with tableItem = " & PlayerTableItem.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeletePlayerClick called with tableItem = " & PlayerTableItem.ToString, LogType.LOG_TYPE_INFO)
         PlayerTableItem = Trim(PlayerTableItem)
         ' go find the UDN
         Dim IndexCount As Integer = 0
@@ -1144,7 +1129,7 @@ Class SonosConfig
     End Sub
 
     Public Sub DeleteAllPlayersClick()
-        If g_bDebug Then Log("DeleteAllPlayersClick called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeleteAllPlayersClick called", LogType.LOG_TYPE_INFO)
         If PIReference.MyHSDeviceLinkedList.Count > 0 Then
             For Each HSDevice As MyUPnpDeviceInfo In PIReference.MyHSDeviceLinkedList
                 If Not HSDevice Is Nothing Then
@@ -1177,7 +1162,7 @@ Class SonosConfig
 
 
     Public Sub ResetPingCountersClick()
-        If g_bDebug Then Log("ResetPingCountersClick called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ResetPingCountersClick called", LogType.LOG_TYPE_INFO)
         If PIReference.MyHSDeviceLinkedList.Count > 0 Then
             For Each HSDevice As MyUPnpDeviceInfo In PIReference.MyHSDeviceLinkedList
                 If Not HSDevice Is Nothing Then
@@ -1191,13 +1176,13 @@ Class SonosConfig
 
     Private Function GetZoneNameByIndex(index As Integer) As String
         GetZoneNameByIndex = ""
-        If g_bDebug Then Log("GetZoneNameByIndex called with Index = " & index.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetZoneNameByIndex called with Index = " & index.ToString, LogType.LOG_TYPE_INFO)
         Try
             Dim ZoneNameString As String = GetStringIniFile("Sonos Zonenames", "Names", "")
             Dim ZoneNames As String() = Split(ZoneNameString, ":|:")
             Dim ZoneInfos As String = ZoneNames(index)
             Dim ZoneNameInfos As String() = Split(ZoneInfos, ";:;")
-            If g_bDebug Then Log("GetZoneNameByIndex called with Index = " & index.ToString & " and found Name = " & ZoneNameInfos(0), LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetZoneNameByIndex called with Index = " & index.ToString & " and found Name = " & ZoneNameInfos(0), LogType.LOG_TYPE_INFO)
             Return ZoneNameInfos(0)
         Catch ex As Exception
             Log("Error in GetZoneNameByIndex with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -1206,12 +1191,12 @@ Class SonosConfig
 
     Private Function GetZoneUDNByIndex(index As Integer) As String
         GetZoneUDNByIndex = ""
-        If g_bDebug Then Log("GetZoneUDNByIndex called with Index = " & index.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetZoneUDNByIndex called with Index = " & index.ToString, LogType.LOG_TYPE_INFO)
         Try
             Dim ZoneUDNString As String = GetStringIniFile("Sonos Zonenames", "UDNs", "")
             Dim ZoneUDNs As String() = Split(ZoneUDNString, ":|:")
             Dim ZoneUDN As String = ZoneUDNs(index)
-            If g_bDebug Then Log("GetZoneUDNByIndex called with Index = " & index.ToString & " and found UDN = " & ZoneUDN, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetZoneUDNByIndex called with Index = " & index.ToString & " and found UDN = " & ZoneUDN, LogType.LOG_TYPE_INFO)
             Return ZoneUDN
         Catch ex As Exception
             Log("Error in GetZoneUDNByIndex with error = " & ex.Message, LogType.LOG_TYPE_ERROR)

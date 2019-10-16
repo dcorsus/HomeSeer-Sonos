@@ -44,11 +44,12 @@
     <WarningsAsErrors>
     </WarningsAsErrors>
     <Prefer32Bit>false</Prefer32Bit>
+    <DefineConstants>HS3="True"</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
-    <DefineDebug>false</DefineDebug>
+    <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
     <OutputPath>..\..\Program Files %28x86%29\HomeSeer HS3\</OutputPath>
@@ -119,17 +120,20 @@
     <Import Include="System.Runtime.InteropServices" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Common Routines\MCastSocket.vb">
+    <Compile Include="..\..\HS-Common-Routines\MCastSocket.vb">
       <Link>MCastSocket.vb</Link>
     </Compile>
-    <Compile Include="..\Common Routines\MyUPnP.vb">
+    <Compile Include="..\..\HS-Common-Routines\MyUPnP.vb">
       <Link>MyUPnP.vb</Link>
     </Compile>
-    <Compile Include="..\Common Routines\TCPListener.vb">
+    <Compile Include="..\..\HS-Common-Routines\TCPListener.vb">
       <Link>TCPListener.vb</Link>
     </Compile>
-    <Compile Include="..\Common Routines\utils.vb">
+    <Compile Include="..\..\HS-Common-Routines\utils.vb">
       <Link>utils.vb</Link>
+    </Compile>
+    <Compile Include="..\..\Sonos-Common-Routines\GlobalDefinitions.vb">
+      <Link>GlobalDefinitions.vb</Link>
     </Compile>
     <Compile Include="Classes.vb" />
     <Compile Include="PlayerControl.vb" />

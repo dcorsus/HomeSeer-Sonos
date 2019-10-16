@@ -51,7 +51,7 @@ Class PlayerControl
     Private MyMute As Boolean = False
     Private MyRepeat As Boolean = False
     Private MyShuffle As Boolean = False
-    Private MyPlayerState As HSPI.player_state_values = HSPI.player_state_values.stopped
+    Private MyPlayerState As player_state_values = player_state_values.Stopped
     Private MyIPodName As String = ""
     Private MyPlayerisPairMaster As Boolean = False
     Private MyPlayerisPairSlave As Boolean = False
@@ -169,16 +169,16 @@ Class PlayerControl
                 Exit Property
             End If
             ZoneName = MusicAPI.GetZoneName
-            If g_bDebug Then Log("GetPagePlugin for Zoneplayer = " & ZoneName & " set ZoneUDN = " & MyZoneUDN, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetPagePlugin for Zoneplayer = " & ZoneName & " set ZoneUDN = " & MyZoneUDN, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
     ' build and return the actual page
     Public Function GetPagePlugin(ByVal pageName As String, ByVal user As String, ByVal userRights As Integer, ByVal queryString As String, GenerateHeaderFooter As Boolean) As String
-        If g_bDebug Then Log("GetPagePlugin for PlayerControl called for Zoneplayer = " & ZoneName & " with pageName = " & pageName.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString & " and queryString = " & queryString.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetPagePlugin for PlayerControl called for Zoneplayer = " & ZoneName & " with pageName = " & pageName.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString & " and queryString = " & queryString.ToString, LogType.LOG_TYPE_INFO)
         Dim stb As New StringBuilder
 
-        'If g_bDebug Then Log("GetPagePlugin for PlayerControl called for ZoneUDN = " & MyZoneUDN & " and ZoneName = " & ZoneName & " and PageName = " & MyPageName, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetPagePlugin for PlayerControl called for ZoneUDN = " & MyZoneUDN & " and ZoneName = " & ZoneName & " and PageName = " & MyPageName, LogType.LOG_TYPE_INFO)
 
         Try
             ' handle any queries like mode=something
@@ -202,7 +202,7 @@ Class PlayerControl
                 If parts IsNot Nothing Then
                     If parts.HasKeys Then
                         For Each Key As String In parts.AllKeys
-                            If g_bDebug Then Log("GetPagePlugin found Part = " & Key & " with Value =  " & parts(Key), LogType.LOG_TYPE_INFO)
+                            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetPagePlugin found Part = " & Key & " with Value =  " & parts(Key), LogType.LOG_TYPE_INFO)
                             If Key.ToUpper = "INSTANCE" Then
 
                             ElseIf Key.ToUpper = "CONTROL" Then
@@ -212,7 +212,7 @@ Class PlayerControl
                             ElseIf Key.ToUpper = "UPDATETIME" Then
                                 UpdateTime = parts(Key)
                             Else
-                                If g_bDebug Then Log("Warning in GetPagePlugin. Found unknown Part = " & Key & " with Value =  " & parts(Key), LogType.LOG_TYPE_WARNING)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in GetPagePlugin. Found unknown Part = " & Key & " with Value =  " & parts(Key), LogType.LOG_TYPE_WARNING)
                             End If
                         Next
                     End If
@@ -259,7 +259,7 @@ Class PlayerControl
             LblFavorites.label = GetStringIniFile("SonosMusicPage", MyZoneUDN & ClientID & "_favorites", "")
             LblLineInput.label = GetStringIniFile("SonosMusicPage", MyZoneUDN & ClientID & "_lineinput", "")
             LblPairing.label = GetStringIniFile("SonosMusicPage", MyZoneUDN & ClientID & "_pairing", "")
-            If g_bDebug Then Log("GetPagePlugin for PlayerControl called for Zoneplayer = " & ZoneName & " has labels Genre = " & LblGenre.label & ", Artist=" & LblArtist.label & ", Album=" & LblAlbum.label & ", Playlist=" & LblPlaylist.label & ", RadioList=" & LblRadioList.label & ", Audiobooks=" & LblAudiobooks.label & ", Podcasts=" & LblPodcasts.label & ", Favorites=" & LblFavorites.label & ", Lineinput=" & LblLineInput.label & ", Pair=" & LblPairing.label, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetPagePlugin for PlayerControl called for Zoneplayer = " & ZoneName & " has labels Genre = " & LblGenre.label & ", Artist=" & LblArtist.label & ", Album=" & LblAlbum.label & ", Playlist=" & LblPlaylist.label & ", RadioList=" & LblRadioList.label & ", Audiobooks=" & LblAudiobooks.label & ", Podcasts=" & LblPodcasts.label & ", Favorites=" & LblFavorites.label & ", Lineinput=" & LblLineInput.label & ", Pair=" & LblPairing.label, LogType.LOG_TYPE_INFO)
             LblWhatWasPreviouslyLoaded = LblWhatsLoaded
 
             If ZoneModel <> "WD100" Then
@@ -481,7 +481,7 @@ Class PlayerControl
 
             stb.Append("<div id='PlayBtnDiv' style='position: absolute; left: 260px; top: 80px'>")
             MyPlayerState = MusicAPI.PlayerState()
-            If MyPlayerState = HSPI.player_state_values.Playing Then
+            If MyPlayerState = Player_state_values.Playing Then
                 ButPlay.imagePathNormal = ImagesPath & "player-pause.png"
             Else
                 ButPlay.imagePathNormal = ImagesPath & "player-play.png"
@@ -766,12 +766,12 @@ Class PlayerControl
     End Function
 
     Private Sub LoadNavigationBox(Optional GenerateDiv As Boolean = False)
-        If g_bDebug Then Log("LoadNavigationBox called for Player = " & ZoneName & " and GenerateDiv= " & GenerateDiv.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LoadNavigationBox called for Player = " & ZoneName & " and GenerateDiv= " & GenerateDiv.ToString, LogType.LOG_TYPE_INFO)
         Try
             Dim i As Integer
             NavigationBox.items.Clear()
             If ar IsNot Nothing Then
-                If g_bDebug Then Log("LoadNavigationBox called for Player = " & ZoneName & " and has " & (UBound(ar) + 1).ToString & " entries in the NavigationBox", LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LoadNavigationBox called for Player = " & ZoneName & " and has " & (UBound(ar) + 1).ToString & " entries in the NavigationBox", LogType.LOG_TYPE_INFO)
                 NavigationBox.selectedItemIndex = -1
                 For i = 0 To UBound(ar)
                     NavigationBox.AddItem(ar(i).ToString, HttpUtility.UrlEncode(ar(i).ToString), False)
@@ -787,12 +787,12 @@ Class PlayerControl
 
 
     Private Sub LoadPlayListBox(Optional GenerateDiv As Boolean = False)
-        If g_bDebug Then Log("LoadPlayListBox called for Player = " & ZoneName & " and GenerateDiv= " & GenerateDiv.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LoadPlayListBox called for Player = " & ZoneName & " and GenerateDiv= " & GenerateDiv.ToString, LogType.LOG_TYPE_INFO)
         PlaylistBox.items.Clear()
         Try
             Dim i As Integer
             If arplaylist IsNot Nothing Then
-                If g_bDebug Then Log("LoadPlayListBox called for Player = " & ZoneName & " and has " & (UBound(arplaylist) + 1).ToString & " entries in the PlaylistBox", LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LoadPlayListBox called for Player = " & ZoneName & " and has " & (UBound(arplaylist) + 1).ToString & " entries in the PlaylistBox", LogType.LOG_TYPE_INFO)
                 PlaylistBox.items.Clear()
                 For i = 0 To UBound(arplaylist)
                     PlaylistBox.AddItem(arplaylist(i), HttpUtility.UrlEncode(arplaylist(i)), arplaylist(i) = MusicAPI.CurrentTrack)
@@ -851,7 +851,7 @@ Class PlayerControl
             LblDescr = st
 
             MyArt = MusicAPI.CurrentAlbumArtPath.ToString
-            If g_bDebug Then Log("UpdateStatus for PlayerControl for player = " & MusicAPI.ZonePlayerName & " has shuffle state = " & MusicAPI.ShuffleStatus.ToLower, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("UpdateStatus for PlayerControl for player = " & MusicAPI.ZonePlayerName & " has shuffle state = " & MusicAPI.ShuffleStatus.ToLower, LogType.LOG_TYPE_INFO)
             MyShuffle = False
             Select Case MusicAPI.ShuffleStatus.ToLower
                 Case "shuffled"
@@ -864,15 +864,15 @@ Class PlayerControl
                 Case Else
                     ButShuffleImagePath = ImagesPath & "NoShuffle.png"
             End Select
-            If g_bDebug Then Log("UpdateStatus for PlayerControl for player = " & MusicAPI.ZonePlayerName & " has repeat state = " & MusicAPI.SonosRepeat.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("UpdateStatus for PlayerControl for player = " & MusicAPI.ZonePlayerName & " has repeat state = " & MusicAPI.SonosRepeat.ToString, LogType.LOG_TYPE_INFO)
             MyRepeat = False
             Select Case MusicAPI.SonosRepeat
-                Case repeat_modes.repeat_all
+                Case Repeat_modes.repeat_all
                     ButRepeatImagePath = ImagesPath & "Repeat.png"
                     MyRepeat = True
-                Case repeat_modes.repeat_off
+                Case Repeat_modes.repeat_off
                     ButRepeatImagePath = ImagesPath & "NoRepeat.png"
-                Case repeat_modes.repeat_one
+                Case Repeat_modes.repeat_one
                     ButRepeatImagePath = ImagesPath & "Repeat.png"
                     MyRepeat = True
             End Select
@@ -963,7 +963,7 @@ Class PlayerControl
             PlayerUDNArray = PIReference.GetAllActiveZones()
             'Dim PlayerDestList As String = MusicAPI.GetTargetZoneLinkedList
             If PlayerUDNArray IsNot Nothing Then
-                If g_bDebug Then Log("LoadButGroup called for Player = " & ZoneName & " and has " & (UBound(PlayerUDNArray) + 1).ToString & " entries", LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LoadButGroup called for Player = " & ZoneName & " and has " & (UBound(PlayerUDNArray) + 1).ToString & " entries", LogType.LOG_TYPE_INFO)
                 For i = 0 To UBound(PlayerUDNArray)
                     Dim Player As HSPI = PIReference.GetAPIByUDN(PlayerUDNArray(i))
                     If Player.ZoneModel.ToUpper <> "WD100" And Player.ZoneModel.ToUpper <> "SUB" And Not Player.ZoneIsASlave Then
@@ -1000,7 +1000,7 @@ Class PlayerControl
 
 
     Public Function PlayerDevicePost(ZoneUDN As String, data As String, user As String, userRights As Integer) As String
-        If g_bDebug Then Log("PlayerDevicePost called for Player = " & ZoneName & " with ZoneUDN = " & ZoneUDN.ToString & " and data = " & data.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost called for Player = " & ZoneName & " with ZoneUDN = " & ZoneUDN.ToString & " and data = " & data.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
         'PlayerDevicePost = Enums.ConfigDevicePostReturn.CallbackOnce
         PlayerDevicePost = ""
         'Me.reset()
@@ -1016,21 +1016,21 @@ Class PlayerControl
             Dim DoubleClickFlag As Boolean = False
             Try
                 If parts.Item("click") = "double" Then
-                    If g_bDebug Then Log("PlayerDevicePost for PlayerControl for Player = " & ZoneName & " found double click key", LogType.LOG_TYPE_WARNING)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost for PlayerControl for Player = " & ZoneName & " found double click key", LogType.LOG_TYPE_WARNING)
                     DoubleClickFlag = True
                 End If
             Catch ex As Exception
-                If g_bDebug Then Log("Error in PlayerDevicePost for PlayerControl for Player = " & ZoneName & " searching for Key = click with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in PlayerDevicePost for PlayerControl for Player = " & ZoneName & " searching for Key = click with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Try
                 ClientID = parts.Item("clientid")
             Catch ex As Exception
-                If g_bDebug Then Log("Error in PlayerDevicePost for PlayerControl for Player = " & ZoneName & " searching for Key = clientid with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in PlayerDevicePost for PlayerControl for Player = " & ZoneName & " searching for Key = clientid with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Try
                 Control = parts.Item("control")
             Catch ex As Exception
-                If g_bDebug Then Log("Error in PlayerDevicePost for PlayerControl for Player = " & ZoneName & " searching for Key = control with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in PlayerDevicePost for PlayerControl for Player = " & ZoneName & " searching for Key = control with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             If ClientID <> "" Then MyClientID = "?clientid=" & ClientID Else MyClientID = ""
             Try
@@ -1056,125 +1056,125 @@ Class PlayerControl
                             Case "BUTPLAY"
                                 If ObjectValue.ToUpper = "SUBMIT" Then
                                     MusicAPI.TogglePlay()
-                                    If g_bDebug Then Log("PlayerDevicePost issued Toggle Play command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Toggle Play command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
                                     'Return Enums.ConfigDevicePostReturn.DoneAndCancelAndStay
                                 End If
                             Case "BUTPREV"
                                 If ObjectValue.ToUpper = "SUBMIT" Then
                                     MusicAPI.TrackPrev()
-                                    If g_bDebug Then Log("PlayerDevicePost issued Previous command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Previous command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
                                     'Return Enums.ConfigDevicePostReturn.DoneAndCancelAndStay
                                 End If
                             Case "BUTSTOP"
                                 If ObjectValue.ToUpper = "SUBMIT" Then
                                     MusicAPI.StopPlay()
-                                    If g_bDebug Then Log("PlayerDevicePost issued Stop command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Stop command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
                                     'Return Enums.ConfigDevicePostReturn.DoneAndCancelAndStay
                                 End If
                             Case "BUTPAUSE"
                                 If ObjectValue.ToUpper = "SUBMIT" Then
                                     MusicAPI.SonosPause()
-                                    If g_bDebug Then Log("PlayerDevicePost issued Pause command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Pause command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
                                     'Return Enums.ConfigDevicePostReturn.DoneAndCancelAndStay
                                 End If
                             Case "BUTNEXT"
                                 If ObjectValue.ToUpper = "SUBMIT" Then
                                     MusicAPI.TrackNext()
-                                    If g_bDebug Then Log("PlayerDevicePost issued Next command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Next command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
                                     'Return Enums.ConfigDevicePostReturn.DoneAndCancelAndStay
                                 End If
                             Case "BUTMUTE"
                                 If ObjectValue.ToUpper = "SUBMIT" Then
                                     MusicAPI.ToggleMuteState("Master")
-                                    If g_bDebug Then Log("PlayerDevicePost issued Mute command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Mute command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
                                 End If
                             Case "BUTREPEAT"
                                 If ObjectValue.ToUpper = "SUBMIT" Then
                                     MusicAPI.ToggleRepeat()
-                                    If g_bDebug Then Log("PlayerDevicePost issued Repeat command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Repeat command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
                                     'Return Enums.ConfigDevicePostReturn.DoneAndCancelAndStay
                                 End If
                             Case "BUTSHUFFLE"
                                 If ObjectValue.ToUpper = "SUBMIT" Then
                                     MusicAPI.ToggleShuffle()
-                                    If g_bDebug Then Log("PlayerDevicePost issued Shuffle command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Shuffle command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
                                     'Return Enums.ConfigDevicePostReturn.DoneAndCancelAndStay
                                 End If
                             Case "VOLUMESLIDER"
-                                If g_bDebug Then Log("PlayerDevicePost issued Volume command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Volume command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 MusicAPI.PlayerVolume = Val(ObjectValue)
                             Case "POSITIONSLIDER"
-                                If g_bDebug Then Log("PlayerDevicePost issued Position command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Position command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 MusicAPI.SonosPlayerPosition = Val(ObjectValue)
                             Case "BUTLOUDNESS"
-                                If g_bDebug Then Log("PlayerDevicePost issued Loudness command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Loudness command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 MusicAPI.ToggleLoudnessState("Master")
                             Case "BUTGENRES"
-                                If g_bDebug Then Log("PlayerDevicePost issued Genres command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Genres command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButGenres_Click()
                             Case "BUTARTISTS"
-                                If g_bDebug Then Log("PlayerDevicePost issued Artists command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Artists command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButArtists_Click()
                             Case "BUTALBUMS"
-                                If g_bDebug Then Log("PlayerDevicePost issued Albums command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Albums command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButAlbums_Click()
                             Case "BUTTRACKS"
-                                If g_bDebug Then Log("PlayerDevicePost issued Tracks command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Tracks command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButTracks_Click()
                             Case "BUTPLAYLISTS"
-                                If g_bDebug Then Log("PlayerDevicePost issued Playlists command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Playlists command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButPlayLists_Click()
                             Case "BUTRADIOSTATIONS"
-                                If g_bDebug Then Log("PlayerDevicePost issued RadioStations command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued RadioStations command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButRadioStations_Click()
                             Case "BUTAUDIOBOOKS"
-                                If g_bDebug Then Log("PlayerDevicePost issued AudioBooks command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued AudioBooks command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButAudiobooks_Click()
                             Case "BUTPODCASTS"
-                                If g_bDebug Then Log("PlayerDevicePost issued Podcasts command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Podcasts command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButPodcasts_Click()
                             Case "BUTFAVORITES"
-                                If g_bDebug Then Log("PlayerDevicePost issued Favorites command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Favorites command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButFavorites_Click()
                             Case "BUTLINEINPUT"
-                                If g_bDebug Then Log("PlayerDevicePost issued LineInput command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued LineInput command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButLineInput_Click()
                             Case "BUTPAIR"
-                                If g_bDebug Then Log("PlayerDevicePost issued Pair command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Pair command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButPair_Click()
                             Case "BUTUNPAIR"
-                                If g_bDebug Then Log("PlayerDevicePost issued UnPair command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued UnPair command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButUnPair_Click()
                             Case "LBLGENRE"
-                                If g_bDebug Then Log("PlayerDevicePost issued LblGenre command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued LblGenre command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 LblGenre_Click()
                             Case "LBLARTIST"
-                                If g_bDebug Then Log("PlayerDevicePost issued LblArtist command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued LblArtist command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 LblArtist_Click()
                             Case "BUTADDTOPLAYLIST"
-                                If g_bDebug Then Log("PlayerDevicePost issued AddToPlaylist command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued AddToPlaylist command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 AddTrack_Click()
                             Case "BUTCLEARLIST"
-                                If g_bDebug Then Log("PlayerDevicePost issued ClearList command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued ClearList command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButClearList_Click()
                             Case "BUTEDITOR"
-                                If g_bDebug Then Log("PlayerDevicePost issued Editor command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Editor command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                             Case "PLAYLISTBOX"
-                                If g_bDebug Then Log("PlayerDevicePost issued Playlistbox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued Playlistbox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 PlaylistBox_SelectedIndexChanged(ObjectValue.ToString)
                                 'Return Enums.ConfigDevicePostReturn.CallbackOnce
                             Case "NAVIGATIONBOX"
-                                If g_bDebug Then Log("PlayerDevicePost issued NavigationBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued NavigationBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 NavigationBox_SelectedIndexChanged(ObjectValue.ToString, DoubleClickFlag, ClientID, Control)
                                 'Return Enums.ConfigDevicePostReturn.CallbackOnce
                             Case "BUTTV"
-                                If g_bDebug Then Log("PlayerDevicePost issued TV command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued TV command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButTV_Click()
                             Case "CLICK"
-                                If g_bDebug Then Log("PlayerDevicePost issued click command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost issued click command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                             Case Else
-                                If g_bDebug Then Log("PlayerDevicePost for Player = " & ZoneName & " found Key = " & ObjectNameParts(0).ToString, LogType.LOG_TYPE_WARNING)
-                                If g_bDebug Then Log("PlayerDevicePost for Player = " & ZoneName & " found Value = " & parts(Part).ToString, LogType.LOG_TYPE_WARNING)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost for Player = " & ZoneName & " found Key = " & ObjectNameParts(0).ToString, LogType.LOG_TYPE_WARNING)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost for Player = " & ZoneName & " found Value = " & parts(Part).ToString, LogType.LOG_TYPE_WARNING)
                         End Select
                     End If
                 Next
@@ -1182,7 +1182,7 @@ Class PlayerControl
                 Log("Error in PlayerDevicePost processing for Player = " & ZoneName & " with ZoneUDN = " & ZoneUDN.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString & " and Error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
         Else
-            If g_bDebug Then Log("PlayerDevicePost for Player = " & ZoneName & " found parts to be empty", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerDevicePost for Player = " & ZoneName & " found parts to be empty", LogType.LOG_TYPE_INFO)
         End If
         If LblWhatWasPreviouslyLoaded <> LblWhatsLoaded Then
             SaveNavSettingstoINIFile(ClientID)
@@ -1194,7 +1194,7 @@ Class PlayerControl
 
 
     Public Overrides Function postBackProc(page As String, data As String, user As String, userRights As Integer) As String
-        'If g_bDebug Then Log("PostBackProc for PlayerControl called  for Player = " & ZoneName & " with page = " & page.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PostBackProc for PlayerControl called  for Player = " & ZoneName & " with page = " & page.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
         'Me.reset()
         Dim parts As Collections.Specialized.NameValueCollection
         parts = HttpUtility.ParseQueryString(System.Web.HttpUtility.HtmlDecode(data))
@@ -1207,28 +1207,28 @@ Class PlayerControl
                 If parts.Item("action").ToUpper = "UPDATETIME" Then
                     UpdateFlag = True
                 Else
-                    If g_bDebug Then Log("PostBackProc for PlayerControl called for Player = " & ZoneName & " with page = " & page.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PostBackProc for PlayerControl called for Player = " & ZoneName & " with page = " & page.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
                 End If
             Catch ex As Exception
             End Try
             Dim DoubleClickFlag As Boolean = False
             Try
                 If parts.Item("click") = "double" Then
-                    If g_bDebug Then Log("postBackProc for PlayerControl for Player = " & ZoneName & " found double click key", LogType.LOG_TYPE_WARNING)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc for PlayerControl for Player = " & ZoneName & " found double click key", LogType.LOG_TYPE_WARNING)
                     DoubleClickFlag = True
                 End If
             Catch ex As Exception
-                If g_bDebug Then Log("Error in postBackProc for PlayerControl for Player = " & ZoneName & " searching for key = click with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in postBackProc for PlayerControl for Player = " & ZoneName & " searching for key = click with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Try
                 ClientID = parts.Item("clientid")
             Catch ex As Exception
-                If g_bDebug Then Log("Error in postBackProc for PlayerControl for Player = " & ZoneName & " searching for Key = clientid with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in postBackProc for PlayerControl for Player = " & ZoneName & " searching for Key = clientid with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Try
                 Control = parts.Item("control")
             Catch ex As Exception
-                If g_bDebug Then Log("Error in postBackProc for PlayerControl for Player = " & ZoneName & " searching for Key = control with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in postBackProc for PlayerControl for Player = " & ZoneName & " searching for Key = control with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             If ClientID <> "" Then MyClientID = "?clientid=" & ClientID Else MyClientID = ""
             If Control <> "" Then
@@ -1242,8 +1242,8 @@ Class PlayerControl
                         Dim ObjectNameParts As String()
                         ObjectNameParts = Split(HttpUtility.UrlDecode(Part), "_")
                         If Not UpdateFlag Then
-                            If g_bDebug Then Log("postBackProc for PlayerControl for Player = " & ZoneName & " found Key = " & ObjectNameParts(0).ToString, LogType.LOG_TYPE_INFO)
-                            If g_bDebug Then Log("postBackProc for PlayerControl for Player = " & ZoneName & " found Value = " & parts(Part).ToString, LogType.LOG_TYPE_INFO)
+                            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc for PlayerControl for Player = " & ZoneName & " found Key = " & ObjectNameParts(0).ToString, LogType.LOG_TYPE_INFO)
+                            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc for PlayerControl for Player = " & ZoneName & " found Value = " & parts(Part).ToString, LogType.LOG_TYPE_INFO)
                         End If
                         Dim ObjectValue As String = HttpUtility.UrlDecode(parts(Part))
                         'Dim ObjectValue As String = parts(Part)
@@ -1266,110 +1266,110 @@ Class PlayerControl
                             Case "BUTPLAY"
                                 If ObjectValue.ToUpper = "SUBMIT" Then
                                     MusicAPI.TogglePlay()
-                                    If g_bDebug Then Log("postBackProc issued Toggle Play command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Toggle Play command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
                                 End If
                             Case "BUTPREV"
                                 If ObjectValue.ToUpper = "SUBMIT" Then
                                     MusicAPI.TrackPrev()
-                                    If g_bDebug Then Log("postBackProc issued Previous command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Previous command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
                                 End If
                             Case "BUTSTOP"
                                 If ObjectValue.ToUpper = "SUBMIT" Then
                                     MusicAPI.StopPlay()
-                                    If g_bDebug Then Log("postBackProc issued Stop command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Stop command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
                                 End If
                             Case "BUTPAUSE"
                                 If ObjectValue.ToUpper = "SUBMIT" Then
                                     MusicAPI.SonosPause()
-                                    If g_bDebug Then Log("postBackProc issued Pause command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Pause command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
                                 End If
                             Case "BUTNEXT"
                                 If ObjectValue.ToUpper = "SUBMIT" Then
                                     MusicAPI.TrackNext()
-                                    If g_bDebug Then Log("postBackProc issued Next command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Next command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
                                 End If
                             Case "BUTMUTE"
                                 If ObjectValue.ToUpper = "SUBMIT" Then
                                     MusicAPI.ToggleMuteState("Master")
-                                    If g_bDebug Then Log("postBackProc issued Mute command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Mute command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
                                 End If
                             Case "BUTREPEAT"
                                 If ObjectValue.ToUpper = "SUBMIT" Then
                                     MusicAPI.ToggleRepeat()
-                                    If g_bDebug Then Log("postBackProc issued Repeat command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Repeat command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
                                 End If
                             Case "BUTSHUFFLE"
                                 If ObjectValue.ToUpper = "SUBMIT" Then
                                     MusicAPI.ToggleShuffle()
-                                    If g_bDebug Then Log("postBackProc issued Shuffle command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Shuffle command for Zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
                                 End If
                             Case "VOLUMESLIDER"
-                                If g_bDebug Then Log("postBackProc issued Volume command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Volume command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 MusicAPI.PlayerVolume = Val(ObjectValue)
                             Case "POSITIONSLIDER"
-                                If g_bDebug Then Log("postBackProc issued Position command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Position command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 MusicAPI.SonosPlayerPosition = Val(ObjectValue)
                             Case "BUTLOUDNESS"
-                                If g_bDebug Then Log("postBackProc issued Loudness command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Loudness command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 MusicAPI.ToggleLoudnessState("Master")
                             Case "BUTGENRES"
-                                If g_bDebug Then Log("postBackProc issued Genres command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Genres command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButGenres_Click()
                             Case "BUTARTISTS"
-                                If g_bDebug Then Log("postBackProc issued Artists command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Artists command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButArtists_Click()
                             Case "BUTALBUMS"
-                                If g_bDebug Then Log("postBackProc issued Albums command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Albums command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButAlbums_Click()
                             Case "BUTTRACKS"
-                                If g_bDebug Then Log("postBackProc issued Tracks command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Tracks command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButTracks_Click()
                             Case "BUTPLAYLISTS"
-                                If g_bDebug Then Log("postBackProc issued Playlists command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Playlists command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButPlayLists_Click()
                             Case "BUTRADIOSTATIONS"
-                                If g_bDebug Then Log("postBackProc issued RadioStations command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued RadioStations command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButRadioStations_Click()
                             Case "BUTAUDIOBOOKS"
-                                If g_bDebug Then Log("postBackProc issued AudioBooks command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued AudioBooks command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButAudiobooks_Click()
                             Case "BUTPODCASTS"
-                                If g_bDebug Then Log("postBackProc issued Podcasts command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Podcasts command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButPodcasts_Click()
                             Case "BUTFAVORITES"
-                                If g_bDebug Then Log("postBackProc issued Favorites command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Favorites command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButFavorites_Click()
                             Case "BUTLINEINPUT"
-                                If g_bDebug Then Log("postBackProc issued LineInput command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued LineInput command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButLineInput_Click()
                             Case "BUTPAIR"
-                                If g_bDebug Then Log("postBackProc issued Pair command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Pair command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButPair_Click()
                             Case "BUTUNPAIR"
-                                If g_bDebug Then Log("postBackProc issued UnPair command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued UnPair command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButUnPair_Click()
                             Case "LBLGENRE"
-                                If g_bDebug Then Log("postBackProc issued LblGenre command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued LblGenre command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 LblGenre_Click()
                             Case "LBLARTIST"
-                                If g_bDebug Then Log("postBackProc issued LblArtist command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued LblArtist command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 LblArtist_Click()
                             Case "BUTADDTOPLAYLIST"
-                                If g_bDebug Then Log("postBackProc issued AddToPlaylist command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued AddToPlaylist command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 AddTrack_Click()
                             Case "BUTCLEARLIST"
-                                If g_bDebug Then Log("postBackProc issued ClearList command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued ClearList command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButClearList_Click()
                             Case "BUTEDITOR"
-                                If g_bDebug Then Log("postBackProc issued Editor command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Editor command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                             Case "PLAYLISTBOX"
-                                If g_bDebug Then Log("postBackProc issued Playlistbox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued Playlistbox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 PlaylistBox_SelectedIndexChanged(ObjectValue.ToString)
                             Case "NAVIGATIONBOX"
-                                If g_bDebug Then Log("postBackProc issued NavigationBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued NavigationBox command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 NavigationBox_SelectedIndexChanged(ObjectValue.ToString, DoubleClickFlag, ClientID, Control)
                             Case "OVSUBMIT"
-                                If g_bDebug Then Log("postBackProc issued ovSubmit command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued ovSubmit command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ProcessGroupingChange(data)
                                 If ObjectValue.ToString.ToUpper = "SUBMIT" Then
                                     GroupingOverlay.visible = False
@@ -1378,7 +1378,7 @@ Class PlayerControl
                                 End If
                                 Exit For
                             Case "OVCANCEL"
-                                If g_bDebug Then Log("postBackProc issued ovCancel command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued ovCancel command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 If ObjectValue.ToString.ToUpper = "SUBMIT" Then
                                     GroupingOverlay.visible = False
                                     GroupingOverlay.page = MyPageName & MyClientID
@@ -1387,13 +1387,13 @@ Class PlayerControl
                             Case "LABEL-RINCON"
                                 ' ignore
                             Case "BUTTV"
-                                If g_bDebug Then Log("postBackProc issued TV command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued TV command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                                 ButTV_Click()
                             Case "CLICK"
-                                If g_bDebug Then Log("postBackProc issued click command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc issued click command for Zoneplayer = " & ZoneName & " with Value = " & ObjectValue.ToString, LogType.LOG_TYPE_INFO)
                             Case Else
-                                If g_bDebug Then Log("postBackProc for Player = " & ZoneName & " found Key = " & ObjectNameParts(0).ToString, LogType.LOG_TYPE_WARNING)
-                                If g_bDebug Then Log("postBackProc for Player = " & ZoneName & " found Value = " & parts(Part).ToString, LogType.LOG_TYPE_WARNING)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc for Player = " & ZoneName & " found Key = " & ObjectNameParts(0).ToString, LogType.LOG_TYPE_WARNING)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc for Player = " & ZoneName & " found Value = " & parts(Part).ToString, LogType.LOG_TYPE_WARNING)
                         End Select
                     End If
                 Next
@@ -1401,7 +1401,7 @@ Class PlayerControl
                 Log("Error in postBackProc for PlayerControl processing with page = " & page.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString & " and Error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
         Else
-            If g_bDebug Then Log("postBackProc for PlayerControl found parts to be empty", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("postBackProc for PlayerControl found parts to be empty", LogType.LOG_TYPE_INFO)
         End If
         If LblWhatWasPreviouslyLoaded <> LblWhatsLoaded Then
             SaveNavSettingstoINIFile(ClientID)
@@ -1411,7 +1411,7 @@ Class PlayerControl
     End Function
 
     Private Sub CheckForChanges(Control As String, ClientID As String)
-        'If g_bDebug Then Log("PlayerControl.CheckForChanges for Zoneplayer = " & ZoneName & " called and PlayerState = " & MusicAPI.PlayerState.ToString, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerControl.CheckForChanges for Zoneplayer = " & ZoneName & " called and PlayerState = " & MusicAPI.PlayerState.ToString, LogType.LOG_TYPE_INFO)
         Try
             If Control = "" Then
                 Dim trackHasChanged As Boolean = False
@@ -1425,7 +1425,7 @@ Class PlayerControl
                 End Try
                 If MyPlayerState <> MusicAPI.PlayerState Then
                     MyPlayerState = MusicAPI.PlayerState
-                    If MyPlayerState = HSPI.player_state_values.Playing Then
+                    If MyPlayerState = Player_state_values.Playing Then
                         ButPlay.imagePathNormal = ImagesPath & "player-pause.png"
                     Else
                         ButPlay.imagePathNormal = ImagesPath & "player-play.png"
@@ -1434,7 +1434,7 @@ Class PlayerControl
                     ButPlay.page = MyPageName & MyClientID
                     Me.divToUpdate.Add("PlayBtnDiv", ButPlay.Build)
                 End If
-                If (MusicAPI.PlayerState = HSPI.player_state_values.Playing) Or trackHasChanged Then
+                If (MusicAPI.PlayerState = Player_state_values.Playing) Or trackHasChanged Then
                     Dim PlayerPosition As Integer = MusicAPI.SonosPlayerPosition
                     Dim AlreadyPlayedSpan As TimeSpan = TimeSpan.FromSeconds(PlayerPosition)
                     Dim AlreadyPlayedString As String = FormatMyTimeString(AlreadyPlayedSpan, LblDuration)
@@ -1548,13 +1548,13 @@ Class PlayerControl
                 If ShuffleChanged Then Me.divToUpdate.Add("ShuffleDiv", ButShuffle.Build)
                 Dim RepeatChanged As Boolean = False
                 Select Case MusicAPI.SonosRepeat
-                    Case repeat_modes.repeat_all, repeat_modes.repeat_one
+                    Case Repeat_modes.repeat_all, Repeat_modes.repeat_one
                         ButRepeatImagePath = ImagesPath & "Repeat.png"
                         If Not MyRepeat Then
                             RepeatChanged = True
                             MyRepeat = True
                         End If
-                    Case repeat_modes.repeat_off
+                    Case Repeat_modes.repeat_off
                         ButRepeatImagePath = ImagesPath & "NoRepeat.png"
                         If MyRepeat Then
                             RepeatChanged = True
@@ -1856,10 +1856,10 @@ Class PlayerControl
 
     Protected Sub ButPlay_Click()
         Try
-            If MusicAPI.PlayerState = player_state_values.paused Then
+            If MusicAPI.PlayerState = Player_state_values.Paused Then
                 'music was paused so resume playing
                 MusicAPI.PlayIfPaused()
-            ElseIf MusicAPI.PlayerState = player_state_values.playing Then
+            ElseIf MusicAPI.PlayerState = Player_state_values.Playing Then
                 'music was playing so pause it
                 MusicAPI.SonosPause()
             ElseIf LblWhatsLoaded = ITEM_TYPE.radioLists.ToString Then
@@ -1932,7 +1932,7 @@ Class PlayerControl
 
     Protected Sub Double_Click(WhatsLoaded As String, Value As String, Control As String, ClientID As String)
         ' add selected track to existing playlist
-        If g_bDebug Then Log("Double_Click called for Player = " & ZoneName & " and MyLastSelecteNavBoxItems = " & Value & " and MyLastSelectedNavBoxClass = " & WhatsLoaded.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Double_Click called for Player = " & ZoneName & " and MyLastSelecteNavBoxItems = " & Value & " and MyLastSelectedNavBoxClass = " & WhatsLoaded.ToString, LogType.LOG_TYPE_INFO)
         Try
             If WhatsLoaded = "" And Value = "" Then Exit Sub
             Select Case WhatsLoaded
@@ -1945,7 +1945,7 @@ Class PlayerControl
                 Case ITEM_TYPE.tracks.ToString
                     MusicAPI.AddTrackToCurrentPlaylist(System.Web.HttpUtility.HtmlDecode(LblArtist.label), System.Web.HttpUtility.HtmlDecode(LblAlbum.label), System.Web.HttpUtility.HtmlDecode(Value))
                 Case ITEM_TYPE.playlists.ToString
-                    MusicAPI.PlayMusic("", "", System.Web.HttpUtility.HtmlDecode(Value), "", "", "", "", "", "", "", False, HSPI.QueueActions.qaDontPlay)
+                    MusicAPI.PlayMusic("", "", System.Web.HttpUtility.HtmlDecode(Value), "", "", "", "", "", "", "", False, QueueActions.qaDontPlay)
                 Case ITEM_TYPE.radioLists.ToString
                 Case ITEM_TYPE.Audiobooks.ToString
                 Case ITEM_TYPE.Podcasts.ToString
@@ -1965,7 +1965,7 @@ Class PlayerControl
 
     Protected Sub AddTrack_Click()
         ' add selected track to existing playlist
-        If g_bDebug Then Log("AddTrack_Click called for Player = " & ZoneName & " and MyLastSelecteNavBoxItems = " & MyLastSelecteNavBoxItems.ToString & " and MyLastSelectedNavBoxClass = " & MyLastSelectedNavBoxClass.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddTrack_Click called for Player = " & ZoneName & " and MyLastSelecteNavBoxItems = " & MyLastSelecteNavBoxItems.ToString & " and MyLastSelectedNavBoxClass = " & MyLastSelectedNavBoxClass.ToString, LogType.LOG_TYPE_INFO)
         Try
             If MyLastSelecteNavBoxItems = "" And MyLastSelectedNavBoxClass = "" Then Exit Sub
             Select Case MyLastSelectedNavBoxClass
@@ -1978,7 +1978,7 @@ Class PlayerControl
                 Case ITEM_TYPE.tracks.ToString
                     MusicAPI.AddTrackToCurrentPlaylist(System.Web.HttpUtility.HtmlDecode(LblArtist.label), System.Web.HttpUtility.HtmlDecode(LblAlbum.label), MyLastSelecteNavBoxItems)
                 Case ITEM_TYPE.playlists.ToString
-                    MusicAPI.PlayMusic("", "", MyLastSelecteNavBoxItems, "", "", "", "", "", "", "", False, HSPI.QueueActions.qaDontPlay)
+                    MusicAPI.PlayMusic("", "", MyLastSelecteNavBoxItems, "", "", "", "", "", "", "", False, QueueActions.qaDontPlay)
                 Case ITEM_TYPE.radioLists.ToString
                 Case ITEM_TYPE.Audiobooks.ToString
                 Case ITEM_TYPE.Podcasts.ToString
@@ -1994,7 +1994,7 @@ Class PlayerControl
     End Sub
 
     Protected Sub ButClearList_Click()
-        If g_bDebug Then Log("ButClearList_Click called for Player = " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ButClearList_Click called for Player = " & ZoneName, LogType.LOG_TYPE_INFO)
         MusicAPI.ClearCurrentPlayList()
         arplaylist = MusicAPI.GetCurrentPlaylistTracks
         LoadPlayListBox()
@@ -2002,7 +2002,7 @@ Class PlayerControl
     End Sub
 
     Protected Sub PlaylistBox_SelectedIndexChanged(value As String)
-        If g_bDebug Then Log("PlaylistBox_SelectedIndexChanged called  for Player = " & ZoneName & " with Value = " & value, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlaylistBox_SelectedIndexChanged called  for Player = " & ZoneName & " with Value = " & value, LogType.LOG_TYPE_INFO)
         If value = "" Then Exit Sub
         Try
             If PlaylistBox.items.Count > 0 Then
@@ -2025,13 +2025,13 @@ Class PlayerControl
     End Sub
 
     Private Sub AddAjaxDivForNavBox()
-        If g_bDebug Then Log("AddAjaxDivForNavBox called for Player = " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddAjaxDivForNavBox called for Player = " & ZoneName, LogType.LOG_TYPE_INFO)
         Me.divToUpdate.Add("NavigationDiv", NavigationBox.Build)
         Me.divToUpdate.Add("LabelDiv", LblGenre.Build & ">" & LblArtist.Build & ">" & LblAlbum.Build & ">" & LblPlaylist.Build)
     End Sub
 
     Protected Sub NavigationBox_SelectedIndexChanged(Value As String, DoubleClick As Boolean, ClientID As String, Control As String)
-        If g_bDebug Then Log("NavigationBox_SelectedIndexChanged called for Player = " & ZoneName & " with Value = " & Value & ", Double Click = " & DoubleClick.ToString & " and WhatsLoaded = " & LblWhatsLoaded.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("NavigationBox_SelectedIndexChanged called for Player = " & ZoneName & " with Value = " & Value & ", Double Click = " & DoubleClick.ToString & " and WhatsLoaded = " & LblWhatsLoaded.ToString, LogType.LOG_TYPE_INFO)
         If Value = "" Then Exit Sub
         MyLastSelecteNavBoxItems = Value
         MyLastSelectedNavBoxClass = LblWhatsLoaded
@@ -2076,26 +2076,26 @@ Class PlayerControl
                     Case ITEM_TYPE.tracks.ToString
                         If ZoneModel = "WD100" Then
                             ' the Wireless Dock doesn't support queues. Play direct
-                            MusicAPI.PlayMusic(System.Web.HttpUtility.HtmlDecode(LblArtist.label), System.Web.HttpUtility.HtmlDecode(LblAlbum.label), System.Web.HttpUtility.HtmlDecode(LblPlaylist.label), System.Web.HttpUtility.HtmlDecode(LblGenre.label), "", "", Value, "", "", "", False, HSPI.QueueActions.qaPlayNow)
+                            MusicAPI.PlayMusic(System.Web.HttpUtility.HtmlDecode(LblArtist.label), System.Web.HttpUtility.HtmlDecode(LblAlbum.label), System.Web.HttpUtility.HtmlDecode(LblPlaylist.label), System.Web.HttpUtility.HtmlDecode(LblGenre.label), "", "", Value, "", "", "", False, QueueActions.qaPlayNow)
                         End If
                     Case ITEM_TYPE.playlists.ToString
                         LblPlaylist.label = EncodeTags(Value)
-                        MusicAPI.PlayMusic("", "", Value, "", "", "", "", "", "", "", False, HSPI.QueueActions.qaDontPlay)
+                        MusicAPI.PlayMusic("", "", Value, "", "", "", "", "", "", "", False, QueueActions.qaDontPlay)
                         arplaylist = MusicAPI.GetCurrentPlaylistTracks
                         LoadPlayListBox()
                         Me.divToUpdate.Add("PlaylistDiv", PlaylistBox.Build)
                     Case ITEM_TYPE.radioLists.ToString
                         LblRadioList.label = EncodeTags(Value)
-                        MusicAPI.PlayMusic("", "", Value, "", "", "", "", "", "", "", False, HSPI.QueueActions.qaPlayNow)
+                        MusicAPI.PlayMusic("", "", Value, "", "", "", "", "", "", "", False, QueueActions.qaPlayNow)
                     Case ITEM_TYPE.Audiobooks.ToString
                         LblAudiobooks.label = EncodeTags(Value)
-                        MusicAPI.PlayMusic("", "", "", "", "", "", "", "", Value, "", False, HSPI.QueueActions.qaPlayNow)
+                        MusicAPI.PlayMusic("", "", "", "", "", "", "", "", Value, "", False, QueueActions.qaPlayNow)
                     Case ITEM_TYPE.Podcasts.ToString
                         LblPodcasts.label = EncodeTags(Value)
-                        MusicAPI.PlayMusic("", "", "", "", "", "", "", "", "", Value, False, HSPI.QueueActions.qaPlayNow)
+                        MusicAPI.PlayMusic("", "", "", "", "", "", "", "", "", Value, False, QueueActions.qaPlayNow)
                     Case ITEM_TYPE.Favorites.ToString
                         LblFavorites.label = EncodeTags(Value)
-                        MusicAPI.PlayFavorite(Value, True, HSPI.QueueActions.qaPlayNow)
+                        MusicAPI.PlayFavorite(Value, True, QueueActions.qaPlayNow)
                     Case ITEM_TYPE.LineInput.ToString
                         LblLineInput.label = EncodeTags(Value)
                         MusicAPI.PlayLineInput(Value)
@@ -2113,7 +2113,7 @@ Class PlayerControl
     End Sub
 
     Private Sub SaveNavSettingstoINIFile(ClientID As String)
-        If g_bDebug Then Log("SaveNavSettingstoINIFile called for Zoneplayer = " & ZoneName & " with ClientID = " & ClientID.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SaveNavSettingstoINIFile called for Zoneplayer = " & ZoneName & " with ClientID = " & ClientID.ToString, LogType.LOG_TYPE_INFO)
         WriteStringIniFile("SonosMusicPage", MyZoneUDN & ClientID & "_loaded", LblWhatsLoaded)
         WriteStringIniFile("SonosMusicPage", MyZoneUDN & ClientID & "_genre", LblGenre.label)
         WriteStringIniFile("SonosMusicPage", MyZoneUDN & ClientID & "_artist", LblArtist.label)
@@ -2130,13 +2130,13 @@ Class PlayerControl
     End Sub
 
     Protected Sub ProcessGroupingChange(GroupingData As String)
-        If g_bDebug Then Log("ProcessGroupingChange called for Zoneplayer = " & ZoneName & " with GroupingData = " & GroupingData.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessGroupingChange called for Zoneplayer = " & ZoneName & " with GroupingData = " & GroupingData.ToString, LogType.LOG_TYPE_INFO)
         Dim PlayerUDNArray() As String
         Dim PlayerGroupingArray() As GroupArrayElement = Nothing
         Try
             PlayerUDNArray = PIReference.GetAllActiveZones()
             If PlayerUDNArray IsNot Nothing Then
-                If g_bDebug Then Log("ProcessGroupingChange called for Player = " & ZoneName & " and has " & (UBound(PlayerUDNArray) + 1).ToString & " entries", LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessGroupingChange called for Player = " & ZoneName & " and has " & (UBound(PlayerUDNArray) + 1).ToString & " entries", LogType.LOG_TYPE_INFO)
                 For i = 0 To UBound(PlayerUDNArray)
                     Dim Player As HSPI = PIReference.GetAPIByUDN(PlayerUDNArray(i))
                     If Player.ZoneModel.ToUpper <> "WD100" And Player.ZoneModel.ToUpper <> "SUB" And Not Player.ZoneIsPairSlave Then
@@ -2200,7 +2200,7 @@ Class PlayerControl
         Catch ex As Exception
             Log("Error in ProcessGroupingChange for PlayerControl for Player = " & ZoneName & " trying to check linked zones with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug Then Log("ProcessGroupingChange called for Player = " & ZoneName & " Found " & PlayerGroupingArray.Count.ToString & " linked players", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessGroupingChange called for Player = " & ZoneName & " Found " & PlayerGroupingArray.Count.ToString & " linked players", LogType.LOG_TYPE_INFO)
         Dim parts As Collections.Specialized.NameValueCollection
         parts = HttpUtility.ParseQueryString(GroupingData)
         If parts IsNot Nothing Then
@@ -2257,7 +2257,7 @@ Class PlayerControl
             ' check for player to be removed
             For Each Groupelement In PlayerGroupingArray
                 If Not Groupelement.Confirmed And Not Groupelement.Master Then ' only remove non master players
-                    If g_bDebug Then Log("ProcessGroupingChange for Player = " & ZoneName & " is removing a player = " & Groupelement.UDN.ToString, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessGroupingChange for Player = " & ZoneName & " is removing a player = " & Groupelement.UDN.ToString, LogType.LOG_TYPE_INFO)
                     PIReference.GetAPIByUDN(Groupelement.UDN).Unlink()
                 End If
             Next
@@ -2270,7 +2270,7 @@ Class PlayerControl
                 If Groupelement.Master Then
                     OldMasterUDN = Groupelement.UDN
                     OldMasterStillMaster = Groupelement.Confirmed
-                    If g_bDebug Then Log("ProcessGroupingChange for Player = " & ZoneName & " found Master = " & OldMasterUDN.ToString & " and Active State = " & OldMasterStillMaster.ToString, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessGroupingChange for Player = " & ZoneName & " found Master = " & OldMasterUDN.ToString & " and Active State = " & OldMasterStillMaster.ToString, LogType.LOG_TYPE_INFO)
                     Exit For
                 End If
             Next
@@ -2284,7 +2284,7 @@ Class PlayerControl
                 If Not Groupelement.Master And Groupelement.Confirmed Then
                     OldMasterUDN = Groupelement.UDN
                     OldMasterStillMaster = True
-                    If g_bDebug Then Log("ProcessGroupingChange for Player = " & ZoneName & " found a new Master = " & NewMasterUDN.ToString, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessGroupingChange for Player = " & ZoneName & " found a new Master = " & NewMasterUDN.ToString, LogType.LOG_TYPE_INFO)
                     Exit For
                 End If
             Next
@@ -2293,7 +2293,7 @@ Class PlayerControl
             ' check for players to be added
             For Each Groupelement In PlayerGroupingArray
                 If Groupelement.Added And Not Groupelement.Master Then
-                    If g_bDebug Then Log("ProcessGroupingChange for Player = " & ZoneName & " is adding a player = " & Groupelement.UDN.ToString, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessGroupingChange for Player = " & ZoneName & " is adding a player = " & Groupelement.UDN.ToString, LogType.LOG_TYPE_INFO)
                     PIReference.GetAPIByUDN(Groupelement.UDN).Link("uuid:" & OldMasterUDN)
                 End If
             Next
@@ -2306,7 +2306,7 @@ Class PlayerControl
                 For Each Groupelement In PlayerGroupingArray
                     If Not Groupelement.Master And Groupelement.Confirmed Then
                         NewMasterUDN = Groupelement.UDN
-                        If g_bDebug Then Log("ProcessGroupingChange for Player = " & ZoneName & " found a new Master = " & NewMasterUDN.ToString, LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessGroupingChange for Player = " & ZoneName & " found a new Master = " & NewMasterUDN.ToString, LogType.LOG_TYPE_INFO)
                         Exit For
                     End If
                 Next

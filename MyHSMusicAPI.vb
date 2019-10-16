@@ -12,62 +12,6 @@ Imports System.Data.SQLite
 Partial Public Class HSPI
     Implements IMediaAPI_3
 
-
-    Public Enum player_status_change
-        SongChanged = 1         'raises whenever the current song changes
-        PlayStatusChanged = 2   'raises when pause, stop, play, etc. pressed.
-        PlayList = 3            'raises whenever the current playlist changes
-        Library = 4             'raises when the library changes
-        DeviceStatusChanged = 11 'raised when the player goes on/off-line or an iPod is inserted/removed from the wireless dock
-        AlarmStart = 12          ' raised when the alarm goes off
-        ConfigChange = 13        ' raised when the configuration of a device changes like alarm info being modified
-        NextSong = 14            ' raised when the next song is about to start
-        AnnouncementChange = 15           ' raised when the next song is about to start
-    End Enum
-
-    Public Enum player_state_values
-        Playing = 1
-        Stopped = 2
-        Paused = 3
-        Forwarding = 4
-        Rewinding = 5
-        Docked = 11         ' new state to support WD100 devices being docked
-        Undocked = 12       ' new state to support WD100 devices being undocked
-        AudioInTrue = 13    ' new state to indicating Line-In went Up (or connected)
-        AudioInFalse = 14   ' new state to indicating Line-In went down (or disconnected)
-        ZoneName = 15
-        ReplicationState = 16
-        UpdateHSServerOnly = 17
-        Online = 18
-        Offline = 19
-        AnnouncementStart = 20
-        AnnouncementStop = 21
-    End Enum
-
-    Public Enum repeat_modes
-        repeat_off = 0
-        repeat_one = 1
-        repeat_all = 2
-    End Enum
-
-    Public Enum Shuffle_modes
-        Shuffled = 1
-        Ordered = 2
-        Sorted = 3
-    End Enum
-
-    Public Enum QueueActions
-        qaDontPlay
-        qaPlayLast
-        qaPlayNext
-        qaPlayNow
-    End Enum
-
-    Public Enum MyLibraryTypes
-        LibraryQueue = 1
-        LibraryDB = 2
-    End Enum
-
     Private TrackDescriptor As New track_desc
     Private MyCurrentTrack As String = ""
     Private MyCurrentArtist As String = ""
@@ -108,30 +52,23 @@ Partial Public Class HSPI
     Private CurrentLibKey As New Lib_Entry_Key
     Private NextLibKey As New Lib_Entry_Key
 
-    Const MaxPlayerTOActionArray = 10
-    '
-    ' Timeout indexes
-    Const TOReachable = 0
-    Const TOPositionUpdate = 1
-    '
-    ' Timeout Values
-    Const TOReachableValue = 10
-    Const ToPositionUpdateValue = 1
-
 
     Public Sub InitMusicAPI()
-        MyMusicAPITimer = New Timers.Timer
-        MyMusicAPITimer.Interval = 1000 ' one second
-        MyMusicAPITimer.AutoReset = True
-        MyMusicAPITimer.Enabled = True
+        MyMusicAPITimer = New Timers.Timer With {
+            .Interval = 1000, ' one second
+            .AutoReset = True,
+            .Enabled = True
+        }
         Dim Index As Integer
         For Index = 0 To MaxPlayerTOActionArray
             MyPlayerTimeoutActionArray(Index) = 0
         Next
-        MyZonePlayerTimer = New Timers.Timer
-        MyZonePlayerTimer.Interval = 20000 ' 20 seconds '10000 ' 10 seconds
-        MyZonePlayerTimer.AutoReset = True
-        MyZonePlayerTimer.Enabled = True
+
+        MyZonePlayerTimer = New Timers.Timer With {
+            .Interval = 20000, ' 20 seconds '10000 ' 10 seconds
+            .AutoReset = True,
+            .Enabled = True
+        }
         MyPlayerTimeoutActionArray(TOReachable) = TOReachableValue
         MyPlayerTimeoutActionArray(TOPositionUpdate) = ToPositionUpdateValue
 
@@ -190,7 +127,7 @@ Partial Public Class HSPI
 
     Public Sub DestroyPlayer(Disposing As Boolean)
         Try
-            If g_bDebug Then Log("Dispose called for zoneplayer = " & ZoneName & " and Disposing = " & Disposing.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Dispose called for zoneplayer = " & ZoneName & " and Disposing = " & Disposing.ToString, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
         End Try
         If Disposing Then
@@ -219,7 +156,7 @@ Partial Public Class HSPI
                 myGroupManagementCallback = Nothing
                 myConnectionManagerCallback = Nothing
                 myQueueServiceCallback = Nothing
-                myVirtualLineInCallBack = Nothing
+                myVirtualLineInCallback = Nothing
                 MediaServer = Nothing
                 MediaRenderer = Nothing
                 AudioIn = Nothing
@@ -243,7 +180,7 @@ Partial Public Class HSPI
 
     Private Sub MyMusicAPITimer_Elapsed(ByVal sender As Object, ByVal e As System.Timers.ElapsedEventArgs) Handles MyMusicAPITimer.Elapsed
         Dim Index As Integer
-        'If g_bDebug Then Log( "MyMusicAPITimer_Elapsed called for zone " & ZoneName)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "MyMusicAPITimer_Elapsed called for zone " & ZoneName)
         For Index = 0 To MaxPlayerTOActionArray
             If MyPlayerTimeoutActionArray(Index) <> 0 Then
                 Select Case Index
@@ -263,13 +200,13 @@ Partial Public Class HSPI
     Private Sub UpdatePositionInfo()
         If hs Is Nothing Then Exit Sub ' We're existing and HS is already disconnected
         Dim NewPlayerPosition As Integer = MyPlayerPosition
-        'If g_bDebug Then Log("UpdatePositionInfo for ZoneName = " & ZoneName & " and ZoneSource = " & MyZoneSource & ", My ExtZoneSource = " & MyZoneSourceExt & ", Playerstate = " & MyCurrentPlayerState.ToString & ", PlayerPosition = " & MyPlayerPosition.ToString, LogType.LOG_TYPE_WARNING)
-        If MyCurrentPlayerState = player_state_values.Playing Then
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("UpdatePositionInfo for ZoneName = " & ZoneName & " and ZoneSource = " & MyZoneSource & ", My ExtZoneSource = " & MyZoneSourceExt & ", Playerstate = " & MyCurrentPlayerState.ToString & ", PlayerPosition = " & MyPlayerPosition.ToString, LogType.LOG_TYPE_WARNING)
+        If MyCurrentPlayerState = Player_state_values.Playing Then
             If Not (MyZoneSourceExt.IndexOf("Stream Radio") = 0 Or MyZoneSourceExt.IndexOf("TV") = 0) Or NewPlayerPosition = -1 Then ' -1 is only at startup
                 ' OK I'm going to fake it here a bit
                 NewPlayerPosition = NewPlayerPosition + 1
             End If
-        ElseIf MyCurrentPlayerState = player_state_values.Stopped Then
+        ElseIf MyCurrentPlayerState = Player_state_values.Stopped Then
             NewPlayerPosition = 0
         End If
         If NewPlayerPosition = MyPlayerPosition Then Exit Sub
@@ -296,7 +233,7 @@ Partial Public Class HSPI
     Public Property Track As String
         Get
             Track = MyCurrentTrack
-            'If g_bDebug And gIOEnabled Then Log( "Track Get for ZoneName = " & ZoneName & ". Track = " & MyCurrentTrack)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log( "Track Get for ZoneName = " & ZoneName & ". Track = " & MyCurrentTrack)
         End Get
         Set(ByVal value As String)
             If hs Is Nothing Then Exit Property  ' We're existing and HS is already disconnected
@@ -306,14 +243,14 @@ Partial Public Class HSPI
             MyCurrentTrack = value
             CurrentLibEntry.Title = value
             CurrentLibKey.Title = value
-            If SuperDebug And gIOEnabled Then Log("Track Set for ZoneName = " & ZoneName & ". Track = " & MyCurrentTrack, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("Track Set for ZoneName = " & ZoneName & ". Track = " & MyCurrentTrack, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
     Public Property NextTrack As String
         Get
             'Returns the name of the next track.
-            'If g_bDebug Then Log( "NextTrack called for Zone - " & ZoneName & ". Value= " & MyNextTrack.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "NextTrack called for Zone - " & ZoneName & ". Value= " & MyNextTrack.ToString)
             NextTrack = MyNextTrack
         End Get
         Set(ByVal value As String)
@@ -324,14 +261,14 @@ Partial Public Class HSPI
             MyNextTrack = value
             NextLibEntry.Title = value
             NextLibKey.Title = value
-            If SuperDebug And gIOEnabled Then Log("NextTrack Set for ZoneName = " & ZoneName & ". NextTrack = " & MyNextTrack, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("NextTrack Set for ZoneName = " & ZoneName & ". NextTrack = " & MyNextTrack, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
     Public Property Artist As String
         Get
             Artist = MyCurrentArtist
-            'If g_bDebug And gIOEnabled Then Log( "Artist Get for ZoneName = " & ZoneName & ". Artist = " & MyCurrentArtist)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log( "Artist Get for ZoneName = " & ZoneName & ". Artist = " & MyCurrentArtist)
         End Get
         Set(ByVal value As String)
             If hs Is Nothing Then Exit Property ' We're existing and HS is already disconnected
@@ -340,7 +277,7 @@ Partial Public Class HSPI
             End If
             MyCurrentArtist = value
             CurrentLibEntry.Artist = value
-            If SuperDebug And gIOEnabled Then Log("Artist Set for ZoneName = " & ZoneName & ". Artist = " & MyCurrentArtist, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("Artist Set for ZoneName = " & ZoneName & ". Artist = " & MyCurrentArtist, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
@@ -356,14 +293,14 @@ Partial Public Class HSPI
             End If
             MyNextArtist = value
             NextLibEntry.Artist = value
-            If SuperDebug And gIOEnabled Then Log("NextArtist Set for ZoneName = " & ZoneName & ". NextArtist = " & MyNextArtist, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("NextArtist Set for ZoneName = " & ZoneName & ". NextArtist = " & MyNextArtist, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
     Public Property Album As String
         Get
             Album = MyCurrentAlbum
-            'If g_bDebug And gIOEnabled Then Log( "Album Get for ZoneName = " & ZoneName & ". Album = " & MyCurrentAlbum)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log( "Album Get for ZoneName = " & ZoneName & ". Album = " & MyCurrentAlbum)
         End Get
         Set(ByVal value As String)
             If hs Is Nothing Then Exit Property ' We're existing and HS is already disconnected
@@ -372,7 +309,7 @@ Partial Public Class HSPI
             End If
             MyCurrentAlbum = value
             CurrentLibEntry.Album = value
-            If SuperDebug And gIOEnabled Then Log("Album Set for ZoneName = " & ZoneName & ". Album = " & MyCurrentAlbum, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("Album Set for ZoneName = " & ZoneName & ". Album = " & MyCurrentAlbum, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
@@ -388,7 +325,7 @@ Partial Public Class HSPI
             End If
             MyNextAlbum = value
             NextLibEntry.Album = value
-            If SuperDebug And gIOEnabled Then Log("NextAlbum Set for ZoneName = " & ZoneName & ". NextAlbum = " & MyNextAlbum, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("NextAlbum Set for ZoneName = " & ZoneName & ". NextAlbum = " & MyNextAlbum, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
@@ -402,7 +339,7 @@ Partial Public Class HSPI
                 hs.SetDeviceString(HSRefRadiostationName, value, True)
             End If
             MyRadiostationName = value
-            If SuperDebug And gIOEnabled Then Log("RadiostationName Set for ZoneName = " & ZoneName & ". RadiostationName = " & MyRadiostationName, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("RadiostationName Set for ZoneName = " & ZoneName & ". RadiostationName = " & MyRadiostationName, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
@@ -411,7 +348,7 @@ Partial Public Class HSPI
             If hs Is Nothing Then Exit Property ' We're existing and HS is already disconnected
             If MyCurrentMasterVolumeLevel <> value Then
                 If HSRefVolume <> -1 Then
-                    If SuperDebug Then Log("SetVolume is setting HS Status Volume for ZoneName - " & ZoneName & " with Value = " & value.ToString & " and HSRef = " & HSRefVolume.ToString, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlEvents Then Log("SetVolume is setting HS Status Volume for ZoneName - " & ZoneName & " with Value = " & value.ToString & " and HSRef = " & HSRefVolume.ToString, LogType.LOG_TYPE_INFO)
                     hs.SetDeviceValueByRef(HSRefVolume, value, True)
                     If MyCurrentMasterVolumeLevel > value Then
                         DeviceTrigger("Sonos Volume Down")
@@ -434,7 +371,7 @@ Partial Public Class HSPI
             If hs Is Nothing Then Exit Property ' We're existing and HS is already disconnected
             If MyCurrentMuteState <> value Then
                 If HSRefMute <> -1 Then
-                    If SuperDebug Then Log("SetMuteState is setting HS Status Mute for ZoneName - " & ZoneName & " with Value = " & value.ToString & " and HSRef = " & HSRefMute.ToString, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlEvents Then Log("SetMuteState is setting HS Status Mute for ZoneName - " & ZoneName & " with Value = " & value.ToString & " and HSRef = " & HSRefMute.ToString, LogType.LOG_TYPE_INFO)
                     If value Then
                         'hs.SetDeviceString(HSRefMute, "Muted", True)
                         hs.SetDeviceValueByRef(HSRefMute, msMuted, True)
@@ -457,7 +394,7 @@ Partial Public Class HSPI
             If hs Is Nothing Then Exit Property ' We're existing and HS is already disconnected
             If value <> MyCurrentLoudnessState Then
                 If HSRefLoudness <> -1 Then
-                    If SuperDebug Then Log("SetLoudnessState is setting HS Status Loundness for ZoneName - " & ZoneName & " with Value = " & value.ToString & " and HSRef = " & HSRefVolume.ToString, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlEvents Then Log("SetLoudnessState is setting HS Status Loundness for ZoneName - " & ZoneName & " with Value = " & value.ToString & " and HSRef = " & HSRefVolume.ToString, LogType.LOG_TYPE_INFO)
                     If value Then
                         hs.SetDeviceValueByRef(HSRefLoudness, lsLoudnessOn, True)
                         'hs.SetDeviceString(HSRefLoudness, "Loudness On", True)
@@ -475,39 +412,39 @@ Partial Public Class HSPI
         End Set
     End Property
 
-    Public Property CurrentPlayerState As player_state_values
+    Public Property CurrentPlayerState As Player_state_values
         Get
             CurrentPlayerState = MyCurrentPlayerState
-            'If g_bDebug And gIOEnabled Then Log( "CurrentPlayerState Get for ZoneName = " & ZoneName & ". Value = " & MyCurrentPlayerState.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log( "CurrentPlayerState Get for ZoneName = " & ZoneName & ". Value = " & MyCurrentPlayerState.ToString)
             'Log( "CurrentPlayerState Get for ZoneName = " & ZoneName & ". Value = " & MyCurrentPlayerState.ToString)
         End Get
-        Set(ByVal value As player_state_values)
+        Set(ByVal value As Player_state_values)
             If hs Is Nothing Then Exit Property ' We're existing and HS is already disconnected
             If MyCurrentPlayerState <> value And HSRefPlayState <> -1 Then
-                If SuperDebug Then Log("CurrentPlayerState is setting HS Status for ZoneName - " & ZoneName & " with Value = " & value.ToString & " and HSRef = " & HSRefPlayState.ToString, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlEvents Then Log("CurrentPlayerState is setting HS Status for ZoneName - " & ZoneName & " with Value = " & value.ToString & " and HSRef = " & HSRefPlayState.ToString, LogType.LOG_TYPE_INFO)
                 hs.SetDeviceValueByRef(HSRefPlayState, value, True)
             End If
             MyCurrentPlayerState = value
-            If g_bDebug And gIOEnabled Then Log("CurrentPlayerState Set for ZoneName = " & ZoneName & ". Value = " & MyCurrentPlayerState.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("CurrentPlayerState Set for ZoneName = " & ZoneName & ". Value = " & MyCurrentPlayerState.ToString, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
-    Public WriteOnly Property LinkedCurrentPlayerState As player_state_values
-        Set(ByVal value As player_state_values)
+    Public WriteOnly Property LinkedCurrentPlayerState As Player_state_values
+        Set(ByVal value As Player_state_values)
             If MyCurrentPlayerState <> value And HSRefPlayState <> -1 Then
-                If SuperDebug Then Log("LinkedCurrentPlayerState is setting HS Status for ZoneName - " & ZoneName & " with Value = " & value.ToString & " and HSRef = " & HSRefPlayState.ToString, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlEvents Then Log("LinkedCurrentPlayerState is setting HS Status for ZoneName - " & ZoneName & " with Value = " & value.ToString & " and HSRef = " & HSRefPlayState.ToString, LogType.LOG_TYPE_INFO)
                 hs.SetDeviceValueByRef(HSRefPlayState, value, True)
             End If
-            PlayChangeNotifyCallback(player_status_change.SongChanged, value) ' notify HS if they have the callback linked
-            If value <> MyCurrentPlayerState Then PlayChangeNotifyCallback(player_status_change.PlayStatusChanged, value)
+            PlayChangeNotifyCallback(Player_status_change.SongChanged, value) ' notify HS if they have the callback linked
+            If value <> MyCurrentPlayerState Then PlayChangeNotifyCallback(Player_status_change.PlayStatusChanged, value)
             MyCurrentPlayerState = value
-            If MyCurrentPlayerState = player_state_values.Playing Then MyPlayerWentThroughPlayState = True
-            If g_bDebug And gIOEnabled Then Log("LinkedCurrentPlayerState Set for ZoneName = " & ZoneName & ". Value = " & MyCurrentPlayerState.ToString, LogType.LOG_TYPE_INFO)
+            If MyCurrentPlayerState = Player_state_values.Playing Then MyPlayerWentThroughPlayState = True
+            If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("LinkedCurrentPlayerState Set for ZoneName = " & ZoneName & ". Value = " & MyCurrentPlayerState.ToString, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
     Private Sub UpdatePlaybarSlaves(WhatDevice As String, NewValue As Object)
-        If g_bDebug Then Log("UpdatePlaybarSlaves called ZoneName - " & ZoneName & " for " & WhatDevice & " and new value = " & NewValue.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("UpdatePlaybarSlaves called ZoneName - " & ZoneName & " for " & WhatDevice & " and new value = " & NewValue.ToString, LogType.LOG_TYPE_INFO)
         If MyTargetZoneLinkedList = "" Then Exit Sub
         Dim TargetZones As String() = Split(MyTargetZoneLinkedList, ";")
         If TargetZones Is Nothing Then Exit Sub
@@ -543,27 +480,29 @@ Partial Public Class HSPI
                 'value = "http://" & hs.GetIPAddress & HTTPPort & value
             End If
             If MyCurrentArtworkURL <> value And HSRefArt <> -1 Then
-                If SuperDebug Then Log("ArtworkURL is setting HS Status for ZoneName - " & ZoneName & " with Value = " & value.ToString & " and HSRef = " & HSRefArt.ToString, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlEvents Then Log("ArtworkURL is setting HS Status for ZoneName - " & ZoneName & " with Value = " & value.ToString & " and HSRef = " & HSRefArt.ToString, LogType.LOG_TYPE_INFO)
                 hs.DeviceVSP_ClearAll(HSRefArt, True)
                 hs.DeviceVGP_ClearAll(HSRefArt, True)
                 Dim Pair As VSPair
-                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Status)
-                Pair.PairType = VSVGPairType.SingleValue
-                Pair.Value = 1000
-                Pair.Status = value
+                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Status) With {
+                    .PairType = VSVGPairType.SingleValue,
+                    .Value = 1000,
+                    .Status = value
+                }
                 hs.DeviceVSP_AddPair(HSRefArt, Pair)
                 Dim GraphicsPair As VGPair
-                GraphicsPair = New VGPair()
-                GraphicsPair.PairType = VSVGPairType.SingleValue
-                GraphicsPair.Graphic = value
-                GraphicsPair.Set_Value = 1000
+                GraphicsPair = New VGPair With {
+                    .PairType = VSVGPairType.SingleValue,
+                    .Graphic = value,
+                    .Set_Value = 1000
+                }
                 hs.DeviceVGP_AddPair(HSRefArt, GraphicsPair)
                 hs.SetDeviceValueByRef(HSRefArt, 1000, True)
                 hs.SetDeviceString(HSRefArt, value, True)
             End If
             MyCurrentArtworkURL = value
             CurrentLibEntry.Cover_path = value
-            If SuperDebug And gIOEnabled Then Log("ArtworkURL Set for ZoneName = " & ZoneName & ". Album = " & MyCurrentArtworkURL, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("ArtworkURL Set for ZoneName = " & ZoneName & ". Album = " & MyCurrentArtworkURL, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
@@ -579,27 +518,29 @@ Partial Public Class HSPI
                 'value = "http://" & hs.GetIPAddress & HTTPPort & value
             End If
             If MyNextAlbumURI <> value And HSRefNextArt <> -1 Then
-                If SuperDebug Then Log("NextArtworkURL is setting HS Status for ZoneName - " & ZoneName & " with Value = " & value.ToString & " and HSRef = " & HSRefNextArt.ToString, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlEvents Then Log("NextArtworkURL is setting HS Status for ZoneName - " & ZoneName & " with Value = " & value.ToString & " and HSRef = " & HSRefNextArt.ToString, LogType.LOG_TYPE_INFO)
                 hs.DeviceVSP_ClearAll(HSRefNextArt, True)
                 hs.DeviceVGP_ClearAll(HSRefNextArt, True)
                 Dim Pair As VSPair
-                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Status)
-                Pair.PairType = VSVGPairType.SingleValue
-                Pair.Value = 1000
-                Pair.Status = value
+                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Status) With {
+                    .PairType = VSVGPairType.SingleValue,
+                    .Value = 1000,
+                    .Status = value
+                }
                 hs.DeviceVSP_AddPair(HSRefNextArt, Pair)
                 Dim GraphicsPair As VGPair
-                GraphicsPair = New VGPair()
-                GraphicsPair.PairType = VSVGPairType.SingleValue
-                GraphicsPair.Graphic = value
-                GraphicsPair.Set_Value = 1000
+                GraphicsPair = New VGPair With {
+                    .PairType = VSVGPairType.SingleValue,
+                    .Graphic = value,
+                    .Set_Value = 1000
+                }
                 hs.DeviceVGP_AddPair(HSRefNextArt, GraphicsPair)
                 hs.SetDeviceValueByRef(HSRefNextArt, 1000, True)
                 hs.SetDeviceString(HSRefNextArt, value, True)
             End If
             MyNextAlbumURI = value
             NextLibEntry.Cover_path = value
-            If SuperDebug And gIOEnabled Then Log("NextArtworkURL Set for ZoneName = " & ZoneName & ". URL = " & MyNextAlbumURI, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlEvents And gIOEnabled Then Log("NextArtworkURL Set for ZoneName = " & ZoneName & ". URL = " & MyNextAlbumURI, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
@@ -679,13 +620,13 @@ Partial Public Class HSPI
     Public Property SonosPlayerPosition As Integer 'As Integer 'Implements MediaCommon.MusicAPI.PlayerPosition
         Get ' The position of the player in the current track expressed as seconds.
             ' the HST plugin calls this a lot, I think it uses it to figure out when tracks have changed
-            'If g_bDebug And gIOEnabled Then Log( "Get PlayerPosition called for Zone - " & ZoneName & ". ZoneSource= " & MyZoneSource)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log( "Get PlayerPosition called for Zone - " & ZoneName & ". ZoneSource= " & MyZoneSource)
             SonosPlayerPosition = MyPlayerPosition ' this is automatically updated by the own timer
-            'If g_bDebug Then Log( "Get PlayerPosition called for Zone - " & ZoneName & ". Value = " & PlayerPosition.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "Get PlayerPosition called for Zone - " & ZoneName & ". Value = " & PlayerPosition.ToString)
             'Log( "Get PlayerPosition called for Zone - " & ZoneName & ". Value = " & PlayerPosition.ToString)
         End Get
         Set(ByVal value As Integer) ' Sets the position of the player in the current track - parameter is expressed as seconds.         
-            If g_bDebug Then Log("Set SonosPlayerPosition called for Zone - " & ZoneName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Set SonosPlayerPosition called for Zone - " & ZoneName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
             Dim Time As String
             Time = ConvertSecondsToTimeFormat(value)
             If Not (MyZoneSource = "Linked" Or MyZoneSource = "Input") Then
@@ -730,7 +671,7 @@ Partial Public Class HSPI
     Public Sub SetTrackLength(ByVal TrackLength As Integer)
         If MyTrackLength <> TrackLength Then
             If HSRefTrackLength <> -1 Then
-                If g_bDebug Then Log("SetTrackLength is setting HS Device TrackLength for ZoneName - " & ZoneName & " with Value = " & TrackLength.ToString & " and HSRef = " & HSRefTrackLength.ToString, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetTrackLength is setting HS Device TrackLength for ZoneName - " & ZoneName & " with Value = " & TrackLength.ToString & " and HSRef = " & HSRefTrackLength.ToString, LogType.LOG_TYPE_INFO)
                 Select Case MyHSTrackLengthFormat
                     Case HSSTrackLengthSettings.TLSSeconds
                         hs.SetDeviceString(HSRefTrackLength, TrackLength.ToString, True)
@@ -739,14 +680,14 @@ Partial Public Class HSPI
                 End Select
                 hs.SetDeviceValueByRef(HSRefTrackLength, TrackLength, True)
                 If HSRefTrackPos <> -1 Then
-                    If g_bDebug Then Log("SetTrackLength is setting HS Status Max Position TrackPosition for ZoneName - " & ZoneName & " and HSRef = " & HSRefTrackPos.ToString, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetTrackLength is setting HS Status Max Position TrackPosition for ZoneName - " & ZoneName & " and HSRef = " & HSRefTrackPos.ToString, LogType.LOG_TYPE_INFO)
                     ' update the slider control pair
                     Dim VSVGPair As VSPair
                     VSVGPair = hs.DeviceVSP_Get(HSRefTrackPos, 0, ePairStatusControl.Both) ' use value = 0 to be within the range
                     VSVGPair.Render_Location.Column = 2
                     VSVGPair.Render_Location.Row = 1
                     If VSVGPair.Render = HomeSeerAPI.Enums.CAPIControlType.ValuesRangeSlider Then
-                        If g_bDebug Then Log("SetTrackLength set Pair for ZoneName - " & ZoneName & " Old Max Range = " & VSVGPair.RangeEnd.ToString & " New Max Range = " & TrackLength.ToString, LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetTrackLength set Pair for ZoneName - " & ZoneName & " Old Max Range = " & VSVGPair.RangeEnd.ToString & " New Max Range = " & TrackLength.ToString, LogType.LOG_TYPE_INFO)
                         If MyHSTrackPositionFormat <> HSSTrackPositionSettings.TPSPercentage Then
                             VSVGPair.RangeEnd = TrackLength
                         Else
@@ -765,7 +706,7 @@ Partial Public Class HSPI
         CurrentLibEntry.LengthSeconds = TrackLength
     End Sub
 
-    Public Function PlayerState() As player_state_values 'Implements MediaCommon.MusicAPI.PlayerState
+    Public Function PlayerState() As Player_state_values 'Implements MediaCommon.MusicAPI.PlayerState
         'Returns the current state of the player using the following Enum values:
         'Public Enum player_state_values
         '   playing = 1
@@ -774,7 +715,7 @@ Partial Public Class HSPI
         '   forwarding = 4
         '   rewinding = 5
         'End Enum
-        'If g_bDebug Then Log( "PlayerState called for Zone - " & ZoneName & ". State = " & MyCurrentPlayerState.ToString)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "PlayerState called for Zone - " & ZoneName & ". State = " & MyCurrentPlayerState.ToString)
         PlayerState = MyCurrentPlayerState
         'Log( "PlayerState called for Zone - " & ZoneName & ". State = " & MyCurrentPlayerState.ToString)
     End Function
@@ -782,7 +723,7 @@ Partial Public Class HSPI
     Public ReadOnly Property CurrentStreamTitle As String 'Implements MediaCommon.MusicAPI.CurrentStreamTitle
         Get
             'The title of the currently playing music stream (e.g. from an Internet music source)
-            'If g_bDebug Then Log( "CurrentStreamTitle called for Zone - " & ZoneName & "Value= " & MyCurrentTrack.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "CurrentStreamTitle called for Zone - " & ZoneName & "Value= " & MyCurrentTrack.ToString)
             CurrentStreamTitle = MyCurrentTrack
             'Log( "CurrentStreamTitle called for Zone - " & ZoneName & "Value= " & MyCurrentTrack.ToString)
         End Get
@@ -792,7 +733,7 @@ Partial Public Class HSPI
         Get
             ' implementation is slightly different and probably reverse. I return path here wheras in CurrentAlbumArtPath I download file and return path
             CurrentArtworkFile = MyCurrentArtworkURL
-            'If g_bDebug Then Log( "CurrentArtworkFile called for Zone - " & ZoneName & "Value= " & MyCurrentArtworkURL.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "CurrentArtworkFile called for Zone - " & ZoneName & "Value= " & MyCurrentArtworkURL.ToString)
         End Get
     End Property
 
@@ -805,7 +746,7 @@ Partial Public Class HSPI
     Public ReadOnly Property CurrentTrack As String 'Implements IMediaAPI_3.
         Get
             'Returns the name of the currently playing track.
-            'If g_bDebug Then Log( "CurrentTrack called for Zone - " & ZoneName & ". Value= " & MyCurrentTrack.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "CurrentTrack called for Zone - " & ZoneName & ". Value= " & MyCurrentTrack.ToString)
             CurrentTrack = MyCurrentTrack
             'Log( "CurrentTrack called for Zone - " & ZoneName & ". Value= " & MyCurrentTrack.ToString)
         End Get
@@ -814,7 +755,7 @@ Partial Public Class HSPI
     Public ReadOnly Property CurrentAlbum As String 'Implements MediaCommon.MusicAPI.CurrentAlbum
         Get
             'Returns the album name of the currently playing track.
-            'If g_bDebug Then Log( "CurrentAlbum called for Zone - " & ZoneName & "Value= " & MyCurrentAlbum.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "CurrentAlbum called for Zone - " & ZoneName & "Value= " & MyCurrentAlbum.ToString)
             CurrentAlbum = MyCurrentAlbum
         End Get
     End Property
@@ -822,14 +763,14 @@ Partial Public Class HSPI
     Public ReadOnly Property CurrentArtist As String 'Implements MediaCommon.MusicAPI.CurrentArtist
         Get
             'Returns the artist's name of the currently playing track.
-            'If g_bDebug Then Log( "CurrentArtist called for Zone - " & ZoneName & "Value= " & MyCurrentArtist.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "CurrentArtist called for Zone - " & ZoneName & "Value= " & MyCurrentArtist.ToString)
             CurrentArtist = MyCurrentArtist
         End Get
     End Property
 
     Public ReadOnly Property CurrentPlayMode As String
         Get
-            'If g_bDebug Then Log( "CurrentPlayMode called for Zone - " & ZoneName & "Value= " & MyShuffleState.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "CurrentPlayMode called for Zone - " & ZoneName & "Value= " & MyShuffleState.ToString)
             CurrentPlayMode = MyShuffleState
         End Get
     End Property
@@ -868,7 +809,7 @@ Partial Public Class HSPI
             MyBalance = 0
         End If
         If HSRefBalance <> -1 Then
-            If g_bDebug Then Log("UpdateBalance is setting HS Status for ZoneName - " & ZoneName & " with Value = " & MyBalance.ToString & " and HSRef = " & HSRefBalance.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("UpdateBalance is setting HS Status for ZoneName - " & ZoneName & " with Value = " & MyBalance.ToString & " and HSRef = " & HSRefBalance.ToString, LogType.LOG_TYPE_INFO)
             'hs.SetDeviceString(HSRefBalance, MyBalance.ToString, True)
             hs.SetDeviceValueByRef(HSRefBalance, MyBalance, True)
         End If
@@ -880,14 +821,14 @@ Partial Public Class HSPI
     Public WriteOnly Property SetHSBalance As Integer ' used to update the WD100 HS device
         Set(value As Integer)
             If HSRefBalance <> -1 Then
-                If g_bDebug Then Log("SetHSBalance is setting HS Status for ZoneName - " & ZoneName & " with Value = " & MyBalance.ToString & " and HSRef = " & HSRefBalance.ToString, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetHSBalance is setting HS Status for ZoneName - " & ZoneName & " with Value = " & MyBalance.ToString & " and HSRef = " & HSRefBalance.ToString, LogType.LOG_TYPE_INFO)
                 hs.SetDeviceValueByRef(HSRefBalance, value, True)
             End If
         End Set
     End Property
 
     Private Sub SetBalance(inBalance As Integer)
-        If g_bDebug Then Log("SetBalance called for ZoneName - " & ZoneName & " with Value = " & inBalance.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetBalance called for ZoneName - " & ZoneName & " with Value = " & inBalance.ToString, LogType.LOG_TYPE_INFO)
         If inBalance < -100 Or inBalance > 100 Then Exit Sub
         If inBalance < 0 Then
             If MyLeftVolume <> 100 Then
@@ -915,7 +856,7 @@ Partial Public Class HSPI
 
 
     Public Sub DeviceTrigger(ByVal triggerEvent As String)
-        If g_bDebug Then Log("DeviceTrigger called for Zone - " & ZoneName & " with Trigger = " & triggerEvent.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceTrigger called for Zone - " & ZoneName & " with Trigger = " & triggerEvent.ToString, LogType.LOG_TYPE_INFO)
         Dim TrigsToCheck() As IPlugInAPI.strTrigActInfo
         'Dim TC As IPlugInAPI.strTrigActInfo
 
@@ -931,7 +872,7 @@ Partial Public Class HSPI
         End Try
         If TrigsToCheck IsNot Nothing AndAlso TrigsToCheck.Count > 0 Then
             For Each TC As IPlugInAPI.strTrigActInfo In TrigsToCheck
-                If SuperDebug Then Log("DeviceTrigger found Trigger: EvRef=" & TC.evRef.ToString & ", Trig/SubTrig=" & TC.TANumber.ToString & "/" & TC.SubTANumber.ToString & ", UID=" & TC.UID.ToString, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlEvents Then Log("DeviceTrigger found Trigger: EvRef=" & TC.evRef.ToString & ", Trig/SubTrig=" & TC.TANumber.ToString & "/" & TC.SubTANumber.ToString & ", UID=" & TC.UID.ToString, LogType.LOG_TYPE_INFO)
                 'Dim TrigsToCheck() As IAllRemoteAPI.strTrigActInfo = Nothing
                 'TrigsToCheck = callback.TriggerMatches(sIFACE_NAME, Info.TANumber, Info.SubTANumber)
                 'callback.TriggerFire(IFACE_NAME, Info)
@@ -942,7 +883,7 @@ Partial Public Class HSPI
                     Dim PlayerUDN As String = ""
                     Dim Linkgroup As String = ""
                     For Each sKey In trigger.Keys
-                        'If g_bDebug Then Log("TriggerConfigured found sKey = " & sKey.ToString & " and Value = " & trigger(sKey), LogType.LOG_TYPE_INFO)
+                        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerConfigured found sKey = " & sKey.ToString & " and Value = " & trigger(sKey), LogType.LOG_TYPE_INFO)
                         Select Case True
                             Case InStr(sKey, "PlayerListTrigger") > 0 AndAlso trigger(sKey) <> ""
                                 If trigger(sKey) <> UDN Then
@@ -951,18 +892,18 @@ Partial Public Class HSPI
                                 PlayerUDN = trigger(sKey)
                                 If Command <> "" Then
                                     callback.TriggerFire(sIFACE_NAME, TC)
-                                    If g_bDebug Then Log("DeviceTrigger called TriggerFire for Zone - " & ZoneName & " with Trigger = " & Command, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceTrigger called TriggerFire for Zone - " & ZoneName & " with Trigger = " & Command, LogType.LOG_TYPE_INFO)
                                     Exit For
                                 End If
                             Case InStr(sKey, "CommandListTrigger") > 0 AndAlso trigger(sKey) <> ""
-                                'If g_bDebug Then Log("DeviceTrigger for Zone - " & ZoneName & " command = " & trigger(sKey) & " while looking for triggerEvent = " & triggerEvent, LogType.LOG_TYPE_INFO)
+                                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceTrigger for Zone - " & ZoneName & " command = " & trigger(sKey) & " while looking for triggerEvent = " & triggerEvent, LogType.LOG_TYPE_INFO)
                                 If trigger(sKey) <> triggerEvent Then
                                     Exit For ' not right state
                                 End If
                                 Command = trigger(sKey)
                                 If PlayerUDN <> "" Then
                                     callback.TriggerFire(sIFACE_NAME, TC)
-                                    If g_bDebug Then Log("DeviceTrigger called TriggerFire for Zone - " & ZoneName & " with Trigger = " & Command, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceTrigger called TriggerFire for Zone - " & ZoneName & " with Trigger = " & Command, LogType.LOG_TYPE_INFO)
                                     Exit For
                                 ElseIf Linkgroup <> "" Then
                                     If AnnouncementLink IsNot Nothing Then
@@ -970,7 +911,7 @@ Partial Public Class HSPI
                                             Exit For
                                         End If
                                         callback.TriggerFire(sIFACE_NAME, TC)
-                                        If g_bDebug Then Log("DeviceTrigger called TriggerFire for Zone - " & ZoneName & " with Trigger = " & Command, LogType.LOG_TYPE_INFO)
+                                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceTrigger called TriggerFire for Zone - " & ZoneName & " with Trigger = " & Command, LogType.LOG_TYPE_INFO)
                                         Exit For
                                     Else
                                         Exit For
@@ -987,7 +928,7 @@ Partial Public Class HSPI
                                 End If
                                 If Command <> "" Then
                                     callback.TriggerFire(sIFACE_NAME, TC)
-                                    If g_bDebug Then Log("DeviceTrigger called TriggerFire for Zone - " & ZoneName & " with Trigger = " & Command, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeviceTrigger called TriggerFire for Zone - " & ZoneName & " with Trigger = " & Command, LogType.LOG_TYPE_INFO)
                                     Exit For
                                 End If
                         End Select
@@ -999,7 +940,7 @@ Partial Public Class HSPI
 
 
 
-    Public Sub PlayChangeNotifyCallback(ByVal ChangeType As player_status_change, ByVal ChangeValue As player_state_values, Optional SendDeviceTrigger As Boolean = True)
+    Public Sub PlayChangeNotifyCallback(ByVal ChangeType As Player_status_change, ByVal ChangeValue As Player_state_values, Optional SendDeviceTrigger As Boolean = True)
         ' Raised by a Music plug-in whenever various music plug-in status changes.  
         'HSTouch and other applications can add an event handler for this event in your plug-in to be notified of changes in the status.
         ' Public Enum player_status_change
@@ -1012,10 +953,10 @@ Partial Public Class HSPI
         '        ConfigChange = 13        ' raised when the configuration of a device changes like alarm info being modified
         '        NextSong = 14
         '    End Enum
-        If g_bDebug Then Log("PlayChangeNotifyCallback called for Zone - " & ZoneName & " with ChangeType = " & ChangeType.ToString & " and Changevalue = " & ChangeValue.ToString & " and SendDeviceTrigger = " & SendDeviceTrigger.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayChangeNotifyCallback called for Zone - " & ZoneName & " with ChangeType = " & ChangeType.ToString & " and Changevalue = " & ChangeValue.ToString & " and SendDeviceTrigger = " & SendDeviceTrigger.ToString, LogType.LOG_TYPE_INFO)
         'Log( "PlayChangeNotifyCallback called for Zone - " & ZoneName & " with ChangeType = " & ChangeType.ToString & " and Changevalue = " & ChangeValue.ToString)
         If gInterfaceStatus <> ERR_NONE Then
-            'If g_bDebug Then Log( "Warning PlayChangeNotifyCallback called for Zone - " & ZoneName & " before plugin is initialized. Nothing sent")
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "Warning PlayChangeNotifyCallback called for Zone - " & ZoneName & " before plugin is initialized. Nothing sent")
             Exit Sub ' no updates to be sent until completely intialized. Else the multizone API is hosed.
         End If
         Dim Parms(2)
@@ -1027,7 +968,7 @@ Partial Public Class HSPI
         '   "Player Start Playing
         Parms(0) = APIInstance.ToString
         Parms(1) = APIName
-        If ChangeType = player_status_change.SongChanged Then
+        If ChangeType = Player_status_change.SongChanged Then
             ReDim Preserve Parms(6)
             Parms(2) = MyCurrentTrack
             Parms(3) = MyCurrentArtist
@@ -1035,35 +976,35 @@ Partial Public Class HSPI
             Parms(5) = CurrentAlbumArtPath
             Parms(6) = 0
             TriggerEvent = "Sonos Track Change"
-        ElseIf ChangeType = player_status_change.PlayStatusChanged Then
+        ElseIf ChangeType = Player_status_change.PlayStatusChanged Then
             Parms(2) = ChangeValue.ToString
-            If ChangeValue = player_state_values.Playing Then
+            If ChangeValue = Player_state_values.Playing Then
                 TriggerEvent = "Sonos Player Start Playing"
-            ElseIf ChangeValue = player_state_values.Paused Then
+            ElseIf ChangeValue = Player_state_values.Paused Then
                 TriggerEvent = "Sonos Player Paused"
-            ElseIf ChangeValue = player_state_values.Stopped Then
+            ElseIf ChangeValue = Player_state_values.Stopped Then
                 TriggerEvent = "Sonos Player Stop"
             End If
-        ElseIf ChangeType = player_status_change.DeviceStatusChanged Then
+        ElseIf ChangeType = Player_status_change.DeviceStatusChanged Then
             Parms(2) = ChangeValue
-            If ChangeValue = player_state_values.Docked Then
+            If ChangeValue = Player_state_values.Docked Then
                 TriggerEvent = "Sonos Player Docked"
-            ElseIf ChangeValue = player_state_values.Undocked Then
+            ElseIf ChangeValue = Player_state_values.Undocked Then
                 TriggerEvent = "Sonos Player Undocked"
-            ElseIf ChangeValue = player_state_values.AudioInTrue Then
+            ElseIf ChangeValue = Player_state_values.AudioInTrue Then
                 TriggerEvent = "Sonos Player Line-in Connected"
-            ElseIf ChangeValue = player_state_values.AudioInFalse Then
+            ElseIf ChangeValue = Player_state_values.AudioInFalse Then
                 TriggerEvent = "Sonos Player Line-in Disconnected"
-            ElseIf ChangeValue = player_state_values.Online Then
+            ElseIf ChangeValue = Player_state_values.Online Then
                 TriggerEvent = "Sonos Player Online"
-            ElseIf ChangeValue = player_state_values.Offline Then
+            ElseIf ChangeValue = Player_state_values.Offline Then
                 TriggerEvent = "Sonos Player Offline"
             End If
-        ElseIf ChangeType = player_status_change.AlarmStart Then
+        ElseIf ChangeType = Player_status_change.AlarmStart Then
             TriggerEvent = "Sonos Player Alarm Start"
-        ElseIf ChangeType = player_status_change.ConfigChange Then
+        ElseIf ChangeType = Player_status_change.ConfigChange Then
             TriggerEvent = "Sonos Player Config Change"
-        ElseIf ChangeType = player_status_change.NextSong Then
+        ElseIf ChangeType = Player_status_change.NextSong Then
             ReDim Preserve Parms(6)
             Parms(2) = MyNextTrack
             Parms(3) = MyNextArtist
@@ -1071,18 +1012,18 @@ Partial Public Class HSPI
             Parms(5) = MyNextAlbumURI
             Parms(6) = 0
             TriggerEvent = "Sonos Next Track Change"
-        ElseIf ChangeType = player_status_change.AnnouncementChange Then
+        ElseIf ChangeType = Player_status_change.AnnouncementChange Then
             Parms(2) = ChangeValue
-            If ChangeValue = player_state_values.AnnouncementStart Then
+            If ChangeValue = Player_state_values.AnnouncementStart Then
                 TriggerEvent = "Sonos Announcement Start"
-            ElseIf ChangeValue = player_state_values.AnnouncementStop Then
+            ElseIf ChangeValue = Player_state_values.AnnouncementStop Then
                 TriggerEvent = "Sonos Announcement Stop"
             End If
 
         End If
         Try
             'Log("RaiseGenericEventCB called with ChangeType = " & ChangeType.ToString & " and APIName = " & APIName & " and instance = " & instance, LogType.LOG_TYPE_WARNING)
-            If ChangeType <= player_status_change.Library Then
+            If ChangeType <= Player_status_change.Library Then
                 '  callback.RaiseGenericEventCB(ChangeType.ToString, Parms, APIName, instance)
             End If
         Catch ex As Exception
@@ -1102,11 +1043,11 @@ Partial Public Class HSPI
 
     Public Property PlayerMute As Boolean 'Implements MediaCommon.MusicAPI.PlayerMute
         Get ' (Property Get) Boolean Returns True if the player is muted, False if it is not.
-            'If g_bDebug Then Log( "Get PlayerMute called for Zone - " & ZoneName & " State = " & MyCurrentMuteState.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "Get PlayerMute called for Zone - " & ZoneName & " State = " & MyCurrentMuteState.ToString)
             PlayerMute = MyCurrentMuteState
         End Get
         Set(ByVal value As Boolean)
-            If g_bDebug Then Log("Get PlayerMute called for Zone - " & ZoneName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Get PlayerMute called for Zone - " & ZoneName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
             If value Then
                 SonosMute()
             Else
@@ -1117,7 +1058,7 @@ Partial Public Class HSPI
 
     Public Sub SonosMute()
         'Mutes the player.  Has no affect if the player is already muted.
-        If g_bDebug Then Log("SonosMute called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonosMute called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         Try
             If ZoneModel = "WD100" And Not MyWirelessDockDestinationPlayer Is Nothing Then
                 MyWirelessDockDestinationPlayer.SetMute("Master", True)
@@ -1130,7 +1071,7 @@ Partial Public Class HSPI
 
     Public Sub UnMute() 'Implements MediaCommon.MusicAPI.UnMute
         'UnMutes the player.  Has no affect if the player is not muted.
-        If g_bDebug Then Log("UnMute called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("UnMute called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         Try
             If ZoneModel = "WD100" And Not MyWirelessDockDestinationPlayer Is Nothing Then
                 MyWirelessDockDestinationPlayer.SetMute("Master", False)
@@ -1144,7 +1085,7 @@ Partial Public Class HSPI
 
     Public Sub ShuffleToggle() 'Implements MediaCommon.MusicAPI.ShuffleToggle
         'Toggles through the 3 states for playlist shuffling: Shuffle, Order, Sort
-        If g_bDebug Then Log("ShuffleToggle called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ShuffleToggle called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         Dim CurrentShuffleState = GetPlayMode()
         Select Case CurrentShuffleState
             Case "Normal"
@@ -1166,7 +1107,7 @@ Partial Public Class HSPI
             'PlayChangeNotifyCallback(player_status_change.SongChanged, player_state_values.UpdateHSServerOnly, False) ' notify HS if they have the callback linked
         End If
         If MyPreviousShuffleState <> ShuffleState And HSRefShuffle <> -1 Then
-            If g_bDebug Then Log("SetShuffleState is setting HS Status for ZoneName - " & ZoneName & " with Value = " & ShuffleState.ToString & " and HSRef = " & HSRefShuffle.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetShuffleState is setting HS Status for ZoneName - " & ZoneName & " with Value = " & ShuffleState.ToString & " and HSRef = " & HSRefShuffle.ToString, LogType.LOG_TYPE_INFO)
             Try
                 Dim dv_Shuffle As Scheduler.Classes.DeviceClass
                 dv_Shuffle = hs.GetDeviceByRef(HSRefShuffle)
@@ -1233,7 +1174,7 @@ Partial Public Class HSPI
                     Return LinkedZone.SonosShuffle
                 Catch ex As Exception
                     SonosShuffle = Shuffle_modes.Ordered '2
-                    If g_bDebug Then Log("Get SonosShuffle called for Zone - " & ZoneName & " which was linked to " & ZoneMasterUDN.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Get SonosShuffle called for Zone - " & ZoneName & " which was linked to " & ZoneMasterUDN.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
                 Exit Property
             End If
@@ -1250,10 +1191,10 @@ Partial Public Class HSPI
                 Case Else
                     SonosShuffle = Shuffle_modes.Ordered '2
             End Select
-            'If g_bDebug Then Log( "Get Shuffle called for Zone - " & ZoneName & " with Value : " & Shuffle.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "Get Shuffle called for Zone - " & ZoneName & " with Value : " & Shuffle.ToString)
         End Get
         Set(ByVal value As Integer) '(Property Set) 	Short Integer 	  	Sets the shuffle status to the indicated value: 1 = Shuffled, 2 = Ordered, 3 = Sorted
-            If g_bDebug Then Log("SonosShuffle set called for Zone - " & ZoneName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonosShuffle set called for Zone - " & ZoneName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
             If MyWirelessDockSourcePlayer IsNot Nothing Then
                 MyWirelessDockSourcePlayer.SonosShuffle = value
                 Exit Property
@@ -1264,26 +1205,26 @@ Partial Public Class HSPI
                 Try
                     LinkedZone.SonosShuffle = value
                 Catch ex As Exception
-                    If g_bDebug Then Log("Set SonosShuffle called for Zone - " & ZoneName & " which was linked to " & ZoneMasterUDN.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Set SonosShuffle called for Zone - " & ZoneName & " which was linked to " & ZoneMasterUDN.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
                 Exit Property
             End If
-            Dim RepeatState As repeat_modes = SonosRepeat()
+            Dim RepeatState As Repeat_modes = SonosRepeat()
             Select Case value
                 Case Shuffle_modes.Shuffled '1 ' Shuffled
-                    If RepeatState = repeat_modes.repeat_all Then
+                    If RepeatState = Repeat_modes.repeat_all Then
                         If PlayModeShuffle() = "OK" Then MyShuffleState = "SHUFFLE" ' set the states here, prevents wrong setting when shuffle/repeat are set in one action
                     Else
                         If PlayModeShuffleNoRepeat() = "OK" Then MyShuffleState = "SHUFFLE_NOREPEAT"
                     End If
                 Case Shuffle_modes.Ordered '2 ' Ordered
-                    If RepeatState = repeat_modes.repeat_all Then
+                    If RepeatState = Repeat_modes.repeat_all Then
                         If PlayModeRepeatAll() = "OK" Then MyShuffleState = "REPEAT_ALL"
                     Else
                         If PlayModeNormal() = "OK" Then MyShuffleState = "NORMAL"
                     End If
                 Case Shuffle_modes.Sorted ' 3' Sorted
-                    If RepeatState = repeat_modes.repeat_all Then
+                    If RepeatState = Repeat_modes.repeat_all Then
                         If PlayModeRepeatAll() = "OK" Then MyShuffleState = "REPEAT_ALL"
                     Else
                         If PlayModeNormal() = "OK" Then MyShuffleState = "NORMAL"
@@ -1309,19 +1250,19 @@ Partial Public Class HSPI
                 Case Else
                     ShuffleStatus = "Ordered"
             End Select
-            'If g_bDebug Then Log( "Get ShuffleStatus called for Zone - " & ZoneName & " with Value : " & ShuffleStatus)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "Get ShuffleStatus called for Zone - " & ZoneName & " with Value : " & ShuffleStatus)
         End Get
     End Property
 
 
     Public ReadOnly Property RepeatStatus As String 'Implements MediaCommon.MusicAPI.RepeatStatus
         Get
-            'If g_bDebug Then Log( "Get RepeatStatus called for Zone - " & ZoneName & " with Value : " & Repeat.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "Get RepeatStatus called for Zone - " & ZoneName & " with Value : " & Repeat.ToString)
             RepeatStatus = SonosRepeat.ToString
         End Get
     End Property
 
-    Public Property SonosRepeat As repeat_modes
+    Public Property SonosRepeat As Repeat_modes
         '(Enum) 	Returns the current repeat setting using the following Enum values:
         ' Public Enum repeat_modes
         '      repeat_off = 0
@@ -1339,20 +1280,20 @@ Partial Public Class HSPI
                 Try
                     Return LinkedZone.SonosRepeat
                 Catch ex As Exception
-                    SonosRepeat = repeat_modes.repeat_off
-                    If g_bDebug Then Log("Get SonosRepeat called for Zone - " & ZoneName & " which was linked to " & ZoneMasterUDN.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    SonosRepeat = Repeat_modes.repeat_off
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Get SonosRepeat called for Zone - " & ZoneName & " which was linked to " & ZoneMasterUDN.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
                 Exit Property
             End If
             If MyShuffleState = "REPEAT_ALL" Or MyShuffleState = "SHUFFLE" Then
-                SonosRepeat = repeat_modes.repeat_all
+                SonosRepeat = Repeat_modes.repeat_all
             Else
-                SonosRepeat = repeat_modes.repeat_off
+                SonosRepeat = Repeat_modes.repeat_off
             End If
-            'If g_bDebug Then Log( "Get SonosRepeat called for Zone - " & ZoneName & " with Value : " & Repeat.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "Get SonosRepeat called for Zone - " & ZoneName & " with Value : " & Repeat.ToString)
         End Get
-        Set(ByVal value As repeat_modes)
-            If g_bDebug Then Log("Set SonosRepeat called for Zone - " & ZoneName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
+        Set(ByVal value As Repeat_modes)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Set SonosRepeat called for Zone - " & ZoneName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
             If MyWirelessDockSourcePlayer IsNot Nothing Then
                 MyWirelessDockSourcePlayer.SonosRepeat = value
                 Exit Property
@@ -1363,12 +1304,12 @@ Partial Public Class HSPI
                 Try
                     LinkedZone.SonosRepeat = value
                 Catch ex As Exception
-                    If g_bDebug Then Log("Set SonosRepeat called for Zone - " & ZoneName & " which was linked to " & ZoneMasterUDN.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Set SonosRepeat called for Zone - " & ZoneName & " which was linked to " & ZoneMasterUDN.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
                 Exit Property
             End If
             'Dim ShuffleState As String = Shuffle
-            If value = repeat_modes.repeat_all Then
+            If value = Repeat_modes.repeat_all Then
                 Select Case MyShuffleState
                     Case "NORMAL"
                         If PlayModeRepeatAll() = "OK" Then MyShuffleState = "REPEAT_ALL"
@@ -1390,54 +1331,54 @@ Partial Public Class HSPI
 
     Public Sub SonosPlay()
         'Starts the player playing the currently loaded HomeSeer playlist.
-        If g_bDebug Then Log("SonosPlay called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonosPlay called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         If ZoneIsLinked Then
             Dim LinkedZone As HSPI  'HSMusicAPI
             LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
             Try
                 LinkedZone.SetTransportState("Play")
             Catch ex As Exception
-                If g_bDebug Then Log("SonosPlay called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonosPlay called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
         Try
             SetTransportState("Play")
         Catch ex As Exception
-            If g_bDebug Then Log("SonosPlay called for Zone - " & ZoneName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonosPlay called for Zone - " & ZoneName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
     Public Sub SonosPause()
         'Toggles the state of the pause function of the player.
-        If g_bDebug Then Log("SonosPause called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonosPause called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         If ZoneIsLinked Then
             Dim LinkedZone As HSPI  'HSMusicAPI
             LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
             Try
                 LinkedZone.SetTransportState("Pause")
             Catch ex As Exception
-                If g_bDebug Then Log("SonosPause called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonosPause called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
         Try
             SetTransportState("Pause")
         Catch ex As Exception
-            If g_bDebug Then Log("SonosPause called for Zone - " & ZoneName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonosPause called for Zone - " & ZoneName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
     Public Sub TogglePause()
         'Toggles the state of the pause function of the player.
-        If g_bDebug Then Log("TogglePause called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TogglePause called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         If ZoneIsLinked Then
             Dim LinkedZone As HSPI  'HSMusicAPI
             LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
             Try
                 LinkedZone.TogglePause()
             Catch ex As Exception
-                If g_bDebug Then Log("Error in TogglePause for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TogglePause for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
@@ -1453,20 +1394,20 @@ Partial Public Class HSPI
                 SetTransportState("Pause")
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in TogglePause for Zone - " & ZoneName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TogglePause for Zone - " & ZoneName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
     Public Sub TogglePlay()
         'Toggles the state of the play function of the player.
-        If g_bDebug Then Log("TogglePlay called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TogglePlay called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         If ZoneIsLinked Then
             Dim LinkedZone As HSPI  'HSMusicAPI
             LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
             Try
                 LinkedZone.TogglePlay()
             Catch ex As Exception
-                If g_bDebug Then Log("Error in TogglePlay for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TogglePlay for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
@@ -1482,14 +1423,14 @@ Partial Public Class HSPI
                 SetTransportState("Play")
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in TogglePlay for Zone - " & ZoneName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in TogglePlay for Zone - " & ZoneName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
 
     Public Sub PlayIfPaused() 'Implements MediaCommon.MusicAPI.PlayIfPaused
         'If the current state of the player is paused, the player will be resumed.
-        If g_bDebug Then Log("PlayIfPaused called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayIfPaused called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         ' states are Play Stop Pause Next Previous
         If ZoneIsLinked Then
             Dim LinkedZone As HSPI  'HSMusicAPI
@@ -1497,7 +1438,7 @@ Partial Public Class HSPI
             Try
                 LinkedZone.SetTransportState("Play")
             Catch ex As Exception
-                If g_bDebug Then Log("PlayIfPaused called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayIfPaused called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
@@ -1513,7 +1454,7 @@ Partial Public Class HSPI
                 Try
                     LinkedZone.SetTransportState("Play")
                 Catch ex As Exception
-                    If g_bDebug Then Log("PlayIfPaused called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayIfPaused called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
                 Exit Sub
             End If
@@ -1526,7 +1467,7 @@ Partial Public Class HSPI
 
     Public Sub PauseIfPlaying() 'Implements MediaCommon.MusicAPI.PauseIfPlaying
         'If the current state of the player is playing, the player will be paused.
-        If g_bDebug Then Log("PauseIfPlaying called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PauseIfPlaying called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         ' states are Play Stop Pause Next Previous
         If ZoneIsLinked Then
             Dim LinkedZone As HSPI  'HSMusicAPI
@@ -1534,7 +1475,7 @@ Partial Public Class HSPI
             Try
                 LinkedZone.SetTransportState("Pause")
             Catch ex As Exception
-                If g_bDebug Then Log("PauseIfPlaying called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PauseIfPlaying called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
@@ -1550,7 +1491,7 @@ Partial Public Class HSPI
                 Try
                     LinkedZone.SetTransportState("Pause")
                 Catch ex As Exception
-                    If g_bDebug Then Log("PauseIfPlaying called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PauseIfPlaying called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
                 Exit Sub
             End If
@@ -1563,14 +1504,14 @@ Partial Public Class HSPI
 
     Public Sub StopPlay() 'Implements MediaCommon.MusicAPI.StopPlay
         'Stops the player.
-        If g_bDebug Then Log("StopPlay called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("StopPlay called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         If ZoneIsLinked Then
             Dim LinkedZone As HSPI  'HSMusicAPI
             LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
             Try
                 LinkedZone.SetTransportState("Stop")
             Catch ex As Exception
-                If g_bDebug Then Log("StopPlay called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("StopPlay called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
@@ -1582,14 +1523,14 @@ Partial Public Class HSPI
 
     Public Sub TrackNext() 'Implements MediaCommon.MusicAPI.TrackNext
         'Causes the player to jump to the next track in the playlist and begin playing it.
-        If g_bDebug Then Log("TrackNext called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TrackNext called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         If ZoneIsLinked Then
             Dim LinkedZone As HSPI  'HSMusicAPI
             LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
             Try
                 LinkedZone.SetTransportState("Next")
             Catch ex As Exception
-                If g_bDebug Then Log("TrackNext called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TrackNext called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
@@ -1601,14 +1542,14 @@ Partial Public Class HSPI
 
     Public Sub TrackPrev() 'Implements MediaCommon.MusicAPI.TrackPrev
         'Causes the player to start playing from the previous track in the playlist.
-        If g_bDebug Then Log("TrackPrev called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TrackPrev called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         If ZoneIsLinked Then
             Dim LinkedZone As HSPI  'HSMusicAPI
             LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
             Try
                 LinkedZone.SetTransportState("Previous")
             Catch ex As Exception
-                If g_bDebug Then Log("TrackPrev called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TrackPrev called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
@@ -1621,11 +1562,11 @@ Partial Public Class HSPI
     Public Property PlayerVolume As Integer
         Get ' Returns the current volume setting of the player from 0 to 100.
             PlayerVolume = MyCurrentMasterVolumeLevel
-            'If g_bDebug Then Log( "Get Volume called for Zone - " & ZoneName & " with value = " & Volume.ToString)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "Get Volume called for Zone - " & ZoneName & " with value = " & Volume.ToString)
         End Get
         Set(ByVal value As Integer) '(Property Set) 	Integer 	  	Sets the volume of the player to the level indicated by the parameter, in the range 0-100.
             Dim Result
-            If g_bDebug Then Log("Set PlayerVolume called for Zone - " & ZoneName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Set PlayerVolume called for Zone - " & ZoneName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
             Try
                 If ZoneModel = "WD100" And MyWirelessDockDestinationPlayer IsNot Nothing Then ' need to forward this
                     MyWirelessDockDestinationPlayer.PlayerVolume = value
@@ -1634,7 +1575,7 @@ Partial Public Class HSPI
                     Result = SetVolumeLevel("Master", value)
                 End If
                 If Result <> "OK" Then
-                    If g_bDebug Then Log("PlayerVolume called for Zone - " & ZoneName & " but ended in Error: " & Result.ToString, LogType.LOG_TYPE_ERROR)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerVolume called for Zone - " & ZoneName & " but ended in Error: " & Result.ToString, LogType.LOG_TYPE_ERROR)
                 End If
             Catch ex As Exception
                 Log("PlayerVolume called for Zone - " & ZoneName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -1644,7 +1585,7 @@ Partial Public Class HSPI
 
     Public Sub VolumeUp() 'Implements MediaCommon.MusicAPI.VolumeUp
         'Increases the volume of the player by 5%
-        If g_bDebug Then Log("VolumeUp called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("VolumeUp called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         Try
             If ZoneModel = "WD100" And Not MyWirelessDockSourcePlayer Is Nothing Then
                 MyWirelessDockSourcePlayer.ChangeVolumeLevel("Master", VolumeStep)
@@ -1657,7 +1598,7 @@ Partial Public Class HSPI
 
     Public Sub VolumeDown() 'Implements MediaCommon.MusicAPI.VolumeDown
         'Decreases the volume of the player by 5%
-        If g_bDebug Then Log("VolumeDown called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("VolumeDown called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         Try
             If ZoneModel = "WD100" And Not MyWirelessDockSourcePlayer Is Nothing Then
                 MyWirelessDockSourcePlayer.ChangeVolumeLevel("Master", -VolumeStep)
@@ -1669,7 +1610,7 @@ Partial Public Class HSPI
     End Sub
 
     Public Sub SetNbrOfTracks(NbrOfTracks As Integer)
-        If SuperDebug Then Log("SetNbrOfTracks called for Zone - " & ZoneName & " with NbrOfTracks = " & NbrOfTracks.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlEvents Then Log("SetNbrOfTracks called for Zone - " & ZoneName & " with NbrOfTracks = " & NbrOfTracks.ToString, LogType.LOG_TYPE_INFO)
         If MyNbrOfTracksInQueue <> NbrOfTracks And ZoneSource = "Tracks" Then
             'PlayChangeNotifyCallback(player_status_change.PlayList, player_state_values.UpdateHSServerOnly, False) ' notify HS if they have the callback linked
             MyQueueHasChanged = True
@@ -1678,7 +1619,7 @@ Partial Public Class HSPI
     End Sub
 
     Public Sub SetTrackNbr(TrackNbr As Integer)
-        If SuperDebug Then Log("SetTrackNbr called for Zone - " & ZoneName & " with TrackNbr = " & TrackNbr.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlEvents Then Log("SetTrackNbr called for Zone - " & ZoneName & " with TrackNbr = " & TrackNbr.ToString, LogType.LOG_TYPE_INFO)
         If MyTrackInQueueNbr <> TrackNbr And ZoneSource = "Tracks" Then
             'PlayChangeNotifyCallback(player_status_change.PlayList, player_state_values.UpdateHSServerOnly, False) ' notify HS if they have the callback linked
             MyQueueHasChanged = True
@@ -1711,13 +1652,13 @@ Partial Public Class HSPI
             TransportInfo = TransportInfo & "</td><td><p>" & CurrentPlayerState.ToString & "</p><p>" & MyZoneSourceExt & "</p><p>" & Track & "</p><p>" & Artist & "</p><p>" & Album & "</p></td></tr></table>"
         End If
         hs.SetDeviceString(HSRefPlayer, TransportInfo, True)    ' changed from false to true in v.19 because a complain that it wasn't triggering easytrigger PI
-        If SuperDebug Then Log("SetHSPlayerInfo updated HS ZonePlayer " & ZoneName & ". HS Code = " & HSRefPlayer & ". Info = " & TransportInfo, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlEvents Then Log("SetHSPlayerInfo updated HS ZonePlayer " & ZoneName & ". HS Code = " & HSRefPlayer & ". Info = " & TransportInfo, LogType.LOG_TYPE_INFO)
     End Sub
 
     Public WriteOnly Property VolumeLeft As Integer
         Set(ByVal value As Integer) '(Property Set) 	Integer 	  	Sets the Left volume of the player to the level indicated by the parameter, in the range 0-100.
             Dim Result
-            If g_bDebug Then Log("Set Volume Left called for Zone - " & ZoneName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Set Volume Left called for Zone - " & ZoneName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
             Try
                 If ZoneModel = "WD100" And Not MyWirelessDockDestinationPlayer Is Nothing Then
                     Result = MyWirelessDockDestinationPlayer.SetVolumeLevel("LF", value)
@@ -1725,7 +1666,7 @@ Partial Public Class HSPI
                     Result = SetVolumeLevel("LF", value)
                 End If
                 If Result <> "OK" Then
-                    If g_bDebug Then Log("Volume Left called for Zone - " & ZoneName & " but ended in Error: " & Result.ToString, LogType.LOG_TYPE_ERROR)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Volume Left called for Zone - " & ZoneName & " but ended in Error: " & Result.ToString, LogType.LOG_TYPE_ERROR)
                 End If
             Catch ex As Exception
                 Log("Volume Left called for Zone - " & ZoneName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -1736,7 +1677,7 @@ Partial Public Class HSPI
     Public WriteOnly Property VolumeRight As Integer
         Set(ByVal value As Integer) '(Property Set) 	Integer 	  	Sets the Left volume of the player to the level indicated by the parameter, in the range 0-100.
             Dim Result
-            If g_bDebug Then Log("Set Volume Right called for Zone - " & ZoneName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Set Volume Right called for Zone - " & ZoneName & " with Value : " & value.ToString, LogType.LOG_TYPE_INFO)
             Try
                 If ZoneModel = "WD100" And Not MyWirelessDockDestinationPlayer Is Nothing Then
                     Result = MyWirelessDockDestinationPlayer.SetVolumeLevel("RF", value)
@@ -1744,7 +1685,7 @@ Partial Public Class HSPI
                     Result = SetVolumeLevel("RF", value)
                 End If
                 If Result <> "OK" Then
-                    If g_bDebug Then Log("Volume Right called for Zone - " & ZoneName & " but ended in Error: " & Result.ToString, LogType.LOG_TYPE_ERROR)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Volume Right called for Zone - " & ZoneName & " but ended in Error: " & Result.ToString, LogType.LOG_TYPE_ERROR)
                 End If
             Catch ex As Exception
                 Log("Volume Right called for Zone - " & ZoneName & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -1753,14 +1694,14 @@ Partial Public Class HSPI
     End Property
 
     Public Sub PlayFavorite(Favorite As String, Optional ByVal ClearPlayerQueue As Boolean = False, Optional QueueAction As QueueActions = QueueActions.qaDontPlay)
-        If g_bDebug Then Log("PlayFavorite called for Zone - " & ZoneName & " with Favorite = " & Favorite & " and ClearPlayerQueue = " & ClearPlayerQueue.ToString & " and QueueAction = " & QueueAction.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayFavorite called for Zone - " & ZoneName & " with Favorite = " & Favorite & " and ClearPlayerQueue = " & ClearPlayerQueue.ToString & " and QueueAction = " & QueueAction.ToString, LogType.LOG_TYPE_INFO)
         If ZoneIsLinked Then
             Dim LinkedZone As HSPI
             LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
             Try
                 LinkedZone.PlayFavorite(Favorite, ClearPlayerQueue, QueueAction)
             Catch ex As Exception
-                If g_bDebug Then Log("PlayFavorite called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayFavorite called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
@@ -1776,14 +1717,14 @@ Partial Public Class HSPI
         '         hs.Plugin("Media Player").MusicAPI.PlayMusic("Phil Collins")                  Plays music by Phil Collins
         '         hs.Plugin("Media Player").MusicAPI.PlayMusic("", "", "", "Rock")             Plays music in the Rock genre
         '         hs.Plugin("Media Player").MusicAPI.PlayMusic("", "", "My Top Rated")   Plays music from the 'My Top Rated' playlist.
-        If g_bDebug Then Log("PlayMusic called for Zone - " & ZoneName & " with Artist=" & Artist & " and Album=" & Album & " and Playlist=" & PlayList & " and Genre=" & Genre & " and Track=" & Track & " and StartWithArtist=" & StartWithArtist & " and StartWithTrack=" & StartWithTrack & " and TrackMatch=" & TrackMatch & "and Audiobook = " & AudioBook & " and Podcast = " & PodCast & " and ClearPlayerQueue = " & ClearPlayerQueue.ToString & " and QueueAction = " & QueueAction.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayMusic called for Zone - " & ZoneName & " with Artist=" & Artist & " and Album=" & Album & " and Playlist=" & PlayList & " and Genre=" & Genre & " and Track=" & Track & " and StartWithArtist=" & StartWithArtist & " and StartWithTrack=" & StartWithTrack & " and TrackMatch=" & TrackMatch & "and Audiobook = " & AudioBook & " and Podcast = " & PodCast & " and ClearPlayerQueue = " & ClearPlayerQueue.ToString & " and QueueAction = " & QueueAction.ToString, LogType.LOG_TYPE_INFO)
         If ZoneIsLinked Then
             Dim LinkedZone As HSPI
             LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
             Try
                 LinkedZone.PlayMusic(Artist, Album, PlayList, Genre, Track, StartWithArtist, StartWithTrack, TrackMatch, AudioBook, PodCast, ClearPlayerQueue, QueueAction)
             Catch ex As Exception
-                If g_bDebug Then Log("PlayMusic called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayMusic called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
@@ -1819,7 +1760,7 @@ Partial Public Class HSPI
 
     Public Sub PlayMusicOnWirelessDock(ByVal Artist As String, Optional ByVal Album As String = "", Optional ByVal PlayList As String = "", Optional ByVal Genre As String = "", Optional ByVal Track As String = "", Optional ByVal StartWithArtist As String = "", Optional ByVal StartWithTrack As String = "", Optional ByVal TrackMatch As String = "", Optional ByVal AudioBook As String = "", Optional ByVal PodCast As String = "")
 
-        If g_bDebug Then Log("PlayMusicOnWirelessDock called for Zone - " & ZoneName & " with Artist=" & Artist & " and Album=" & Album & " and Playlist=" & PlayList & " and Genre=" & Genre & " and Track=" & Track & " and StartWithArtist=" & StartWithArtist & " and StartWithTrack=" & StartWithTrack & " and TrackMatch=" & TrackMatch & "and Audiobook = " & AudioBook & " and Podcast = " & PodCast & " and IPodPlayer = " & MyDockediPodPlayerName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayMusicOnWirelessDock called for Zone - " & ZoneName & " with Artist=" & Artist & " and Album=" & Album & " and Playlist=" & PlayList & " and Genre=" & Genre & " and Track=" & Track & " and StartWithArtist=" & StartWithArtist & " and StartWithTrack=" & StartWithTrack & " and TrackMatch=" & TrackMatch & "and Audiobook = " & AudioBook & " and Podcast = " & PodCast & " and IPodPlayer = " & MyDockediPodPlayerName, LogType.LOG_TYPE_INFO)
         ' the DB to be opened depend on which ZonePlayer is docked. The iPod name can be found in MyDockediPodPlayerName
         If MyDockediPodPlayerName = "" Then Exit Sub ' we have nothing to open
         Dim DestZonePlayerName As String = ""
@@ -1827,14 +1768,14 @@ Partial Public Class HSPI
             If DestinationZone = "" Then Exit Sub ' no default zone, we can't play anything
             DestZonePlayerName = GetZoneByUDN(DestinationZone)
             If DestZonePlayerName = "" Then
-                If g_bDebug Then Log("ERROR in PlayMusicOnWirelessDock for Zone = " & ZoneName & ": cannot retrieve destination zone for Wireless dock", LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ERROR in PlayMusicOnWirelessDock for Zone = " & ZoneName & ": cannot retrieve destination zone for Wireless dock", LogType.LOG_TYPE_ERROR)
                 Exit Sub
             Else
                 ' retrieve the dest Player
                 Try
                     MyWirelessDockDestinationPlayer = MyHSPIControllerRef.GetMusicAPI(DestZonePlayerName)
                 Catch ex As Exception
-                    If g_bDebug Then Log("ERROR in PlayMusicOnWirelessDock for Zone = " & ZoneName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ERROR in PlayMusicOnWirelessDock for Zone = " & ZoneName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     Exit Sub
                 End Try
                 If MyWirelessDockDestinationPlayer Is Nothing Then Exit Sub
@@ -1853,14 +1794,14 @@ Partial Public Class HSPI
     End Sub
 
     Public Sub PlayLineInput(ByVal InputZoneName As String)
-        If g_bDebug Then Log("PlayLineInput called for Zone - " & ZoneName & " with zone =" & InputZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayLineInput called for Zone - " & ZoneName & " with zone =" & InputZoneName, LogType.LOG_TYPE_INFO)
         If ZoneIsLinked Then
             Dim LinkedZone As HSPI
             LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
             Try
                 LinkedZone.PlayLineInput(InputZoneName)
             Catch ex As Exception
-                If g_bDebug Then Log("PlayFavorite called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayFavorite called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
@@ -1882,7 +1823,7 @@ Partial Public Class HSPI
         End Try
     End Sub
 
-    Public Function GetCurrentPlaylist() As track_desc()
+    Public Function GetCurrentPlaylist() As Track_desc()
         '  Array of track_desc 	
         'Returns the last HomeSeer playlist created when the player began playing whether by event action, control web page, or script command. 
         ' The return is an array of type track_desc, which is a class defined as follows:
@@ -1895,13 +1836,13 @@ Partial Public Class HSPI
         GetCurrentPlaylist = Nothing
         If DeviceStatus = "Offline" Then Exit Function
         If ZoneModel = "WD100" Then Exit Function
-        If g_bDebug Then Log("GetCurrentPlaylist called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetCurrentPlaylist called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         Try
             Dim xmlData As XmlDocument = New XmlDocument
             Dim TotalMatches As Integer
             Dim ArrayIndex As Integer = 0
             Dim MetaData As String = ""
-            Dim Queue() As track_desc
+            Dim Queue() As Track_desc
 
             Try
 
@@ -1925,7 +1866,7 @@ Partial Public Class HSPI
 
                 TotalMatches = OutArg(2)
 
-                If g_bDebug Then Log("GetCurrentPlaylist found " & TotalMatches.ToString & " queue entries for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetCurrentPlaylist found " & TotalMatches.ToString & " queue entries for ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
                 If TotalMatches < 1 Then
                     Queue = Nothing
                     Exit Function
@@ -1953,7 +1894,7 @@ Partial Public Class HSPI
                         Log("ERROR in GetCurrentPlaylist for zoneplayer = " & ZoneName & " loading XML with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                         Exit For
                     End Try
-                    Dim QueueElement As New track_desc
+                    Dim QueueElement As New Track_desc
                     Try
                         QueueElement.album = xmlData.GetElementsByTagName("upnp:album").Item(0).InnerText
                     Catch ex As Exception
@@ -1975,7 +1916,7 @@ Partial Public Class HSPI
                         QueueElement.length = "0"
                     End Try
                     Queue(ArrayIndex - 1) = QueueElement
-                    'If g_bDebug Then Log( "GetCurrentPlaylist for Zone - " & ZoneName & " add Tittle " & Queue(ArrayIndex - 1).name & " add Ablum " & Queue(ArrayIndex - 1).album & " add Artist " & Queue(ArrayIndex - 1).artist & " add Length " & Queue(ArrayIndex - 1).length.ToString)
+                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetCurrentPlaylist for Zone - " & ZoneName & " add Tittle " & Queue(ArrayIndex - 1).name & " add Ablum " & Queue(ArrayIndex - 1).album & " add Artist " & Queue(ArrayIndex - 1).artist & " add Length " & Queue(ArrayIndex - 1).length.ToString)
                 Next
             Catch ex As Exception
                 Log("Error in GetCurrentPlaylist for Zone - " & ZoneName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -1983,7 +1924,7 @@ Partial Public Class HSPI
                 xmlData = Nothing
                 Exit Function
             End Try
-            If g_bDebug Then Log("GetCurrentPlaylist for Zone - " & ZoneName & " returned " & (UBound(Queue) + 1).ToString & " elements", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetCurrentPlaylist for Zone - " & ZoneName & " returned " & (UBound(Queue) + 1).ToString & " elements", LogType.LOG_TYPE_INFO)
             GetCurrentPlaylist = Queue
             xmlData = Nothing
         Catch ex As Exception
@@ -1995,7 +1936,7 @@ Partial Public Class HSPI
     Public Function DBGetTracks(ByVal artist As String, ByVal album As String, ByVal genre As String, Optional ByVal Track As String = "", Optional ByVal iPodDBName As String = "") As System.Array
         'Returns a list of tracks matching the parameters provided by Artist, Album, and Genre.  If empty strings are provided as parameters, then all tracks from the library are returned.  
         'Note, only the track names are returned, duplicates included.  
-        If g_bDebug Then Log("DBGetTracks called for Zone - " & ZoneName & " with Artist=" & artist & " Album=" & album & " Genre=" & genre & " and iPodDBName = " & iPodDBName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DBGetTracks called for Zone - " & ZoneName & " with Artist=" & artist & " Album=" & album & " Genre=" & genre & " and iPodDBName = " & iPodDBName, LogType.LOG_TYPE_INFO)
         Dim MyTracks As String()
         MyTracks = {""}
         DBGetTracks = MyTracks
@@ -2048,7 +1989,7 @@ Partial Public Class HSPI
                     tempstring = SQLreader("Name").ToString
                     'Log( "Record #" & Index.ToString & " with value " & tempstring)
                     If SQLreader("Album").ToString <> "All Tracks" Then ' this is how the WD100 does it
-                        'If g_bDebug Then Log( "GetTracks for " & ZoneName & " found " & tempstring)
+                        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetTracks for " & ZoneName & " found " & tempstring)
                         ReDim Preserve MyTracks(Index)
                         MyTracks(Index) = tempstring
                         Index = Index + 1
@@ -2105,19 +2046,19 @@ Partial Public Class HSPI
         Catch ex As Exception
             Log("DBGetTracks to close DB for zoneplayer = " & ZoneName & " with error - " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug Then Log("DBGetTracks called for Zone - " & ZoneName & " returned " & Index.ToString & " tracks ", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DBGetTracks called for Zone - " & ZoneName & " returned " & Index.ToString & " tracks ", LogType.LOG_TYPE_INFO)
     End Function
 
 
     Public Function AllAlbums() As System.Collections.SortedList
         AllAlbums = Nothing
         ' this is something undocumented but used by the MusicPage.aspx
-        If g_bDebug Then Log("AllAlbums called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AllAlbums called", LogType.LOG_TYPE_INFO)
         Dim AlbumListLists
         AlbumListLists = GetAlbums("", "")
         Dim SList As New System.Collections.SortedList
         If AlbumListLists Is Nothing Then
-            If g_bDebug Then Log("AllAlbums called but found no entries", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AllAlbums called but found no entries", LogType.LOG_TYPE_INFO)
             SList.Add(0, "")
             AllAlbums = SList
             Exit Function
@@ -2135,7 +2076,7 @@ Partial Public Class HSPI
     Public Function GetAlbums(ByVal artist As String, ByVal genre As String, Optional ByVal iPodDBName As String = "") As System.Array
         'Returns a list of albums matching the parameters provided by Artist and Genre.  If empty strings are provided as parameters, then all tracks from the library are returned.  
         'Note, only the album names are returned, duplicates removed, in sorted order.
-        If g_bDebug Then Log("GetAlbums called for Zone - " & ZoneName & " with Artist=" & artist & " Genre=" & genre & " and iPodDBName = " & iPodDBName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetAlbums called for Zone - " & ZoneName & " with Artist=" & artist & " Genre=" & genre & " and iPodDBName = " & iPodDBName, LogType.LOG_TYPE_INFO)
         Dim MyAlbums As String()
         MyAlbums = {""}
         GetAlbums = MyAlbums
@@ -2211,11 +2152,11 @@ Partial Public Class HSPI
                     End Try
                     Try
                         While ArtistIndex < UBound(Artists, 1)
-                            If g_bDebug Then Log("GetAlbums Artist #" & ArtistIndex.ToString & " for Artist (0) with value " & Artists(ArtistIndex, 0).ToString, LogType.LOG_TYPE_INFO)
-                            'If g_bDebug Then Log( "GetAlbums Artist #" & ArtistIndex.ToString & " for Artist (1) with value " & Artists(ArtistIndex, 1).ToString)
-                            'If g_bDebug Then Log( "GetAlbums Artist #" & ArtistIndex.ToString & " for Artist (2) with value " & Artists(ArtistIndex, 2).ToString) 'name
-                            'If g_bDebug Then Log( "GetAlbums Artist #" & ArtistIndex.ToString & " for Artist (3) with value " & Artists(ArtistIndex, 3).ToString)
-                            'If g_bDebug Then Log( "GetAlbums Artist #" & ArtistIndex.ToString & " for Artist (6) with value " & Artists(ArtistIndex, 6).ToString) ' ID
+                            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetAlbums Artist #" & ArtistIndex.ToString & " for Artist (0) with value " & Artists(ArtistIndex, 0).ToString, LogType.LOG_TYPE_INFO)
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetAlbums Artist #" & ArtistIndex.ToString & " for Artist (1) with value " & Artists(ArtistIndex, 1).ToString)
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetAlbums Artist #" & ArtistIndex.ToString & " for Artist (2) with value " & Artists(ArtistIndex, 2).ToString) 'name
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetAlbums Artist #" & ArtistIndex.ToString & " for Artist (3) with value " & Artists(ArtistIndex, 3).ToString)
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetAlbums Artist #" & ArtistIndex.ToString & " for Artist (6) with value " & Artists(ArtistIndex, 6).ToString) ' ID
                             If Artists(ArtistIndex, 0) = artist Or (artist = "" And Artists(ArtistIndex, 0) <> "All" And Artists(ArtistIndex, 0) <> "All Albums") Then
                                 ' now pull up its list of albums
                                 Albums = GetTracks(Artists(ArtistIndex, 6), False, True) ' this is the track id so we can pull up album
@@ -2223,15 +2164,15 @@ Partial Public Class HSPI
                                 Dim AlbumIndex As Integer = 0
                                 For AlbumIndex = 0 To UBound(Albums, 1) - 1
 
-                                    If g_bDebug Then Log("GetAlbums Album #" & AlbumIndex.ToString & " for Album (0) with value " & Albums(AlbumIndex, 0).ToString, LogType.LOG_TYPE_INFO)
-                                    'If g_bDebug Then Log( "GetAlbums Album #" & AlbumIndex.ToString & " for Album (1) with value " & Albums(AlbumIndex, 1).ToString)
-                                    'If g_bDebug Then Log( "GetAlbums Album #" & AlbumIndex.ToString & " for Album (2) with value " & Albums(AlbumIndex, 2).ToString) 'name
-                                    'If g_bDebug Then Log( "GetAlbums Album #" & AlbumIndex.ToString & " for Album (3) with value " & Albums(AlbumIndex, 3).ToString)
-                                    'If g_bDebug Then Log( "GetAlbums Album #" & AlbumIndex.ToString & " for Album (6) with value " & Albums(AlbumIndex, 6).ToString) ' ID
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetAlbums Album #" & AlbumIndex.ToString & " for Album (0) with value " & Albums(AlbumIndex, 0).ToString, LogType.LOG_TYPE_INFO)
+                                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetAlbums Album #" & AlbumIndex.ToString & " for Album (1) with value " & Albums(AlbumIndex, 1).ToString)
+                                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetAlbums Album #" & AlbumIndex.ToString & " for Album (2) with value " & Albums(AlbumIndex, 2).ToString) 'name
+                                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetAlbums Album #" & AlbumIndex.ToString & " for Album (3) with value " & Albums(AlbumIndex, 3).ToString)
+                                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetAlbums Album #" & AlbumIndex.ToString & " for Album (6) with value " & Albums(AlbumIndex, 6).ToString) ' ID
                                     If Albums(AlbumIndex, 0) <> "All" And Albums(AlbumIndex, 0) <> "All Tracks" Then
                                         ReDim Preserve MyAlbums(Index)
                                         MyAlbums(Index) = Albums(AlbumIndex, 0).ToString
-                                        If g_bDebug Then Log("GetAlbums for zoneplayer " & ZoneName & " Index = " & Index.ToString & " and Album found = " & Albums(AlbumIndex, 0).ToString, LogType.LOG_TYPE_INFO)
+                                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetAlbums for zoneplayer " & ZoneName & " Index = " & Index.ToString & " and Album found = " & Albums(AlbumIndex, 0).ToString, LogType.LOG_TYPE_INFO)
                                         Index = Index + 1
                                     End If
                                 Next
@@ -2262,19 +2203,19 @@ Partial Public Class HSPI
         Catch ex As Exception
             Log("GetAlbums to close DB for zoneplayer = " & ZoneName & " with error - " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug Then Log("GetAlbums called for Zone - " & ZoneName & " returned " & Index.ToString & " albums ", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetAlbums called for Zone - " & ZoneName & " returned " & Index.ToString & " albums ", LogType.LOG_TYPE_INFO)
     End Function
 
 
     Public Function AllArtists() As System.Collections.SortedList
         AllArtists = Nothing
         ' this is something undocumented but used by the MusicPage.aspx
-        If g_bDebug Then Log("AllArtists called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AllArtists called", LogType.LOG_TYPE_INFO)
         Dim AllArtistsLists
         AllArtistsLists = GetArtists("", "")
         Dim SList As New System.Collections.SortedList
         If AllArtistsLists Is Nothing Then
-            If g_bDebug Then Log("AllArtists called but found no entries", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AllArtists called but found no entries", LogType.LOG_TYPE_INFO)
             SList.Add(0, "")
             AllArtists = SList
             Exit Function
@@ -2292,7 +2233,7 @@ Partial Public Class HSPI
     Public Function GetArtists(ByVal album As String, ByVal genre As String, Optional ByVal iPodDBName As String = "") As System.Array
         'Returns a list of artists matching the parameters provided by Album and Genre.  If empty strings are provided as parameters, then all tracks from the library are returned.  
         'Note, only the artist names are returned, duplicates removed, in sorted order.
-        If g_bDebug Then Log("GetArtists called for Zone - " & ZoneName & " Album=" & album & " Genre=" & genre & " and iPodDBName = " & iPodDBName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetArtists called for Zone - " & ZoneName & " Album=" & album & " Genre=" & genre & " and iPodDBName = " & iPodDBName, LogType.LOG_TYPE_INFO)
         Dim MyLib As String()
         MyLib = {""}
         GetArtists = MyLib
@@ -2353,16 +2294,16 @@ Partial Public Class HSPI
                     End Try
                     Try
                         While ArtistIndex < UBound(Artists, 1)
-                            'If g_bDebug Then Log( "GetArtists Record #" & ArtistIndex.ToString & " for Artists (0) with value " & Artists(ArtistIndex, 0).ToString)
-                            'If g_bDebug Then Log( "GetArtists Record #" & ArtistIndex.ToString & " for Artists (1) with value " & Artists(ArtistIndex, 1).ToString)
-                            'If g_bDebug Then Log( "GetArtists Record #" & ArtistIndex.ToString & " for Artists (2) with value " & Artists(ArtistIndex, 2).ToString) 'name
-                            'If g_bDebug Then Log( "GetArtists Record #" & ArtistIndex.ToString & " for Artists (3) with value " & Artists(ArtistIndex, 3).ToString)
-                            'If g_bDebug Then Log( "GetArtists Record #" & ArtistIndex.ToString & " for Artists (6) with value " & Artists(ArtistIndex, 6).ToString) ' ID
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetArtists Record #" & ArtistIndex.ToString & " for Artists (0) with value " & Artists(ArtistIndex, 0).ToString)
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetArtists Record #" & ArtistIndex.ToString & " for Artists (1) with value " & Artists(ArtistIndex, 1).ToString)
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetArtists Record #" & ArtistIndex.ToString & " for Artists (2) with value " & Artists(ArtistIndex, 2).ToString) 'name
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetArtists Record #" & ArtistIndex.ToString & " for Artists (3) with value " & Artists(ArtistIndex, 3).ToString)
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetArtists Record #" & ArtistIndex.ToString & " for Artists (6) with value " & Artists(ArtistIndex, 6).ToString) ' ID
                             If Artists(ArtistIndex, 0) <> "All" And Artists(ArtistIndex, 0) <> "All Albums" Then
                                 ReDim Preserve MyLib(Index)
                                 MyLib(Index) = Artists(ArtistIndex, 0).ToString
                                 Index = Index + 1
-                                If g_bDebug Then Log("GetArtists for zoneplayer " & ZoneName & " Artist = " & Artists(ArtistIndex, 0).ToString, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetArtists for zoneplayer " & ZoneName & " Artist = " & Artists(ArtistIndex, 0).ToString, LogType.LOG_TYPE_INFO)
                             End If
                             ArtistIndex = ArtistIndex + 1
                         End While
@@ -2390,19 +2331,19 @@ Partial Public Class HSPI
         Catch ex As Exception
             Log("GetArtists to close DB for zoneplayer = " & ZoneName & " with error - " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug Then Log("GetArtists called for Zone - " & ZoneName & " returned " & Index.ToString & " artists ", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetArtists called for Zone - " & ZoneName & " returned " & Index.ToString & " artists ", LogType.LOG_TYPE_INFO)
     End Function
 
 
     Public Function AllGenres() As System.Collections.SortedList
         AllGenres = Nothing
         ' this is something undocumented but used by the MusicPage.aspx
-        If g_bDebug Then Log("AllGenres called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AllGenres called", LogType.LOG_TYPE_INFO)
         Dim AllGenresLists
         AllGenresLists = GetGenres()
         Dim SList As New System.Collections.SortedList
         If AllGenresLists Is Nothing Then
-            If g_bDebug Then Log("AllGenres called but found no entries", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AllGenres called but found no entries", LogType.LOG_TYPE_INFO)
             SList.Add(0, "")
             AllGenres = SList
             Exit Function
@@ -2419,7 +2360,7 @@ Partial Public Class HSPI
 
     Public Function GetGenres(Optional ByVal iPodDBName As String = "") As System.Array
         'Returns a list of all Genres names in the system. Because HSTouch doesn't provide a way to pull up radio stations, I'm extracting them with Genres
-        If g_bDebug Then Log("GetGenres called for Zone - " & ZoneName & " and iPodDBName = " & iPodDBName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetGenres called for Zone - " & ZoneName & " and iPodDBName = " & iPodDBName, LogType.LOG_TYPE_INFO)
         GetGenres = {""}
         Dim MyGenres As String()
         MyGenres = {""}
@@ -2477,7 +2418,7 @@ Partial Public Class HSPI
         Catch ex As Exception
             Log("GetGenres to close DB for zoneplayer = " & ZoneName & " with error - " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug Then Log("GetGenres called for Zone - " & ZoneName & " returned " & Index.ToString & " genres ", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetGenres called for Zone - " & ZoneName & " returned " & Index.ToString & " genres ", LogType.LOG_TYPE_INFO)
     End Function
 
 
@@ -2486,13 +2427,13 @@ Partial Public Class HSPI
         Dim PlayLists
         PlayLists = GetPlaylists(IncludeRadioStations) 'MyControllerRef.GetAvailablePlaylists()
         If PlayLists Is Nothing Then
-            If g_bDebug Then Log("AllPlayLists called but found no entries", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AllPlayLists called but found no entries", LogType.LOG_TYPE_INFO)
             PlayLists.Add(0, "")
             AllPlayLists = PlayLists
             Exit Function
         End If
         Dim SList As New System.Collections.SortedList
-        If g_bDebug Then Log("AllPlayLists called and found " & UBound(PlayLists).ToString & " entries", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AllPlayLists called and found " & UBound(PlayLists).ToString & " entries", LogType.LOG_TYPE_INFO)
         Dim KeyIndex As Integer = 0
         Try
             While KeyIndex <= UBound(PlayLists)
@@ -2500,7 +2441,7 @@ Partial Public Class HSPI
                 KeyIndex = KeyIndex + 1
             End While
         Catch ex As Exception
-            If g_bDebug Then Log("AllPlayLists called, found " & KeyIndex.ToString & " entries but returned error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AllPlayLists called, found " & KeyIndex.ToString & " entries but returned error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         AllPlayLists = SList
         SList = Nothing
@@ -2509,7 +2450,7 @@ Partial Public Class HSPI
 
     Public Function GetPlaylists(Optional ByVal iPodDBName As String = "", Optional ByVal IncludeRadioStations As Boolean = True) As System.Array
         'Returns a list of all playlist names in the system.
-        If g_bDebug Then Log("GetPlaylists called for Zone - " & ZoneName & " and iPodDBName = " & iPodDBName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetPlaylists called for Zone - " & ZoneName & " and iPodDBName = " & iPodDBName, LogType.LOG_TYPE_INFO)
         GetPlaylists = {""}
         Dim MyPlayLists As String()
         MyPlayLists = {""}
@@ -2594,7 +2535,7 @@ Partial Public Class HSPI
             SQLCommand.CommandText = QueryString
             SQLreader = SQLCommand.ExecuteReader()
         Catch ex As Exception
-            If g_bDebug Then Log("Error GetPlaylists for zoneplayer " & ZoneName & " unable to open RadioStation DB with error- " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error GetPlaylists for zoneplayer " & ZoneName & " unable to open RadioStation DB with error- " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Function
         End Try
         Try
@@ -2624,7 +2565,7 @@ Partial Public Class HSPI
         Catch ex As Exception
             Log("GetPlaylists to close DB for zoneplayer = " & ZoneName & " with error - " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug Then Log("GetPlaylists called for Zone - " & ZoneName & " returned " & Index.ToString & " playlists ", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetPlaylists called for Zone - " & ZoneName & " returned " & Index.ToString & " playlists ", LogType.LOG_TYPE_INFO)
     End Function
 
     Public Function GetCurrentPlaylistTracks() As String()
@@ -2635,7 +2576,7 @@ Partial Public Class HSPI
             Try
                 Return LinkedZone.GetCurrentPlaylistTracks()
             Catch ex As Exception
-                If g_bDebug Then Log("GetCurrentPlaylistTracks called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetCurrentPlaylistTracks called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
                 Return {""}
             End Try
             Exit Function
@@ -2646,16 +2587,16 @@ Partial Public Class HSPI
         Dim QueueInformation As String() = Nothing
         QueueInformation = GetQueue()
         If QueueInformation Is Nothing Then
-            If g_bDebug Then Log("GetCurrentPlaylistTracks called but found no entries", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetCurrentPlaylistTracks called but found no entries", LogType.LOG_TYPE_INFO)
             GetCurrentPlaylistTracks = {""}
             Exit Function
         ElseIf QueueInformation.Count = 0 Then
-            If g_bDebug Then Log("GetCurrentPlaylistTracks called but found no entries", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetCurrentPlaylistTracks called but found no entries", LogType.LOG_TYPE_INFO)
             GetCurrentPlaylistTracks = {""}
             Exit Function
         End If
         Dim SList() As String = {""}
-        If g_bDebug Then Log("GetCurrentPlaylistTracks called and found " & (UBound(QueueInformation, 1) + 1).ToString & " entries", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetCurrentPlaylistTracks called and found " & (UBound(QueueInformation, 1) + 1).ToString & " entries", LogType.LOG_TYPE_INFO)
         Dim KeyIndex As Integer = 0
         ReDim Preserve SList(QueueInformation.Count - 1)
         Try
@@ -2664,7 +2605,7 @@ Partial Public Class HSPI
                 KeyIndex = KeyIndex + 1
             End While
         Catch ex As Exception
-            If g_bDebug Then Log("GetCurrentPlaylistTracks called, found " & KeyIndex.ToString & " entries but returned error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetCurrentPlaylistTracks called, found " & KeyIndex.ToString & " entries but returned error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         GetCurrentPlaylistTracks = SList
         SList = Nothing
@@ -2682,7 +2623,7 @@ Partial Public Class HSPI
     Public Function GetPlaylistTracks(ByVal playlist_name As String, Optional ByVal iPodDBName As String = "") As System.Array
         'Returns a list of all tracks in the given playlist name.  If an empty string is provided as the parameter, then an empty array is returned, otherwise all tracks in the given playlist are returned with duplicates.
         Dim MyPlayListTracks As String()
-        If g_bDebug Then Log("GetPlaylistTracks called for Zone - " & ZoneName & " with Playlist=" & playlist_name & " and iPodDBName = " & iPodDBName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetPlaylistTracks called for Zone - " & ZoneName & " with Playlist=" & playlist_name & " and iPodDBName = " & iPodDBName, LogType.LOG_TYPE_INFO)
         MyPlayListTracks = {""}
         GetPlaylistTracks = MyPlayListTracks
         Dim ConnectionString As String
@@ -2731,7 +2672,7 @@ Partial Public Class HSPI
                         End Try
                         Try
                             While TrackIndex < UBound(Tracks, 1)
-                                'If g_bDebug then Log( "Record #" & Index.ToString & " with value " & Tracks(TrackIndex, 0).ToString)
+                                'If piDebuglevel > DebugLevel.dlErrorsOnly then Log( "Record #" & Index.ToString & " with value " & Tracks(TrackIndex, 0).ToString)
                                 ReDim Preserve MyPlayListTracks(Index)
                                 MyPlayListTracks(Index) = Tracks(TrackIndex, 0).ToString
                                 Index = Index + 1
@@ -2762,17 +2703,17 @@ Partial Public Class HSPI
         Catch ex As Exception
             Log("GetPlaylistTracks to close DB for zoneplayer = " & ZoneName & " with error - " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug Then Log("GetPlaylistTracks called for Zone - " & ZoneName & " returned " & Index.ToString & " tracks ", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetPlaylistTracks called for Zone - " & ZoneName & " returned " & Index.ToString & " tracks ", LogType.LOG_TYPE_INFO)
     End Function
 
     Public Function AllRadioStationLists(Optional ByRef IncludeLearned As Boolean = True) As System.Collections.SortedList
         ' this is something undocumented but used by the MusicPage.aspx
-        If g_bDebug Then Log("AllRadioStationLists called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AllRadioStationLists called", LogType.LOG_TYPE_INFO)
         Dim RadioStationLists
         RadioStationLists = LibGetRadioStationlists(IncludeLearned) 'MyControllerRef.GetAvailableRadioStations()
         Dim SList As New System.Collections.SortedList
         If RadioStationLists Is Nothing Then
-            If g_bDebug Then Log("AllRadioStationLists called but found no entries", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AllRadioStationLists called but found no entries", LogType.LOG_TYPE_INFO)
             SList.Add(0, "")
             AllRadioStationLists = SList
             Exit Function
@@ -2789,7 +2730,7 @@ Partial Public Class HSPI
 
     Public Function LibGetRadioStationlists(Optional ByRef IncludeLearned As Boolean = True) As System.Array
         'Returns a list of all RadioStations in the system.
-        If g_bDebug Then Log("LibGetRadioStationlists called for Zone - " & ZoneName & " and IncludeLearned = " & IncludeLearned.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetRadioStationlists called for Zone - " & ZoneName & " and IncludeLearned = " & IncludeLearned.ToString, LogType.LOG_TYPE_INFO)
         LibGetRadioStationlists = {""}
         Dim MyRadioStationLists As String()
         MyRadioStationLists = {""}
@@ -2866,7 +2807,7 @@ Partial Public Class HSPI
             SQLCommand.CommandText = QueryString
             SQLreader = SQLCommand.ExecuteReader()
         Catch ex As Exception
-            If g_bDebug Then Log("Error in LibGetRadioStationlists for zone " & ZoneName & "  unable to open RadioStation DB with error- " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in LibGetRadioStationlists for zone " & ZoneName & "  unable to open RadioStation DB with error- " & ex.Message, LogType.LOG_TYPE_ERROR)
             Exit Function
         End Try
         Try
@@ -2895,12 +2836,12 @@ Partial Public Class HSPI
         Catch ex As Exception
             Log("LibGetRadioStationlists to close DB for zoneplayer = " & ZoneName & " with error - " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug Then Log("LibGetRadioStationlists called for Zone - " & ZoneName & " returned " & Index.ToString & " radiostations ", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetRadioStationlists called for Zone - " & ZoneName & " returned " & Index.ToString & " radiostations ", LogType.LOG_TYPE_INFO)
     End Function
 
     Public Function LibGetAudiobookslists(ByVal iPodPlayerName As String) As System.Array
         'Returns a list of all Audiobooks for this player
-        If g_bDebug Then Log("LibGetAudiobookslists called for Zone - " & ZoneName & " with iPodName = " & iPodPlayerName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetAudiobookslists called for Zone - " & ZoneName & " with iPodName = " & iPodPlayerName, LogType.LOG_TYPE_INFO)
         LibGetAudiobookslists = {""}
         If iPodPlayerName = "" Then Exit Function
         'If Not MakeiPodBrowseable() Then Exit Function
@@ -2932,7 +2873,7 @@ Partial Public Class HSPI
             Index = 0
             While SQLreader.Read()
                 tempstring = SQLreader("Name").ToString
-                If g_bDebug Then Log("Record #" & Index.ToString & " with value " & tempstring, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Record #" & Index.ToString & " with value " & tempstring, LogType.LOG_TYPE_INFO)
                 ReDim Preserve MyAudiobookLists(Index)
                 MyAudiobookLists(Index) = tempstring
                 Index = Index + 1
@@ -2956,12 +2897,12 @@ Partial Public Class HSPI
         Catch ex As Exception
             Log("LibGetAudiobookslists to close DB for zoneplayer = " & ZoneName & " with error - " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug Then Log("LibGetAudiobookslists called for Zone - " & ZoneName & " returned " & Index.ToString & " audiobooks ", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetAudiobookslists called for Zone - " & ZoneName & " returned " & Index.ToString & " audiobooks ", LogType.LOG_TYPE_INFO)
     End Function
 
     Public Function LibGetPodcastlists(ByVal iPodPlayerName As String) As System.Array
         'Returns a list of all Podcasts for this player
-        If g_bDebug Then Log("LibGetPodcastlists called for Zone - " & ZoneName & " with iPodName = " & iPodPlayerName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetPodcastlists called for Zone - " & ZoneName & " with iPodName = " & iPodPlayerName, LogType.LOG_TYPE_INFO)
         LibGetPodcastlists = {""}
         If iPodPlayerName = "" Then Exit Function
         'If Not MakeiPodBrowseable() Then Exit Function
@@ -2993,7 +2934,7 @@ Partial Public Class HSPI
             Index = 0
             While SQLreader.Read()
                 tempstring = SQLreader("Name").ToString
-                If g_bDebug Then Log("Record #" & Index.ToString & " with value " & tempstring, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Record #" & Index.ToString & " with value " & tempstring, LogType.LOG_TYPE_INFO)
                 ReDim Preserve MyPodcastLists(Index)
                 MyPodcastLists(Index) = tempstring
                 Index = Index + 1
@@ -3017,12 +2958,12 @@ Partial Public Class HSPI
         Catch ex As Exception
             Log("LibGetPodcastlists to close DB for zoneplayer = " & ZoneName & " with error - " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug Then Log("LibGetPodcastlists called for Zone - " & ZoneName & " returned " & Index.ToString & " podcasts ", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetPodcastlists called for Zone - " & ZoneName & " returned " & Index.ToString & " podcasts ", LogType.LOG_TYPE_INFO)
     End Function
 
     Public Function LibGetObjectslist(ObjectID As String) As System.Array
         'Returns a list of all Podcasts for this player
-        If g_bDebug Then Log("LibGetObjectslist called for Zone - " & ZoneName & " with ObjectID = " & ObjectID, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetObjectslist called for Zone - " & ZoneName & " with ObjectID = " & ObjectID, LogType.LOG_TYPE_INFO)
         LibGetObjectslist = {""}
         'If Not MakeiPodBrowseable() Then Exit Function
         Dim MyObjectList As String()
@@ -3060,7 +3001,7 @@ Partial Public Class HSPI
             While SQLreader.Read()
                 'tempstring = SQLreader("Name").ToString
                 tempstring = SQLreader("Artist").ToString
-                If g_bDebug Then Log("Record #" & Index.ToString & " with value " & tempstring, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Record #" & Index.ToString & " with value " & tempstring, LogType.LOG_TYPE_INFO)
                 ReDim Preserve MyObjectList(Index)
                 MyObjectList(Index) = tempstring
                 Index = Index + 1
@@ -3084,7 +3025,7 @@ Partial Public Class HSPI
         Catch ex As Exception
             Log("LibGetObjectslist to close DB for zoneplayer = " & ZoneName & " with error - " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug Then Log("LibGetObjectslist called for Zone - " & ZoneName & " with ObjectID = " & ObjectID & " returned " & Index.ToString & " Objects ", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetObjectslist called for Zone - " & ZoneName & " with ObjectID = " & ObjectID & " returned " & Index.ToString & " Objects ", LogType.LOG_TYPE_INFO)
     End Function
 
 
@@ -3105,7 +3046,7 @@ Partial Public Class HSPI
                 Index = Index + 1
             End If
         Next
-        If g_bDebug Then Log("LibGetiPodNameLists called for Zone - " & ZoneName & " and found " & Index.ToString & " iPod Player Names", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetiPodNameLists called for Zone - " & ZoneName & " and found " & Index.ToString & " iPod Player Names", LogType.LOG_TYPE_INFO)
         LibGetiPodNameLists = MyiPodLists
     End Function
 
@@ -3132,7 +3073,7 @@ Partial Public Class HSPI
                     End If
                 End If
             Next
-            If g_bDebug Then Log("LibGetActiveLineInputlists called for Zone - " & ZoneName & " and found " & Index.ToString & " Player Names", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetActiveLineInputlists called for Zone - " & ZoneName & " and found " & Index.ToString & " Player Names", LogType.LOG_TYPE_INFO)
             LibGetActiveLineInputlists = MyLineInputLists
         Catch ex As Exception
             Log("Error in LibGetActiveLineInputlists for Zone - " & ZoneName & " with error " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -3158,7 +3099,7 @@ Partial Public Class HSPI
                     Index = Index + 1
                 End If
             Next
-            If g_bDebug Then Log("LibGetStereoPlayerlist called for Zone - " & ZoneName & " and found " & Index.ToString & " " & PlayerType & " Player Names", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetStereoPlayerlist called for Zone - " & ZoneName & " and found " & Index.ToString & " " & PlayerType & " Player Names", LogType.LOG_TYPE_INFO)
             LibGetStereoPlayerlist = MyPlayerList
         Catch ex As Exception
             Log("Error in LibGetStereoPlayerlist for Zone - " & ZoneName & " with error " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -3185,7 +3126,7 @@ Partial Public Class HSPI
                     Index = Index + 1
                 End If
             Next
-            If g_bDebug Then Log("LibGetLineInputlists called for Zone - " & ZoneName & " and found " & Index.ToString & " Player Names", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetLineInputlists called for Zone - " & ZoneName & " and found " & Index.ToString & " Player Names", LogType.LOG_TYPE_INFO)
             LibGetLineInputlists = MyLineInputLists
         Catch ex As Exception
             Log("Error in LibGetLineInputlists for Zone - " & ZoneName & " with error " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -3194,14 +3135,14 @@ Partial Public Class HSPI
 
     Public Sub SonosSkipToTrack(ByVal track_num As Integer)
         '(Overloaded) 	Integer 	  	Jumps the player to the track number in the current HomeSeer playlist given in the Integer parameter.  Track numbers less than 0 or greater than the number of entries in the playlist are ignored.
-        If g_bDebug Then Log("SonosSkipToTrack(integer) called for Zone - " & ZoneName & " with value = " & track_num.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonosSkipToTrack(integer) called for Zone - " & ZoneName & " with value = " & track_num.ToString, LogType.LOG_TYPE_INFO)
         If ZoneIsLinked Then
             Dim LinkedZone As HSPI  'HSMusicAPI
             LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
             Try
                 LinkedZone.SonosSkipToTrack(track_num)
             Catch ex As Exception
-                If g_bDebug Then Log("SonosSkipToTrack called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonosSkipToTrack called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
@@ -3216,7 +3157,7 @@ Partial Public Class HSPI
 
     Public Sub SonosSkipToTrack(ByVal track_name As String)
         '(Overloaded) 	String 	  	Jumps the player to track matching the track name provided as the parameter.  If the track name does not match any entries in the current playlist, nothing happens.
-        If g_bDebug Then Log("SonosSkipToTrack(String) called for Zone - " & ZoneName & " with value = " & track_name.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SonosSkipToTrack(String) called for Zone - " & ZoneName & " with value = " & track_name.ToString, LogType.LOG_TYPE_INFO)
         Dim QueueInformation() As String = Nothing
         QueueInformation = GetCurrentPlaylistTracks()
         If QueueInformation Is Nothing Then Exit Sub
@@ -3235,7 +3176,7 @@ Partial Public Class HSPI
 
     Public Sub StartPlay() 'Implements MediaCommon.MusicAPI.StartPlay
         'Like Play, this command starts the player playing the currently loaded HomeSeer playlist, but StartPlay always starts at playlist entry 0 (the beginning).
-        If g_bDebug Then Log("StartPlay called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("StartPlay called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         Try
             SetTransportState("Play")
         Catch ex As Exception
@@ -3247,11 +3188,11 @@ Partial Public Class HSPI
         'This procedure may be used if desired to regenerate the list of playlist tracks manually.
         'Note: Special playlists such as "Recently Played" are updated automatically as well, but nothing will be logged in HomeSeer to indicate this 
         'since these playlists are updated frequently by the player.
-        If g_bDebug Then Log("LoadPlayLists called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LoadPlayLists called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
     End Sub
 
     Public Sub Link(MasterZoneUDN As String, Optional AddGroup As Boolean = False)
-        If g_bDebug Then Log("Link called for Zone - " & ZoneName & " and MasterZoneUDN = " & MasterZoneUDN, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Link called for Zone - " & ZoneName & " and MasterZoneUDN = " & MasterZoneUDN, LogType.LOG_TYPE_INFO)
         If Mid(MasterZoneUDN, 1, 5) = "uuid:" Then
             Mid(MasterZoneUDN, 1, 5) = "     " ' remove the uuid:
         End If
@@ -3269,7 +3210,7 @@ Partial Public Class HSPI
                 End If
                 SonosPlayer = Nothing
             Else
-                If g_bDebug Then Log("Error in Link with MasterZoneUDN : " & MasterZoneUDN & "  but didn't find MasterPlayer", LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in Link with MasterZoneUDN : " & MasterZoneUDN & "  but didn't find MasterPlayer", LogType.LOG_TYPE_ERROR)
             End If
         End If
         If ZoneModel <> "WD100" Then
@@ -3280,7 +3221,7 @@ Partial Public Class HSPI
     End Sub
 
     Public Sub Unlink()
-        If g_bDebug Then Log("Unlink called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Unlink called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         ' Unlink by pointing the player to its queue
         If ZoneIsLinked Then
             PlayURI("x-rincon-queue:" & GetUDN() & "#0", "")
@@ -3290,55 +3231,55 @@ Partial Public Class HSPI
     End Sub
 
     Public Sub RadioStationPrev()
-        If g_bDebug Then Log("RadioStationPrev called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RadioStationPrev called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         Dim LastRadioStationIndex As Integer = 0
         LastRadioStationIndex = GetIntegerIniFile("ListIndexes", "Radiostations", 0)
         Dim IncludeLearned As Boolean = True
         IncludeLearned = GetBooleanIniFile("ListIndexes", "Include Learned Radiostations", False)
         Dim AllRadioStations As String()
         AllRadioStations = LibGetRadioStationlists(IncludeLearned)
-        If g_bDebug Then Log("RadioStationPrev called for Zone - " & ZoneName & " found " & UBound(AllRadioStations, 1) & " Radiostations", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RadioStationPrev called for Zone - " & ZoneName & " found " & UBound(AllRadioStations, 1) & " Radiostations", LogType.LOG_TYPE_INFO)
         If (LastRadioStationIndex <= 0) Or (LastRadioStationIndex > UBound(AllRadioStations, 1)) Then
             LastRadioStationIndex = UBound(AllRadioStations, 1)
         Else
             LastRadioStationIndex = LastRadioStationIndex - 1
         End If
         WriteIntegerIniFile("ListIndexes", "Radiostations", LastRadioStationIndex)
-        If g_bDebug Then Log("RadioStationPrev called for Zone - " & ZoneName & " is going to play RadioStation " & (AllRadioStations(LastRadioStationIndex)) & " with Index = " & LastRadioStationIndex, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RadioStationPrev called for Zone - " & ZoneName & " is going to play RadioStation " & (AllRadioStations(LastRadioStationIndex)) & " with Index = " & LastRadioStationIndex, LogType.LOG_TYPE_INFO)
         PlayRadioStation(AllRadioStations(LastRadioStationIndex))
     End Sub
 
     Public Sub RadioStationNext()
-        If g_bDebug Then Log("RadioStationNext called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RadioStationNext called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         Dim LastRadioStationIndex As Integer = 0
         LastRadioStationIndex = GetIntegerIniFile("ListIndexes", "Radiostations", 0)
         Dim IncludeLearned As Boolean = True
         IncludeLearned = GetBooleanIniFile("ListIndexes", "Include Learned Radiostations", False)
         Dim AllRadioStations As String()
         AllRadioStations = LibGetRadioStationlists(IncludeLearned)
-        If g_bDebug Then Log("RadioStationNext called for Zone - " & ZoneName & " found " & UBound(AllRadioStations, 1) & " Radiostations", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RadioStationNext called for Zone - " & ZoneName & " found " & UBound(AllRadioStations, 1) & " Radiostations", LogType.LOG_TYPE_INFO)
         If UBound(AllRadioStations, 1) > LastRadioStationIndex Then
             LastRadioStationIndex = LastRadioStationIndex + 1
         Else
             LastRadioStationIndex = 0
         End If
         WriteIntegerIniFile("ListIndexes", "Radiostations", LastRadioStationIndex)
-        If g_bDebug Then Log("RadioStationNext called for Zone - " & ZoneName & " is going to play RadioStation " & (AllRadioStations(LastRadioStationIndex)) & " with Index = " & LastRadioStationIndex, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RadioStationNext called for Zone - " & ZoneName & " is going to play RadioStation " & (AllRadioStations(LastRadioStationIndex)) & " with Index = " & LastRadioStationIndex, LogType.LOG_TYPE_INFO)
         PlayRadioStation(AllRadioStations(LastRadioStationIndex))
     End Sub
 
     Public Sub PlaylistPrev()
-        If g_bDebug Then Log("PlaylistPrev called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlaylistPrev called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         Dim LastPlayListIndex As Integer = 0
         LastPlayListIndex = GetIntegerIniFile("ListIndexes", "Playlists", 0)
         'Dim IncludeLearned As Boolean = False
         'IncludeLearned = objIniFile.GetBoolean("ListIndexes", "Include Learned Radiostations", False)
         Dim AllPlaylists As String()
         AllPlaylists = GetPlaylists("", False)
-        If g_bDebug Then Log("PlaylistPrev called for Zone - " & ZoneName & " found " & UBound(AllPlaylists, 1) & " Playlists", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlaylistPrev called for Zone - " & ZoneName & " found " & UBound(AllPlaylists, 1) & " Playlists", LogType.LOG_TYPE_INFO)
         'Dim TempIndex As Integer
         'For TempIndex = 0 To UBound(AllPlaylists)
-        'If g_bDebug Then Log( "      Playlist = " & AllPlaylists(TempIndex))
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "      Playlist = " & AllPlaylists(TempIndex))
         'Next
         If (LastPlayListIndex <= 0) Or (LastPlayListIndex > UBound(AllPlaylists, 1)) Then
             LastPlayListIndex = UBound(AllPlaylists, 1)
@@ -3346,22 +3287,22 @@ Partial Public Class HSPI
             LastPlayListIndex = LastPlayListIndex - 1
         End If
         WriteIntegerIniFile("ListIndexes", "Playlists", LastPlayListIndex)
-        If g_bDebug Then Log("PlaylistPrev called for Zone - " & ZoneName & " is going to play Playlist " & (AllPlaylists(LastPlayListIndex)) & " with Index = " & LastPlayListIndex, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlaylistPrev called for Zone - " & ZoneName & " is going to play Playlist " & (AllPlaylists(LastPlayListIndex)) & " with Index = " & LastPlayListIndex, LogType.LOG_TYPE_INFO)
         PlayMusic("", "", AllPlaylists(LastPlayListIndex), "", "", "", "", "", "", "", True, QueueActions.qaPlayNow)
     End Sub
 
     Public Sub PlaylistNext()
-        If g_bDebug Then Log("PlaylistNext called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlaylistNext called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO)
         Dim LastPlayListIndex As Integer = 0
         LastPlayListIndex = GetIntegerIniFile("ListIndexes", "Playlists", 0)
         'Dim IncludeLearned As Boolean = False
         'IncludeLearned = objIniFile.GetBoolean("ListIndexes", "Include Learned Radiostations", False)
         Dim AllPlaylists As String()
         AllPlaylists = GetPlaylists("", False)
-        If g_bDebug Then Log("PlaylistNext called for Zone - " & ZoneName & " found " & UBound(AllPlaylists, 1) & " Playlists", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlaylistNext called for Zone - " & ZoneName & " found " & UBound(AllPlaylists, 1) & " Playlists", LogType.LOG_TYPE_INFO)
         'Dim TempIndex As Integer
         'For TempIndex = 0 To UBound(AllPlaylists)
-        'If g_bDebug Then Log( "      Playlist = " & AllPlaylists(TempIndex))
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "      Playlist = " & AllPlaylists(TempIndex))
         'Next
         If UBound(AllPlaylists, 1) > LastPlayListIndex Then
             LastPlayListIndex = LastPlayListIndex + 1
@@ -3369,32 +3310,32 @@ Partial Public Class HSPI
             LastPlayListIndex = 0
         End If
         WriteIntegerIniFile("ListIndexes", "Playlists", LastPlayListIndex)
-        If g_bDebug Then Log("PlaylistNext called for Zone - " & ZoneName & " is going to play Playlist " & (AllPlaylists(LastPlayListIndex)) & " with Index = " & LastPlayListIndex, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlaylistNext called for Zone - " & ZoneName & " is going to play Playlist " & (AllPlaylists(LastPlayListIndex)) & " with Index = " & LastPlayListIndex, LogType.LOG_TYPE_INFO)
         PlayMusic("", "", AllPlaylists(LastPlayListIndex), "", "", "", "", "", "", "", True, QueueActions.qaPlayNow)
     End Sub
 
     Public Function PlayListCreateNew(ByVal playlist_name As String) As String
         'Creates a new playlist with the name of the specified string. Returns a null string if successful or an error if unsuccessful.
         PlayListCreateNew = ""
-        If g_bDebug Then Log("PlayListCreateNew called for Zone - " & ZoneName & " and Playlist = " & playlist_name, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayListCreateNew called for Zone - " & ZoneName & " and Playlist = " & playlist_name, LogType.LOG_TYPE_INFO)
     End Function
 
     Public Function PlayListDeletePlaylist(ByVal playlist_name As String) As String
         'Deletes a playlist with the name of the specified string. Returns a null string if successful or an error if unsuccessful.
         PlayListDeletePlaylist = ""
-        If g_bDebug Then Log("PlayListDeletePlayList called for Zone - " & ZoneName & " with Name=" & playlist_name, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayListDeletePlayList called for Zone - " & ZoneName & " with Name=" & playlist_name, LogType.LOG_TYPE_INFO)
     End Function
 
     Public Function PlayListDeleteTrack(ByVal playlist_name As String, ByVal track_name As String, Optional ByVal Album As String = "") As String
         'Deletes a track from the specified playlist that has the specified name. The Album may be used to narrow the search. Returns a null string if successful or an error if unsuccessful.
         PlayListDeleteTrack = ""
-        If g_bDebug Then Log("PlayListDeleteTrack called for Zone - " & ZoneName & " for Playlist=" & playlist_name & " and Track= " & track_name & " and Album= " & Album, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayListDeleteTrack called for Zone - " & ZoneName & " for Playlist=" & playlist_name & " and Track= " & track_name & " and Album= " & Album, LogType.LOG_TYPE_INFO)
     End Function
 
     Public Function PlayListAddTrack(ByVal playlist_name As String, ByVal track_name As String, Optional ByVal Album As String = "") As String
         'Adds a track into the specified playlist that has the specified name. The Album may be used to narrow the search (this is useful if you have multiple tracks that share the same name). Returns a null string if successful or an error if unsuccessful.
         PlayListAddTrack = "OK"
-        If g_bDebug Then Log("PlayListAddTrack called for Zone - " & ZoneName & " and Playlist = " & playlist_name & " and Track = " & track_name & " and Album = " & Album, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayListAddTrack called for Zone - " & ZoneName & " and Playlist = " & playlist_name & " and Track = " & track_name & " and Album = " & Album, LogType.LOG_TYPE_INFO)
     End Function
 
 
@@ -3414,20 +3355,20 @@ Partial Public Class HSPI
 
 
     Public Sub CheckLibChange()
-        If g_bDebug And gIOEnabled Then Log("CheckLibChange called for ZoneName = " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("CheckLibChange called for ZoneName = " & ZoneName, LogType.LOG_TYPE_INFO)
     End Sub
 
     Public Sub CheckPlaylistChange()
-        If g_bDebug And gIOEnabled Then Log("CheckPlaylistChange called for ZoneName = " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("CheckPlaylistChange called for ZoneName = " & ZoneName, LogType.LOG_TYPE_INFO)
     End Sub
 
     Public Property LastPlayInfo() As LastMusic
         Get
-            If g_bDebug And gIOEnabled Then Log("LastPlayInfo Get called for ZoneName = " & ZoneName, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("LastPlayInfo Get called for ZoneName = " & ZoneName, LogType.LOG_TYPE_INFO)
             LastPlayInfo = Nothing
         End Get
         Set(ByVal value As LastMusic)
-            If g_bDebug And gIOEnabled Then Log("LastPlayInfo Set called for ZoneName = " & ZoneName, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("LastPlayInfo Set called for ZoneName = " & ZoneName, LogType.LOG_TYPE_INFO)
         End Set
     End Property
 
@@ -3446,7 +3387,7 @@ Partial Public Class HSPI
     Dim returnEntryKey As New HomeSeerAPI.Lib_Entry_Key
 
     Public Function CurrentlyPlaying() As HomeSeerAPI.Lib_Entry_Key Implements HomeSeerAPI.IMediaAPI.CurrentlyPlaying
-        If SuperDebug Or DCORMEDIAAPITrace Then Log("CurrentlyPlaying called for Zone - " & ZoneName & " returning Key = " & TranslateLibEntryKey(CurrentLibKey), LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlEvents Then Log("CurrentlyPlaying called for Zone - " & ZoneName & " returning Key = " & TranslateLibEntryKey(CurrentLibKey), LogType.LOG_TYPE_INFO, LogColorNavy)
         Return CurrentLibKey
     End Function
 
@@ -3458,61 +3399,62 @@ Partial Public Class HSPI
                 LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                 Return LinkedZone.CurrentPlayList()
             Catch ex As Exception
-                'If g_bDebug Then Log("CurrentPlayList called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CurrentPlayList called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Return Nothing
         End If
-        If SuperDebug Or DCORMEDIAAPITrace Then Log("CurrentPlayList called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlEvents Then Log("CurrentPlayList called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
         Dim PlaylistTracks As String() = GetCurrentPlaylistTracks()
         If PlaylistTracks IsNot Nothing Then
             ReDim ReturnList(UBound(PlaylistTracks))
             Dim Index As Integer = 0
             For Each Track As String In PlaylistTracks
-                Dim EntryKey As New HomeSeerAPI.Lib_Entry_Key
-                EntryKey.iKey = Index + 1
-                EntryKey.Library = MyLibraryTypes.LibraryQueue
-                EntryKey.Title = Track
-                EntryKey.sKey = (Index + 1).ToString
-                EntryKey.WhichKey = eKey_Type.eEither
+                Dim EntryKey As New HomeSeerAPI.Lib_Entry_Key With {
+                    .iKey = Index + 1,
+                    .Library = MyLibraryTypes.LibraryQueue,
+                    .Title = Track,
+                    .sKey = (Index + 1).ToString,
+                    .WhichKey = eKey_Type.eEither
+                }
                 ReturnList(Index) = EntryKey
                 Index = Index + 1
             Next
-            If SuperDebug Or DCORMEDIAAPITrace Then Log("CurrentPlayList called for Zone - " & ZoneName & " and returned = " & Index.ToString & " entries", LogType.LOG_TYPE_INFO, LogColorNavy)
+            If piDebuglevel > DebugLevel.dlEvents Then Log("CurrentPlayList called for Zone - " & ZoneName & " and returned = " & Index.ToString & " entries", LogType.LOG_TYPE_INFO, LogColorNavy)
         End If
         Return ReturnList
     End Function
 
     Public Function CurrentPlayListAdd(TrackKeys() As HomeSeerAPI.Lib_Entry_Key) As Boolean Implements HomeSeerAPI.IMediaAPI.CurrentPlayListAdd
-        If g_bDebug Then Log("CurrentPlayListAdd called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CurrentPlayListAdd called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
         Return Nothing
     End Function
 
     Public Sub CurrentPlayListClear() Implements HomeSeerAPI.IMediaAPI.CurrentPlayListClear
-        If g_bDebug Then Log("CurrentPlayListClear called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CurrentPlayListClear called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
     End Sub
 
     Public Function CurrentPlayListCount() As Integer Implements HomeSeerAPI.IMediaAPI.CurrentPlayListCount
-        If g_bDebug Then Log("CurrentPlayListCount called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CurrentPlayListCount called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
         Return MyNbrOfTracksInQueue
     End Function
 
     Public Function CurrentPlayListRange(Start As Integer, Count As Integer) As HomeSeerAPI.Lib_Entry_Key() Implements HomeSeerAPI.IMediaAPI.CurrentPlayListRange
-        If g_bDebug Then Log("CurrentPlayListRange called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CurrentPlayListRange called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
         Return Nothing
     End Function
 
     Public Function CurrentPlayListSet(TrackKeys() As HomeSeerAPI.Lib_Entry_Key) As Boolean Implements HomeSeerAPI.IMediaAPI.CurrentPlayListSet
-        If g_bDebug Then Log("CurrentPlayListSet called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CurrentPlayListSet called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
         Return Nothing
     End Function
 
     Public Function LibGetAlbums(artist As String, genre As String, Lib_Type As UShort) As String() Implements HomeSeerAPI.IMediaAPI.LibGetAlbums
-        If g_bDebug Then Log("LibGetAlbums called for Zone - " & ZoneName & " with Artist = " & artist & ", Genre = " & genre & ", Lib_type = " & Lib_Type.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetAlbums called for Zone - " & ZoneName & " with Artist = " & artist & ", Genre = " & genre & ", Lib_type = " & Lib_Type.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
         Return GetAlbums(artist, genre)
     End Function
 
     Public Function LibGetArtists(album As String, genre As String, Lib_Type As UShort) As String() Implements HomeSeerAPI.IMediaAPI.LibGetArtists
-        If g_bDebug Then Log("LibGetArtists called for Zone - " & ZoneName & " with Album = " & album & ", Genre = " & genre & ", Lib_type = " & Lib_Type.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetArtists called for Zone - " & ZoneName & " with Album = " & album & ", Genre = " & genre & ", Lib_type = " & Lib_Type.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
         Return GetArtists(album, genre)
     End Function
 
@@ -3524,11 +3466,11 @@ Partial Public Class HSPI
                 LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                 Return LinkedZone.LibGetEntry(Key)
             Catch ex As Exception
-                If g_bDebug Then Log("LibGetEntry called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetEntry called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Return Nothing
         End If
-        If SuperDebug Or DCORMEDIAAPITrace Then Log("LibGetEntry called for Zone - " & ZoneName & ", " & TranslateLibEntryKey(Key), LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlEvents Then Log("LibGetEntry called for Zone - " & ZoneName & ", " & TranslateLibEntryKey(Key), LogType.LOG_TYPE_INFO, LogColorNavy)
         Dim insKey As String = ""
         Dim inTitle As String = ""
         If Key.sKey IsNot Nothing Then
@@ -3556,74 +3498,74 @@ Partial Public Class HSPI
     End Function
 
     Public Function LibGetGenres(Lib_Type As UShort) As String() Implements HomeSeerAPI.IMediaAPI.LibGetGenres
-        If g_bDebug Then Log("LibGetGenres called for Zone - " & ZoneName & " with Lib_type = " & Lib_Type.ToString, LogType.LOG_TYPE_INFO, LogColorOrange)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetGenres called for Zone - " & ZoneName & " with Lib_type = " & Lib_Type.ToString, LogType.LOG_TYPE_INFO, LogColorOrange)
         Return GetGenres("") 'Nothing
     End Function
 
     Public Function LibGetLibrary() As HomeSeerAPI.Lib_Entry() Implements HomeSeerAPI.IMediaAPI.LibGetLibrary
-        If g_bDebug Then Log("LibGetLibrary called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetLibrary called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
         Return Nothing
     End Function
 
     Public Function LibGetLibrarybyLibType(Lib_Type As UShort) As HomeSeerAPI.Lib_Entry() Implements HomeSeerAPI.IMediaAPI.LibGetLibrarybyLibType
-        If g_bDebug Then Log("LibGetLibrarybyLibType called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetLibrarybyLibType called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
         Return Nothing
     End Function
 
     Public Function LibGetLibraryCount() As Integer Implements HomeSeerAPI.IMediaAPI.LibGetLibraryCount
-        If g_bDebug Then Log("LibGetLibraryCount called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetLibraryCount called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
         Return Nothing
     End Function
 
     Public Function LibGetLibraryCountbyEntryType(EntryType As HomeSeerAPI.eLib_Media_Type) As Integer Implements HomeSeerAPI.IMediaAPI.LibGetLibraryCountbyEntryType
-        If g_bDebug Then Log("LibGetLibraryCountbyEntryType called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetLibraryCountbyEntryType called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
         Return Nothing
     End Function
 
     Public Function LibGetLibraryCountbyLibType(Lib_Type As UShort) As Integer Implements HomeSeerAPI.IMediaAPI.LibGetLibraryCountbyLibType
-        If g_bDebug Then Log("LibGetLibraryCountbyLibType called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetLibraryCountbyLibType called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
         Return Nothing
     End Function
 
     Public Function LibGetLibraryCountbyType(Lib_Type As UShort, EntryType As HomeSeerAPI.eLib_Media_Type) As Integer Implements HomeSeerAPI.IMediaAPI.LibGetLibraryCountbyType
-        If g_bDebug Then Log("LibGetLibraryCountbyType called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetLibraryCountbyType called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
         Return Nothing
     End Function
 
     Public Function LibGetLibraryRange(Start As Integer, Count As Integer) As HomeSeerAPI.Lib_Entry() Implements HomeSeerAPI.IMediaAPI.LibGetLibraryRange
-        If g_bDebug Then Log("LibGetLibraryRange called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetLibraryRange called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
         Return Nothing
     End Function
 
     Public Function LibGetLibraryRangebyEntryType(Start As Integer, Count As Integer, EntryType As HomeSeerAPI.eLib_Media_Type) As HomeSeerAPI.Lib_Entry() Implements HomeSeerAPI.IMediaAPI.LibGetLibraryRangebyEntryType
-        If g_bDebug Then Log("LibGetLibraryRangebyEntryType called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetLibraryRangebyEntryType called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
         Return Nothing
     End Function
 
     Public Function LibGetLibraryRangebyLibType(Start As Integer, Count As Integer, LibType As UShort) As HomeSeerAPI.Lib_Entry() Implements HomeSeerAPI.IMediaAPI.LibGetLibraryRangebyLibType
-        If g_bDebug Then Log("LibGetLibraryRangebyLibType called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetLibraryRangebyLibType called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
         Return Nothing
     End Function
 
     Public Function LibGetLibraryRangebyType(Start As Integer, Count As Integer, LibType As UShort, EntryType As HomeSeerAPI.eLib_Media_Type) As HomeSeerAPI.Lib_Entry() Implements HomeSeerAPI.IMediaAPI.LibGetLibraryRangebyType
-        If g_bDebug Then Log("LibGetLibraryRangebyType called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetLibraryRangebyType called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
         Return Nothing
     End Function
 
     Public Function LibGetLibraryTypes() As HomeSeerAPI.Lib_Type() Implements HomeSeerAPI.IMediaAPI.LibGetLibraryTypes
-        If g_bDebug Then Log("LibGetLibraryTypes called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetLibraryTypes called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorOrange)
         Return Nothing
     End Function
 
     Public Function LibGetPlaylists(Optional Lib_Type As UShort = 0) As HomeSeerAPI.Playlist_Entry() Implements HomeSeerAPI.IMediaAPI.LibGetPlaylists
-        If g_bDebug Then Log("LibGetPlaylists called for Zone - " & ZoneName & " with Lib_Type = " & Lib_Type.ToString, LogType.LOG_TYPE_INFO, LogColorOrange)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetPlaylists called for Zone - " & ZoneName & " with Lib_Type = " & Lib_Type.ToString, LogType.LOG_TYPE_INFO, LogColorOrange)
         If ZoneIsLinked Then
             Dim LinkedZone As HSPI
             Try
                 LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                 Return LinkedZone.LibGetPlaylists(Lib_Type)
             Catch ex As Exception
-                If g_bDebug Then Log("LibGetPlaylists called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetPlaylists called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Return Nothing
         End If
@@ -3633,28 +3575,29 @@ Partial Public Class HSPI
             ReDim ReturnList(UBound(Playlists))
             Dim Index As Integer = 0
             For Each Playlist As String In Playlists
-                Dim EntryKey As New HomeSeerAPI.Playlist_Entry
-                EntryKey.Length = 2
-                EntryKey.Lib_Type = MyLibraryTypes.LibraryDB
-                EntryKey.Playlist_Key = Index + 1
-                EntryKey.Playlist_Name = Playlist
+                Dim EntryKey As New HomeSeerAPI.Playlist_Entry With {
+                    .Length = 2,
+                    .Lib_Type = MyLibraryTypes.LibraryDB,
+                    .Playlist_Key = Index + 1,
+                    .Playlist_Name = Playlist
+                }
                 ReturnList(Index) = EntryKey
                 Index = Index + 1
             Next
-            If g_bDebug Then Log("LibGetPlaylists called for Zone - " & ZoneName & " and returned = " & Index.ToString & " entries", LogType.LOG_TYPE_INFO, LogColorOrange)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetPlaylists called for Zone - " & ZoneName & " and returned = " & Index.ToString & " entries", LogType.LOG_TYPE_INFO, LogColorOrange)
         End If
         Return ReturnList
     End Function
 
     Public Function LibGetPlaylistTracks(Playlist As HomeSeerAPI.Playlist_Entry) As HomeSeerAPI.Lib_Entry() Implements HomeSeerAPI.IMediaAPI.LibGetPlaylistTracks
-        If g_bDebug Then Log("LibGetPlaylistTracks called for Zone - " & ZoneName & " with Playlist = " & Playlist.Playlist_Name, LogType.LOG_TYPE_INFO, LogColorOrange)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetPlaylistTracks called for Zone - " & ZoneName & " with Playlist = " & Playlist.Playlist_Name, LogType.LOG_TYPE_INFO, LogColorOrange)
         If ZoneIsLinked Then
             Dim LinkedZone As HSPI
             Try
                 LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                 Return LinkedZone.LibGetPlaylistTracks(Playlist)
             Catch ex As Exception
-                If g_bDebug Then Log("LibGetPlaylistTracks called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetPlaylistTracks called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Return Nothing
         End If
@@ -3664,18 +3607,20 @@ Partial Public Class HSPI
             ReDim ReturnList(UBound(PlaylistsTracks))
             Dim Index As Integer = 0
             For Each PlaylistsTrack As String In PlaylistsTracks
-                Dim LibEntry As New HomeSeerAPI.Lib_Entry
-                LibEntry.Album = "album_" & Index.ToString
-                LibEntry.Artist = "artist_" & Index.ToString
-                LibEntry.Cover_Back_path = NoArtPath
-                LibEntry.Cover_path = NoArtPath
-                LibEntry.Genre = "genre_" & Index.ToString
-                Dim LibEntryKey As New HomeSeerAPI.Lib_Entry_Key
-                LibEntryKey.iKey = Index + 1
-                LibEntryKey.Library = MyLibraryTypes.LibraryQueue ' changed from 0
-                LibEntryKey.sKey = ""  'Index.ToString
-                LibEntryKey.WhichKey = eKey_Type.eEither
-                LibEntryKey.Title = PlaylistsTrack
+                Dim LibEntry As New HomeSeerAPI.Lib_Entry With {
+                    .Album = "album_" & Index.ToString,
+                    .Artist = "artist_" & Index.ToString,
+                    .Cover_Back_path = NoArtPath,
+                    .Cover_path = NoArtPath,
+                    .Genre = "genre_" & Index.ToString
+                }
+                Dim LibEntryKey As New HomeSeerAPI.Lib_Entry_Key With {
+                    .iKey = Index + 1,
+                    .Library = MyLibraryTypes.LibraryQueue, ' changed from 0
+                    .sKey = "",  'Index.ToString
+                    .WhichKey = eKey_Type.eEither,
+                    .Title = PlaylistsTrack
+                }
                 LibEntry.Key = LibEntryKey
                 LibEntry.Kind = ""
                 LibEntry.LengthSeconds = 0
@@ -3688,7 +3633,7 @@ Partial Public Class HSPI
                 ReturnList(Index) = LibEntry
                 Index = Index + 1
             Next
-            If g_bDebug Then Log("LibGetPlaylists called for Zone - " & ZoneName & " and returned = " & Index.ToString & " entries", LogType.LOG_TYPE_INFO, LogColorOrange)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetPlaylists called for Zone - " & ZoneName & " and returned = " & Index.ToString & " entries", LogType.LOG_TYPE_INFO, LogColorOrange)
         End If
         Return ReturnList
     End Function
@@ -3700,34 +3645,35 @@ Partial Public Class HSPI
                 LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                 Return LinkedZone.LibGetTracks(artist, album, genre, Lib_Type)
             Catch ex As Exception
-                If g_bDebug Then Log("LibGetTracks called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetTracks called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Return Nothing
         End If
-        If g_bDebug Then Log("LibGetTracks called for Zone - " & ZoneName & " with Artist = " & artist & ", Album = " & album & ", Genre = " & genre & ", Lib_type = " & Lib_Type.ToString, LogType.LOG_TYPE_INFO, LogColorOrange)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetTracks called for Zone - " & ZoneName & " with Artist = " & artist & ", Album = " & album & ", Genre = " & genre & ", Lib_type = " & Lib_Type.ToString, LogType.LOG_TYPE_INFO, LogColorOrange)
         Dim ReturnList As HomeSeerAPI.Lib_Entry_Key() = Nothing
         Dim Tracks As String() = DBGetTracks(artist, album, genre)
         If Tracks IsNot Nothing Then
             ReDim ReturnList(UBound(Tracks))
             Dim Index As Integer = 0
             For Each Track As String In Tracks
-                Dim EntryKey As New HomeSeerAPI.Lib_Entry_Key
-                EntryKey.iKey = Index + 1
-                EntryKey.Library = MyLibraryTypes.LibraryDB
-                EntryKey.Title = Track
-                EntryKey.sKey = (Index + 1).ToString
-                EntryKey.WhichKey = eKey_Type.eString
+                Dim EntryKey As New HomeSeerAPI.Lib_Entry_Key With {
+                    .iKey = Index + 1,
+                    .Library = MyLibraryTypes.LibraryDB,
+                    .Title = Track,
+                    .sKey = (Index + 1).ToString,
+                    .WhichKey = eKey_Type.eString
+                }
                 ReturnList(Index) = EntryKey
                 Index = Index + 1
             Next
-            If g_bDebug Then Log("LibGetTracks called for Zone - " & ZoneName & " and returned = " & Index.ToString & " entries", LogType.LOG_TYPE_INFO, LogColorNavy)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibGetTracks called for Zone - " & ZoneName & " and returned = " & Index.ToString & " entries", LogType.LOG_TYPE_INFO, LogColorNavy)
         End If
         Return ReturnList
     End Function
 
     Public ReadOnly Property LibLoading As Boolean Implements HomeSeerAPI.IMediaAPI.LibLoading
         Get
-            If g_bDebug Then Log("LibLoading called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LibLoading called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
             Return False
         End Get
     End Property
@@ -3739,64 +3685,64 @@ Partial Public Class HSPI
                 LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                 LinkedZone.Play(Key)
             Catch ex As Exception
-                If g_bDebug Then Log("Play called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Play called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
         Dim InfoString As String = TranslateLibEntryKey(Key)
-        If g_bDebug Then Log("Play called for Zone - " & ZoneName & " and Key = " & InfoString, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Play called for Zone - " & ZoneName & " and Key = " & InfoString, LogType.LOG_TYPE_INFO, LogColorNavy)
         SonosPlay()
     End Sub
 
     Public Sub PlayGenre(GenreName As String, Lib_Type As UShort, EntryType As HomeSeerAPI.eLib_Media_Type) Implements HomeSeerAPI.IMediaAPI.PlayGenre
-        If g_bDebug Then Log("PlayGenre called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayGenre called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
     End Sub
 
     Public Sub PlayGenreAt(GenreName As String, Lib_Type As UShort, EntryType As HomeSeerAPI.eLib_Media_Type, Start_Track As HomeSeerAPI.Lib_Entry_Key) Implements HomeSeerAPI.IMediaAPI.PlayGenreAt
-        If g_bDebug Then Log("PlayGenreAt called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayGenreAt called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
     End Sub
 
     Public Function Playlist_Add(Playlist As HomeSeerAPI.Playlist_Entry) As Boolean Implements HomeSeerAPI.IMediaAPI.Playlist_Add
-        If g_bDebug Then Log("Playlist_Add called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Playlist_Add called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
         Return True
     End Function
 
     Public Function Playlist_Add_Track(Playlist As HomeSeerAPI.Playlist_Entry, TrackKey As HomeSeerAPI.Lib_Entry_Key) As Boolean Implements HomeSeerAPI.IMediaAPI.Playlist_Add_Track
-        If g_bDebug Then Log("Playlist_Add_Track called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Playlist_Add_Track called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
         Return True
     End Function
 
     Public Function Playlist_Add_Tracks(Playlist As HomeSeerAPI.Playlist_Entry, TrackKeys() As HomeSeerAPI.Lib_Entry_Key) As Boolean Implements HomeSeerAPI.IMediaAPI.Playlist_Add_Tracks
-        If g_bDebug Then Log("Playlist_Add_Tracks called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Playlist_Add_Tracks called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
         Return True
     End Function
 
     Public Function Playlist_Add_Matched_Tracks(Playlist As HomeSeerAPI.Playlist_Entry, MatchInfo As HomeSeerAPI.Play_Match_Info) As Boolean Implements HomeSeerAPI.IMediaAPI_3.Playlist_Add_Matched_Tracks
-        If g_bDebug Then Log("Playlist_Add_Matched_Tracks called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Playlist_Add_Matched_Tracks called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
         Return True
     End Function
 
     Public Function Playlist_Delete(Playlist As HomeSeerAPI.Playlist_Entry) As Boolean Implements HomeSeerAPI.IMediaAPI.Playlist_Delete
-        If g_bDebug Then Log("Playlist_Delete called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Playlist_Delete called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
         Return True
     End Function
 
     Public Function Playlist_Delete_Track(Playlist As HomeSeerAPI.Playlist_Entry, TrackKey As HomeSeerAPI.Lib_Entry_Key) As Boolean Implements HomeSeerAPI.IMediaAPI.Playlist_Delete_Track
-        If g_bDebug Then Log("Playlist_Delete_Track called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Playlist_Delete_Track called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
         Return True
     End Function
 
     Public Function Playlist_Delete_Tracks(Playlist As HomeSeerAPI.Playlist_Entry, TrackKeys() As HomeSeerAPI.Lib_Entry_Key) As Boolean Implements HomeSeerAPI.IMediaAPI.Playlist_Delete_Tracks
-        If g_bDebug Then Log("Playlist_Delete_Tracks called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Playlist_Delete_Tracks called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
         Return True
     End Function
 
     Public Sub PlayPlaylist(Playlist As HomeSeerAPI.Playlist_Entry) Implements HomeSeerAPI.IMediaAPI.PlayPlaylist
-        If g_bDebug Then Log("PlayPlaylist called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayPlaylist called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
     End Sub
 
     Public Sub PlayPlaylistAt(Playlist As HomeSeerAPI.Playlist_Entry, Start_Key As HomeSeerAPI.Lib_Entry_Key) Implements HomeSeerAPI.IMediaAPI.PlayPlaylistAt
-        If g_bDebug Then Log("PlayPlaylistAt called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayPlaylistAt called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
     End Sub
 
     Public Sub PlayMatch(MatchInfo As HomeSeerAPI.Play_Match_Info) Implements HomeSeerAPI.IMediaAPI_2.PlayMatch
@@ -3806,7 +3752,7 @@ Partial Public Class HSPI
                 LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                 LinkedZone.PlayMatch(MatchInfo)
             Catch ex As Exception
-                If g_bDebug Then Log("PlayMatch called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayMatch called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
@@ -3855,12 +3801,12 @@ Partial Public Class HSPI
         Catch ex As Exception
             Log("Error in PlayMatch for Zone - " & ZoneName & " with Error = " & ex.ToString, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug Then Log("PlayMatch called for Zone - " & ZoneName & InfoString, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayMatch called for Zone - " & ZoneName & InfoString, LogType.LOG_TYPE_INFO, LogColorNavy)
         PlayMusic(inArtist, inAlbum, inPlaylist, inGenre, inTitle, "", "", "", "", "", False, QueueActions.qaPlayNow)
     End Sub
 
     Public Sub AdjustVolume(Amount As Integer, Optional Direction As HomeSeerAPI.eVolumeDirection = HomeSeerAPI.eVolumeDirection.Absolute) Implements HomeSeerAPI.IMediaAPI_3.AdjustVolume
-        If g_bDebug Then Log("AdjustVolume called for Zone - " & ZoneName & " Amount = " & Amount.ToString & ", Direction = " & Direction.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AdjustVolume called for Zone - " & ZoneName & " Amount = " & Amount.ToString & ", Direction = " & Direction.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
         Select Case Direction
             Case eVolumeDirection.Absolute
                 PlayerVolume = Amount
@@ -3880,11 +3826,11 @@ Partial Public Class HSPI
                 LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                 LinkedZone.Halt()
             Catch ex As Exception
-                If g_bDebug Then Log("Halt called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Halt called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
-        If g_bDebug Then Log("Halt called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Halt called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
         StopPlay()
     End Sub
 
@@ -3895,11 +3841,11 @@ Partial Public Class HSPI
                 LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                 LinkedZone.Mute(Mode)
             Catch ex As Exception
-                If g_bDebug Then Log("Mute called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Mute called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
-        If SuperDebug Or DCORMEDIAAPITrace Then Log("Mute called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlEvents Then Log("Mute called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
         Select Case Muted
             Case mute_modes.muted
                 PlayerMute = True
@@ -3916,11 +3862,11 @@ Partial Public Class HSPI
                     LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                     Return LinkedZone.Muted
                 Catch ex As Exception
-                    If g_bDebug Then Log("Muted called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Muted called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
                 Return mute_modes.not_muted
             End If
-            If SuperDebug Or DCORMEDIAAPITrace Then Log("Muted called for Zone - " & ZoneName & " Mute state = " & PlayerMute.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
+            If piDebuglevel > DebugLevel.dlEvents Then Log("Muted called for Zone - " & ZoneName & " Mute state = " & PlayerMute.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
             If PlayerMute Then
                 Return mute_modes.muted
             Else
@@ -3936,11 +3882,11 @@ Partial Public Class HSPI
                 LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                 LinkedZone.Pause()
             Catch ex As Exception
-                If g_bDebug Then Log("Pause called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Pause called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
-        If g_bDebug Then Log("Pause called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Pause called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
         SonosPause()
     End Sub
 
@@ -3952,11 +3898,11 @@ Partial Public Class HSPI
                     LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                     Return LinkedZone.PlayerPosition
                 Catch ex As Exception
-                    If g_bDebug Then Log("PlayerPosition called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PlayerPosition called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
                 Return 0
             End If
-            If SuperDebug Or DCORMEDIAAPITrace Then Log("PlayerPosition called for Zone - " & ZoneName & " and returned = " & SonosPlayerPosition, LogType.LOG_TYPE_INFO, LogColorNavy)
+            If piDebuglevel > DebugLevel.dlEvents Then Log("PlayerPosition called for Zone - " & ZoneName & " and returned = " & SonosPlayerPosition, LogType.LOG_TYPE_INFO, LogColorNavy)
             Return SonosPlayerPosition
         End Get
     End Property
@@ -3968,18 +3914,18 @@ Partial Public Class HSPI
                 LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                 LinkedZone.Repeat(Mode)
             Catch ex As Exception
-                If g_bDebug Then Log("Repeat called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Repeat called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
-        If SuperDebug Or DCORMEDIAAPITrace Then Log("Repeat called for Zone - " & ZoneName & " with Repeat = " & Mode.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlEvents Then Log("Repeat called for Zone - " & ZoneName & " with Repeat = " & Mode.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
         Select Case Mode
-            Case repeat_modes.repeat_all
-                SonosRepeat = repeat_modes.repeat_all
-            Case repeat_modes.repeat_one
-                SonosRepeat = repeat_modes.repeat_one
+            Case Repeat_modes.repeat_all
+                SonosRepeat = Repeat_modes.repeat_all
+            Case Repeat_modes.repeat_one
+                SonosRepeat = Repeat_modes.repeat_one
             Case Else
-                SonosRepeat = repeat_modes.repeat_off
+                SonosRepeat = Repeat_modes.repeat_off
         End Select
     End Sub
 
@@ -3991,31 +3937,31 @@ Partial Public Class HSPI
                     LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                     Return LinkedZone.Repeating
                 Catch ex As Exception
-                    If g_bDebug Then Log("Repeating called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Repeating called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
-                Return repeat_modes.repeat_off
+                Return Repeat_modes.repeat_off
             End If
-            If SuperDebug Or DCORMEDIAAPITrace Then Log("Repeating called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+            If piDebuglevel > DebugLevel.dlEvents Then Log("Repeating called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
             Select Case SonosRepeat
-                Case repeat_modes.repeat_all
-                    Return repeat_modes.repeat_all
-                Case repeat_modes.repeat_one
-                    Return repeat_modes.repeat_one
+                Case Repeat_modes.repeat_all
+                    Return Repeat_modes.repeat_all
+                Case Repeat_modes.repeat_one
+                    Return Repeat_modes.repeat_one
                 Case Else
-                    Return repeat_modes.repeat_off
+                    Return Repeat_modes.repeat_off
             End Select
         End Get
     End Property
 
     Public Sub SelectTrack(TrackKey As Integer, Optional PlaylistKey As Integer = -1) Implements HomeSeerAPI.IMediaAPI_3.SelectTrack
-        If g_bDebug Then Log("SelectTrack called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SelectTrack called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
         If ZoneIsLinked Then
             Dim LinkedZone As HSPI
             Try
                 LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                 LinkedZone.SelectTrack(TrackKey)
             Catch ex As Exception
-                If g_bDebug Then Log("SelectTrack called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SelectTrack called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
@@ -4029,11 +3975,11 @@ Partial Public Class HSPI
                 LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                 LinkedZone.Shuffle(Mode)
             Catch ex As Exception
-                If g_bDebug Then Log("Shuffle called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Shuffle called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
-        If SuperDebug Then Log("Shuffle called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlEvents Then Log("Shuffle called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
         Select Case Mode
             Case HomeSeerAPI.shuffle_modes.not_shuffled
                 SonosShuffle = Shuffle_modes.Ordered
@@ -4052,11 +3998,11 @@ Partial Public Class HSPI
                     LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                     Return LinkedZone.Shuffled
                 Catch ex As Exception
-                    If g_bDebug Then Log("Shuffled called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Shuffled called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
                 Return HomeSeerAPI.shuffle_modes.not_shuffled
             End If
-            If SuperDebug Or DCORMEDIAAPITrace Then Log("Shuffled called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+            If piDebuglevel > DebugLevel.dlEvents Then Log("Shuffled called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
             Select Case SonosShuffle
                 Case Shuffle_modes.Ordered
                     Return HomeSeerAPI.shuffle_modes.not_shuffled
@@ -4069,14 +4015,14 @@ Partial Public Class HSPI
     End Property
 
     Public Sub SkipToTrack(TrackName As String) Implements HomeSeerAPI.IMediaAPI_3.SkipToTrack
-        If g_bDebug Then Log("SkipToTrack called for Zone - " & ZoneName & " with Trackname = " & TrackName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SkipToTrack called for Zone - " & ZoneName & " with Trackname = " & TrackName, LogType.LOG_TYPE_INFO, LogColorNavy)
         If ZoneIsLinked Then
             Dim LinkedZone As HSPI
             Try
                 LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                 LinkedZone.SkipToTrack(TrackName)
             Catch ex As Exception
-                If g_bDebug Then Log("SkipToTrack called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SkipToTrack called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
@@ -4090,11 +4036,11 @@ Partial Public Class HSPI
                 LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                 LinkedZone.SkipTracks(SkipValue)
             Catch ex As Exception
-                If g_bDebug Then Log("SkipTracks called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SkipTracks called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Exit Sub
         End If
-        If g_bDebug Then Log("SkipTracks called for Zone - " & ZoneName & " with SkipValue = " & SkipValue.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SkipTracks called for Zone - " & ZoneName & " with SkipValue = " & SkipValue.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
     End Sub
 
     Public ReadOnly Property State As HomeSeerAPI.player_state_values Implements HomeSeerAPI.IMediaAPI_3.State
@@ -4105,21 +4051,21 @@ Partial Public Class HSPI
                     LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                     Return LinkedZone.State
                 Catch ex As Exception
-                    'If g_bDebug Then Log("State called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("State called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
                 Return HomeSeerAPI.player_state_values.stopped
             End If
-            If SuperDebug Or DCORMEDIAAPITrace Then Log("State called for Zone - " & ZoneName & " and State = " & PlayerState.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
+            If piDebuglevel > DebugLevel.dlEvents Then Log("State called for Zone - " & ZoneName & " and State = " & PlayerState.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
             Select Case PlayerState()
-                Case player_state_values.Playing
+                Case Player_state_values.Playing
                     Return HomeSeerAPI.player_state_values.playing
-                Case player_state_values.Paused
+                Case Player_state_values.Paused
                     Return HomeSeerAPI.player_state_values.paused
-                Case player_state_values.Stopped
+                Case Player_state_values.Stopped
                     Return HomeSeerAPI.player_state_values.stopped
-                Case player_state_values.Forwarding
+                Case Player_state_values.Forwarding
                     Return HomeSeerAPI.player_state_values.forwarding
-                Case player_state_values.Rewinding
+                Case Player_state_values.Rewinding
                     Return HomeSeerAPI.player_state_values.rewinding
                 Case Else
                     Return HomeSeerAPI.player_state_values.stopped
@@ -4129,7 +4075,7 @@ Partial Public Class HSPI
 
     Public ReadOnly Property Volume As Integer Implements HomeSeerAPI.IMediaAPI_3.Volume
         Get ' Returns the current volume setting of the player from 0 to 100.
-            'If SuperDebug  Or DCORMEDIAAPITrace Then Log("Get Volume called for Zone - " & ZoneName & " returning value = " & MyCurrentMasterVolumeLevel.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
+            'If piDebuglevel > DebugLevel.dlEvents Then Log("Get Volume called for Zone - " & ZoneName & " returning value = " & MyCurrentMasterVolumeLevel.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
             Volume = MyCurrentMasterVolumeLevel
         End Get
     End Property
@@ -4141,11 +4087,11 @@ Partial Public Class HSPI
                 LinkedZone = MyHSPIControllerRef.GetAPIByUDN(LinkedZoneSource.ToString)
                 Return LinkedZone.GetMatch(QData)
             Catch ex As Exception
-                If g_bDebug Then Log("GetMatch called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetMatch called for Zone - " & ZoneName & " which was linked to " & LinkedZoneSource.ToString & " but ended in Error: " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Return Nothing
         End If
-        If g_bDebug Then Log("GetMatch called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetMatch called for Zone - " & ZoneName, LogType.LOG_TYPE_INFO, LogColorNavy)
 
         Try
             If QData.QueryData IsNot Nothing Then
@@ -4158,7 +4104,7 @@ Partial Public Class HSPI
                                 Dim DataIndex As Integer = 0
                                 For Each DElemenent As String In inQueryData.Data
                                     responsestring = " Data" & Index.ToString & "_" & DataIndex.ToString & " = " & DElemenent
-                                    If g_bDebug Then Log("GetMatch called for Zone - " & ZoneName & " with QueryData = " & responsestring & ", Datatype = " & inQueryData.DataType.ToString & ", isRange = " & inQueryData.IsRange.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetMatch called for Zone - " & ZoneName & " with QueryData = " & responsestring & ", Datatype = " & inQueryData.DataType.ToString & ", isRange = " & inQueryData.IsRange.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
                                     DataIndex += 1
                                 Next
                             End If
@@ -4171,7 +4117,7 @@ Partial Public Class HSPI
                 If QData.ResponseData.Length > 0 Then
                     Dim Index As Integer = 0
                     For Each inResponseData As HomeSeerAPI.eQRDataType In QData.ResponseData
-                        If g_bDebug Then Log("GetMatch called for Zone - " & ZoneName & " with ResponseData_" & Index.ToString & " = " & inResponseData.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetMatch called for Zone - " & ZoneName & " with ResponseData_" & Index.ToString & " = " & inResponseData.ToString, LogType.LOG_TYPE_INFO, LogColorNavy)
                         Index += 1
                     Next
                 End If
@@ -4181,10 +4127,11 @@ Partial Public Class HSPI
         End Try
         Try
             Dim Response As New HomeSeerAPI.Response_Object
-            Dim ResponseStr As New HomeSeerAPI.Response_Data
-            ResponseStr.AdditionalInfo = Nothing
-            ResponseStr.Key = 1
-            ResponseStr.Title = ""
+            Dim ResponseStr As New HomeSeerAPI.Response_Data With {
+                .AdditionalInfo = Nothing,
+                .Key = 1,
+                .Title = ""
+            }
             Response.Data(0) = ResponseStr
             Response.DataTypes(0) = eQRDataType.Albums
             Return Response
@@ -4234,7 +4181,7 @@ Public Class LastMusic
     Public WasPlaying As Boolean
 End Class
 
-Public Class track_desc
+Public Class Track_desc
     Public name As String
     Public artist As String
     Public album As String

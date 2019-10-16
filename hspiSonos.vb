@@ -10,6 +10,24 @@ Imports System.Net.NetworkInformation
 Imports System.Threading
 Imports System.Globalization
 
+'
+' Declare Global Variables
+'
+Module SonosV3SpecificGlobalDefinitions
+    Public hs As HomeSeerAPI.IHSApplication
+    Public callback As HomeSeerAPI.IAppCallbackAPI
+
+    Public WithEvents MyZonePlayer As HSPI
+    Public IFACE_NAME As String = "Sonos"                   ' This is the plugin's name
+    Public tIFACE_NAME As String = "Sonos"
+    Public sIFACE_NAME As String = "Sonos" '"SONOSCONTROLLER"
+    Public ShortIfaceName As String = "Sonos"
+    Public MyINIFile As String = tIFACE_NAME & ".ini"    ' Configuration File
+    Public Const ConfigPage = "SonosConfig"
+    Public Const PlayerControlPage = "PlayerControl"
+    Public Const UPnPViewPage As String = "SonosViewer"
+End Module
+
 
 Public Class HSPI
     Inherits ScsService
@@ -77,89 +95,6 @@ Public Class HSPI
     Const TriggersPageName As String = "Events"
     Const ActionsPageName As String = "Events"
 
-    Const DCORMEDIAAPITrace As Boolean = False
-
-    <Serializable()> _
-    Public Structure DBRecord
-        Public Id As String
-        Public Title As String
-        Public ParentID As String
-        Public ItemClass As String
-        Public ClassType As UPnPClassType
-        Public IconURL As String
-        Public AlbumName As String
-        Public ArtistName As String
-        Public Genre As String
-    End Structure
-
-    Public Enum UPnPClassType
-        ctUnknown = 0
-        ctMusic = 1
-        ctVideo = 2
-        ctPictures = 3
-    End Enum
-
-    <Serializable()>
-    Private Structure PlayerRecord
-        Public UDN As String
-        Public ZoneName As String
-        Public ModelNbr As String
-        Public pDevice As MyUPnPDevice
-        Public IPAddress As String
-        Public PlayerIcon As String
-        Public IconURL As String
-    End Structure
-
-    Public Enum part
-        player_control = 4 '2
-        ZonePlayerName = 2 '3
-        volume_set = 6 '4
-        shuffle_set = 10 '5
-        repeat_set = 12 '6
-        genre = 3 '7
-        artist = 5 '8
-        album = 7 '9
-        playlist = 9 '10
-        radiostation = 15 '11
-        track = 13 '12
-        trackmatch = 11 '13
-        Mute = 8 '14
-        Loudness = 14 '15
-        Left = 16 '16
-        LineInput = 17
-        Right = 18 '17
-        TrackPosition = 19
-        AudioBook = 21 ' 18
-        PodCast = 22 '19
-        iPodDBName = 20 ' 20
-    End Enum
-
-    Private Enum ActionUI_Priority
-        playlist = 1
-        genre = 2
-        album = 3
-        artist = 4
-    End Enum
-
-    Private Enum SonosTriggerEnum
-        SonosTrackChange = 1
-        SonosPlayerStop = 2
-        SonosPlayerPaused = 3
-        SonosPlayerStartPlaying = 4
-        SonosVolumeUp = 5
-        SonosVolumeDown = 6
-        SonosPlayerDocked = 7
-        SonosPlayerUndocked = 8
-        SonosPlayerLineinConnected = 9
-        SonosPlayerLineinDisconnected = 10
-        SonosPlayerAlarmStart = 11
-        SonosPlayerConfigChange = 12
-        SonosPlayerTVConnected = 9
-        SonosPlayerTVDisconnected = 10
-        SonosAnnouncementStart = 11
-        SonosAnnouncementStop = 12
-    End Enum
-
 
 
 #Region "Common Interface"
@@ -170,13 +105,13 @@ Public Class HSPI
         ' Normally we would do a search on plug-in actions, triggers, devices, etc. for the string provided, using
         '   the string as a regular expression if RegEx is True.
         '
-        If g_bDebug Then Log("Search called for instance = " & instance & " and SearchString = " & SearchString & " and RegEx = " & RegEx.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Search called for instance = " & instance & " and SearchString = " & SearchString & " and RegEx = " & RegEx.ToString, LogType.LOG_TYPE_INFO)
         Return Nothing
     End Function
     Public Function PluginFunction(ByVal proc As String, ByVal parms() As Object) As Object Implements IPlugInAPI.PluginFunction
         ' a custom call to call a specific procedure in the plugin
         Try
-            If g_bDebug Then Log("PluginFunction called for instance = " & instance & " and proc = " & proc.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PluginFunction called for instance = " & instance & " and proc = " & proc.ToString, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
 
         End Try
@@ -184,54 +119,54 @@ Public Class HSPI
             Dim ty As Type = Me.GetType
             Dim mi As MethodInfo = ty.GetMethod(proc)
             If mi Is Nothing Then
-                If g_bDebug Then Log("Method " & proc & " does not exist in this plugin.", LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Method " & proc & " does not exist in this plugin.", LogType.LOG_TYPE_ERROR)
                 Return Nothing
             End If
             Return (mi.Invoke(Me, parms))
         Catch ex As Exception
-            If g_bDebug Then Log("Error in PluginProc for instance = " & instance & " : " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in PluginProc for instance = " & instance & " : " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         Return Nothing
     End Function
     Public Function PluginPropertyGet(ByVal proc As String, parms() As Object) As Object Implements IPlugInAPI.PluginPropertyGet
         Try
-            If g_bDebug Then Log("PluginPropertyGet called for instance = " & instance & " and proc = " & proc.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PluginPropertyGet called for instance = " & instance & " and proc = " & proc.ToString, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
         End Try
         Try
             Dim ty As Type = Me.GetType
             Dim mi As PropertyInfo = ty.GetProperty(proc)
             If mi Is Nothing Then
-                If g_bDebug Then Log("Method " & proc & " does not exist in this plugin.", LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Method " & proc & " does not exist in this plugin.", LogType.LOG_TYPE_ERROR)
                 Return Nothing
             End If
             Return mi.GetValue(Me, Nothing)
         Catch ex As Exception
-            If g_bDebug Then Log("Error in PluginProc for instance = " & instance & " : " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in PluginProc for instance = " & instance & " : " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         Return Nothing
     End Function
     Public Sub PluginPropertySet(ByVal proc As String, value As Object) Implements IPlugInAPI.PluginPropertySet
         Try
-            If g_bDebug Then Log("PluginPropertySet called for instance = " & instance & " and proc = " & proc.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PluginPropertySet called for instance = " & instance & " and proc = " & proc.ToString, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
         End Try
         Try
             Dim ty As Type = Me.GetType
             Dim mi As PropertyInfo = ty.GetProperty(proc)
             If mi Is Nothing Then
-                If g_bDebug Then Log("Property " & proc & " does not exist in this plugin.", LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Property " & proc & " does not exist in this plugin.", LogType.LOG_TYPE_ERROR)
             End If
             mi.SetValue(Me, value, Nothing)
         Catch ex As Exception
-            If g_bDebug Then Log("Error in PluginPropertySet for instance = " & instance & " : " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in PluginPropertySet for instance = " & instance & " : " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Sub
 
 
     Public ReadOnly Property Name As String Implements HomeSeerAPI.IPlugInAPI.Name
         Get
-            'If g_bDebug Then Log("Name Called for Instance = " & instance & " and returned = " & tIFACE_NAME, LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Name Called for Instance = " & instance & " and returned = " & tIFACE_NAME, LogType.LOG_TYPE_INFO)
             Return sIFACE_NAME
         End Get
     End Property
@@ -242,20 +177,10 @@ Public Class HSPI
             'CapabilitiesCalledFlag = True      ' the time procedure will pick up on this flag, send the events and reset the flag
         End If
         If instance <> "" And (GetStringIniFile(UDN, DeviceInfoIndex.diSonosPlayerType.ToString, "").ToUpper <> "SUB") And GetBooleanIniFile("Options", "MediaAPIEnabled", False) Then
-            If DCORMEDIAAPITrace Then
-                If instance = "RINCON_000E58C174DE01400" Then
-                    If g_bDebug Then Log("Capabilities called for Instance = " & instance & " Capabilities are IO and Music", LogType.LOG_TYPE_INFO)
-                    Return HomeSeerAPI.Enums.eCapabilities.CA_IO + HomeSeerAPI.Enums.eCapabilities.CA_Music
-                Else
-                    If g_bDebug Then Log("Capabilities called for Instance = " & instance & " Capabilities are IO", LogType.LOG_TYPE_INFO)
-                    Return HomeSeerAPI.Enums.eCapabilities.CA_IO
-                End If
-            Else
-                If g_bDebug Then Log("Capabilities called for Instance = " & instance & " Capabilities are IO and Music", LogType.LOG_TYPE_INFO)
-                Return HomeSeerAPI.Enums.eCapabilities.CA_IO + HomeSeerAPI.Enums.eCapabilities.CA_Music
-            End If
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Capabilities called for Instance = " & instance & " Capabilities are IO and Music", LogType.LOG_TYPE_INFO)
+            Return HomeSeerAPI.Enums.eCapabilities.CA_IO + HomeSeerAPI.Enums.eCapabilities.CA_Music
         Else
-            If g_bDebug Or DCORMEDIAAPITrace Then Log("Capabilities called for Instance = " & instance & " Capabilities are IO", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Capabilities called for Instance = " & instance & " Capabilities are IO", LogType.LOG_TYPE_INFO)
             Return HomeSeerAPI.Enums.eCapabilities.CA_IO '+ HomeSeerAPI.Enums.eCapabilities.CA_Music
         End If
     End Function
@@ -282,7 +207,7 @@ Public Class HSPI
     End Function
 
     Public Function InstanceFriendlyName() As String Implements HomeSeerAPI.IPlugInAPI.InstanceFriendlyName
-        If g_bDebug Then Log("InstanceFriendlyName called for instance = " & instance, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("InstanceFriendlyName called for instance = " & instance, LogType.LOG_TYPE_INFO)
         If instance <> "" And (Not isRoot) Then
             Return ZoneName 'GetZoneByUDN(instance)
         Else
@@ -304,7 +229,7 @@ Public Class HSPI
                     Exit Function
                 End If
             Catch ex As Exception
-                If g_bDebug Then Log("Error in InitIO for Instance = " & instance & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in InitIO for Instance = " & instance & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
         End If
 
@@ -316,21 +241,21 @@ Public Class HSPI
                     CurrentAppPath.Remove(CurrentAppPath.Length - 1, 1)
                 End If
             End If
-            If g_bDebug Then Log("InitIO for Instance = " & instance & " found CurrentAppPath = " & CurrentAppPath, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("InitIO for Instance = " & instance & " found CurrentAppPath = " & CurrentAppPath, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
             Log("Error in InitIO Called for Instance = " & instance & ". Unable to determine the current directory path this plugin is running in.", LogType.LOG_TYPE_ERROR)
             CurrentAppPath = hs.GetAppPath
         End Try
         Try
             HSisRunningOnLinux = (hs.GetOSType() = eOSType.linux)
-            If g_bDebug Then Log("InitIO for Instance = " & instance & " found HS running on Linux = " & HSisRunningOnLinux.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("InitIO for Instance = " & instance & " found HS running on Linux = " & HSisRunningOnLinux.ToString, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
             Log("Error in InitIO Called for Instance = " & instance & ". Unable to determine what OS HS is running on.", LogType.LOG_TYPE_ERROR)
         End Try
         Try
             Log("InitIO Called for Instance = " & instance & " and running on OS = " & Environment.OSVersion.Platform.ToString, LogType.LOG_TYPE_INFO)
             ImRunningOnLinux = Type.GetType("Mono.Runtime") IsNot Nothing
-            If g_bDebug Then Log("InitIO for Instance = " & instance & " found this plugin running on Linux = " & ImRunningOnLinux.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("InitIO for Instance = " & instance & " found this plugin running on Linux = " & ImRunningOnLinux.ToString, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
             Log("Error in InitIO Called for Instance = " & instance & ". Unable to determine what OS this plugin is running on.", LogType.LOG_TYPE_ERROR)
         End Try
@@ -340,28 +265,32 @@ Public Class HSPI
         Catch ex As Exception
             DebugLogFileName = ""
         End Try
-        PlugInIPAddress = hs.GetIPAddress
-        PluginIPPort = hs.GetINISetting("Settings", "gWebSvrPort", "")
-        'Dim Ethernetports As Dictionary(Of String, String) = GetEthernetPorts() ' test dcor
-        Dim HSServerIPBinding = hs.GetINISetting("Settings", "gServerAddressBind", "")
-        If HSServerIPBinding <> "" Then ' added in v3.1.0.30
-            If HSServerIPBinding.ToLower <> "(no binding)" Then
-                ' HS has a non default setting
-                If HSServerIPBinding = PlugInIPAddress Then
-                    ' all cool here
-                Else
-                    If g_bDebug Then Log("Warning in InitIO for Instance = " & instance & " received (" & PlugInIPAddress & "), which is a different IP adress from it's server binding (" & HSServerIPBinding & ")", LogType.LOG_TYPE_WARNING)
+        Try ' added 9/7/2019 in v3.1.0.37 because this is causing an exception in HS4 and was already fixed in the MediaController PI
+            PlugInIPAddress = hs.GetIPAddress
+            PluginIPPort = hs.GetINISetting("Settings", "gWebSvrPort", "")
+            'Dim Ethernetports As Dictionary(Of String, String) = GetEthernetPorts() ' test dcor
+            Dim HSServerIPBinding = hs.GetINISetting("Settings", "gServerAddressBind", "")
+            If HSServerIPBinding <> "" Then ' added in v3.1.0.30
+                If HSServerIPBinding.ToLower <> "(no binding)" Then
+                    ' HS has a non default setting
+                    If HSServerIPBinding = PlugInIPAddress Then
+                        ' all cool here
+                    Else
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in InitIO for Instance = " & instance & " received (" & PlugInIPAddress & "), which is a different IP adress from it's server binding (" & HSServerIPBinding & ")", LogType.LOG_TYPE_WARNING)
+                    End If
                 End If
             End If
-        End If
-        If ServerIPAddress <> "" Then
-            ImRunningLocal = CheckLocalIPv4Address(hs.GetIPAddress)
-            If Not ImRunningLocal Then
-                PlugInIPAddress = GetLocalIPv4Address()
+            If ServerIPAddress <> "" Then
+                ImRunningLocal = CheckLocalIPv4Address(hs.GetIPAddress)
+                If Not ImRunningLocal Then
+                    PlugInIPAddress = GetLocalIPv4Address()
+                End If
             End If
-        End If
+        Catch ex As Exception
+            Log("Error in InitIO Called for Instance = " & instance & ". Unable to retrieve IP address info with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+        End Try
 
-        If g_bDebug Then Log("InitIO Called for Instance = " & instance, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("InitIO Called for Instance = " & instance, LogType.LOG_TYPE_INFO)
 
         If Not isRoot Then
             gIOEnabled = True
@@ -428,7 +357,7 @@ Public Class HSPI
                 If Not File.Exists(CurrentAppPath & "/Config/" & tIFACE_NAME & ".ini") Then
                     Try
                         WriteBooleanIniFile("Options", "Debug", False)
-                        WriteBooleanIniFile("Options", "SuperDebug", False)
+                        WriteBooleanIniFile("Options", "piDebuglevel > DebugLevel.dlEvents", False)
                     Catch ex As Exception
                         Log("Error in InitIO. Unable to create /Config/" & tIFACE_NAME & ".ini file with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
@@ -440,12 +369,12 @@ Public Class HSPI
                     Try
                         File.Delete(CurrentAppPath & "/html/" & tIFACE_NAME & "/bin/" & SQLFileName)
                     Catch ex As Exception
-                        If g_bDebug Then Log("Error in InitIO. Unable to delete " & CurrentAppPath & "/html/" & tIFACE_NAME & "/bin/" & SQLFileName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in InitIO. Unable to delete " & CurrentAppPath & "/html/" & tIFACE_NAME & "/bin/" & SQLFileName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
                     Try
                         File.Move(CurrentAppPath & "/html/" & tIFACE_NAME & "/bin/" & LinuxSQLFileName, CurrentAppPath & "/html/" & tIFACE_NAME & "/bin/" & SQLFileName)
                     Catch ex As Exception
-                        If g_bDebug Then Log("Error in InitIO. Unable to rename " & CurrentAppPath & "/html/" & tIFACE_NAME & "/bin/" & LinuxSQLFileName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in InitIO. Unable to rename " & CurrentAppPath & "/html/" & tIFACE_NAME & "/bin/" & LinuxSQLFileName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
                 End If
             Catch ex As Exception
@@ -495,7 +424,7 @@ Public Class HSPI
                 If Not File.Exists(CurrentAppPath & "\Config\" & tIFACE_NAME & ".ini") Then
                     Try
                         WriteBooleanIniFile("Options", "Debug", False)
-                        WriteBooleanIniFile("Options", "SuperDebug", False)
+                        WriteBooleanIniFile("Options", "piDebuglevel > DebugLevel.dlEvents", False)
                     Catch ex As Exception
                         Log("Error in InitIO. Unable to create \Config\" & tIFACE_NAME & ".ini file with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
@@ -507,12 +436,12 @@ Public Class HSPI
                     Try
                         File.Delete(CurrentAppPath & "\html\" & tIFACE_NAME & "\bin\" & SQLFileName)
                     Catch ex As Exception
-                        If g_bDebug Then Log("Error in InitIO. Unable to delete " & CurrentAppPath & "\html\" & tIFACE_NAME & "\bin\" & SQLFileName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in InitIO. Unable to delete " & CurrentAppPath & "\html\" & tIFACE_NAME & "\bin\" & SQLFileName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
                     Try
                         File.Move(CurrentAppPath & "\html\" & tIFACE_NAME & "\bin\" & WindowsSQLFileName, CurrentAppPath & "\html\" & tIFACE_NAME & "\bin\" & SQLFileName)
                     Catch ex As Exception
-                        If g_bDebug Then Log("Error in InitIO. Unable to rename " & CurrentAppPath & "\html\" & tIFACE_NAME & "\bin\" & WindowsSQLFileName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in InitIO. Unable to rename " & CurrentAppPath & "\html\" & tIFACE_NAME & "\bin\" & WindowsSQLFileName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
                 End If
             Catch ex As Exception
@@ -538,8 +467,9 @@ Public Class HSPI
             hs.RegisterPage(ConfigPage, sIFACE_NAME, MainInstance)
 
             ' register a configuration link that will appear on the interfaces page
-            Dim wpd As New WebPageDesc
-            wpd.link = ConfigPage
+            Dim wpd As New WebPageDesc With {
+                .link = ConfigPage
+            }
             If MainInstance <> "" Then
                 wpd.linktext = "Config for instance " & MainInstance
             Else
@@ -552,8 +482,9 @@ Public Class HSPI
             callback.RegisterConfigLink(wpd)
 
             ' register a normal page to appear in the HomeSeer menu
-            wpd = New WebPageDesc
-            wpd.link = ConfigPage
+            wpd = New WebPageDesc With {
+                .link = ConfigPage
+            }
             If MainInstance <> "" Then
                 wpd.linktext = "Config for instance " & MainInstance
             Else
@@ -571,12 +502,13 @@ Public Class HSPI
 
         Try
             ' register a normal page to appear in the HomeSeer menu
-            Dim Helpwpd As New WebPageDesc
-            Helpwpd.link = sIFACE_NAME & "/Help/Help.htm"
-            Helpwpd.linktext = "Sonos help"
-            Helpwpd.page_title = "Sonos help"
-            Helpwpd.plugInName = sIFACE_NAME
-            Helpwpd.plugInInstance = MainInstance
+            Dim Helpwpd As New WebPageDesc With {
+                .link = sIFACE_NAME & "/Help/Help.htm",
+                .linktext = "Sonos help",
+                .page_title = "Sonos help",
+                .plugInName = sIFACE_NAME,
+                .plugInInstance = MainInstance
+            }
             hs.RegisterHelpLink(Helpwpd)
         Catch ex As Exception
             Log("Error in InitIO intializing the help link with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -605,10 +537,11 @@ Public Class HSPI
         MyTimeoutActionArray(TORediscover) = TORediscoverValue
         MyTimeoutActionArray(TOCheckChange) = TOCheckChangeValue
 
-        MyControllerTimer = New Timers.Timer
-        MyControllerTimer.Interval = 1000
-        MyControllerTimer.AutoReset = True
-        MyControllerTimer.Enabled = True
+        MyControllerTimer = New Timers.Timer With {
+            .Interval = 1000,
+            .AutoReset = True,
+            .Enabled = True
+        }
 
         Try
             'MyPingTimer = New Timers.Timer
@@ -619,10 +552,11 @@ Public Class HSPI
             Log("Error in InitIO. Unable to create the Ping timer with error: " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         Try
-            MyAnnouncementTimer = New Timers.Timer
-            MyAnnouncementTimer.Interval = 500
-            MyAnnouncementTimer.AutoReset = True
-            MyAnnouncementTimer.Enabled = True
+            MyAnnouncementTimer = New Timers.Timer With {
+                .Interval = 500,
+                .AutoReset = True,
+                .Enabled = True
+            }
         Catch ex As Exception
             Log("Error in InitIO. Unable to create the Announcement timer with error: " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
@@ -708,8 +642,9 @@ Public Class HSPI
             End Try
             Try
                 ' register a normal page to appear in the HomeSeer menu
-                Dim wpd = New WebPageDesc
-                wpd.link = ConfigPage
+                Dim wpd = New WebPageDesc With {
+                    .link = ConfigPage
+                }
                 If MainInstance <> "" Then
                     wpd.linktext = "Config for instance " & MainInstance
                 Else
@@ -763,11 +698,11 @@ Public Class HSPI
     ' Web Page Generation - OLD METHODS
     ' ================================================================================================
     Public Function GenPage(ByVal link As String) As String Implements HomeSeerAPI.IPlugInAPI.GenPage
-        If g_bDebug Then Log("GenPage called for instance = " & instance & " with link = " & link.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GenPage called for instance = " & instance & " with link = " & link.ToString, LogType.LOG_TYPE_INFO)
         Return ""
     End Function
     Public Function PagePut(ByVal data As String) As String Implements HomeSeerAPI.IPlugInAPI.PagePut
-        If g_bDebug Then Log("PagePut called for instance = " & instance & "  with data = " & data.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("PagePut called for instance = " & instance & "  with data = " & data.ToString, LogType.LOG_TYPE_INFO)
         PagePut = ""
         Try
             'Return MyPlayerControlWebPage.postBackProc("", data, "", "")
@@ -783,7 +718,7 @@ Public Class HSPI
     Public Function GetPagePlugin(ByVal pageName As String, ByVal user As String, ByVal userRights As Integer, ByVal queryString As String) As String Implements HomeSeerAPI.IPlugInAPI.GetPagePlugin
         'If you have more than one web page, use pageName to route it to the proper GetPagePlugin
         GetPagePlugin = ""
-        If g_bDebug Then Log("hspi.GetPagePlugin called for instance = " & instance & " and pageName = " & pageName.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString & " and queryString = " & queryString.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("hspi.GetPagePlugin called for instance = " & instance & " and pageName = " & pageName.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString & " and queryString = " & queryString.ToString, LogType.LOG_TYPE_INFO)
         Try
             If pageName.IndexOf(ConfigPage) = 0 Then
                 Return ConfigurationPage.GetPagePlugin(pageName, user, userRights, queryString)
@@ -806,7 +741,7 @@ Public Class HSPI
 
     Public Function PostBackProc(ByVal pageName As String, ByVal data As String, ByVal user As String, ByVal userRights As Integer) As String Implements HomeSeerAPI.IPlugInAPI.PostBackProc
         'If you have more than one web page, use pageName to route it to the proper postBackProc
-        'If g_bDebug Then Log("hspi.PostBackProc called for instance = " & instance & " with pageName = " & pageName.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("hspi.PostBackProc called for instance = " & instance & " with pageName = " & pageName.ToString & " and data = " & data.ToString & " and user = " & user.ToString & " and userRights = " & userRights.ToString, LogType.LOG_TYPE_INFO)
         PostBackProc = ""
         Try
             If pageName.IndexOf(ConfigPage) = 0 Then
@@ -849,8 +784,9 @@ Public Class HSPI
 
     Public Function InterfaceStatus() As HomeSeerAPI.IPlugInAPI.strInterfaceStatus Implements HomeSeerAPI.IPlugInAPI.InterfaceStatus
         'Log("InterfaceStatus called for instance " & instance, LogType.LOG_TYPE_INFO)
-        Dim es As New IPlugInAPI.strInterfaceStatus
-        es.intStatus = IPlugInAPI.enumInterfaceStatus.OK
+        Dim es As New IPlugInAPI.strInterfaceStatus With {
+            .intStatus = IPlugInAPI.enumInterfaceStatus.OK
+        }
 
         If TrialPhase Then
             Try
@@ -881,15 +817,15 @@ Public Class HSPI
     End Function
 
     Public Function RaisesGenericCallbacks() As Boolean Implements HomeSeerAPI.IPlugInAPI.RaisesGenericCallbacks
-        If g_bDebug And gIOEnabled Then Log("RaisesGenericCallbacks called.", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("RaisesGenericCallbacks called.", LogType.LOG_TYPE_INFO)
         Return True
     End Function
 
     Public Sub SetIOMulti(colSend As System.Collections.Generic.List(Of HomeSeerAPI.CAPI.CAPIControl)) Implements HomeSeerAPI.IPlugInAPI.SetIOMulti
-        If g_bDebug Then Log("SetIOMulti called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetIOMulti called", LogType.LOG_TYPE_INFO)
         Dim CC As CAPIControl
         For Each CC In colSend
-            If g_bDebug Then Log("SetIOMulti set value: " & CC.ControlValue.ToString & "->ref:" & CC.Ref.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetIOMulti set value: " & CC.ControlValue.ToString & "->ref:" & CC.Ref.ToString, LogType.LOG_TYPE_INFO)
             SetIOEx(CC)
         Next
     End Sub
@@ -897,8 +833,8 @@ Public Class HSPI
     Public Sub SetIOEx(CC As CAPIControl)
 
         If Not CC Is Nothing Then
-            If g_bDebug Then Log("SetIOEx called for Ref = " & CC.Ref.ToString & ", Index " & CC.CCIndex.ToString & ", controlFlag = " & CC.ControlFlag.ToString & _
-                 ", ControlString" & CC.ControlString.ToString & ", ControlType = " & CC.ControlType.ToString & ", ControlValue = " & CC.ControlValue.ToString & _
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetIOEx called for Ref = " & CC.Ref.ToString & ", Index " & CC.CCIndex.ToString & ", controlFlag = " & CC.ControlFlag.ToString &
+                 ", ControlString" & CC.ControlString.ToString & ", ControlType = " & CC.ControlType.ToString & ", ControlValue = " & CC.ControlValue.ToString &
                   ", Label = " & CC.Label.ToString, LogType.LOG_TYPE_INFO)
         Else
             Exit Sub    ' Not ours.
@@ -922,10 +858,11 @@ Public Class HSPI
                 Case msBuildDB ' BuildDB
                     ' start a very small timer, so the PI can return from this SetIOMulti call and create the DB in the timer thread
                     Try
-                        MyDBCreationTimer = New Timers.Timer
-                        MyDBCreationTimer.Interval = 500
-                        MyDBCreationTimer.AutoReset = False
-                        MyDBCreationTimer.Enabled = True
+                        MyDBCreationTimer = New Timers.Timer With {
+                            .Interval = 500,
+                            .AutoReset = False,
+                            .Enabled = True
+                        }
                     Catch ex As Exception
                         Log("Error in SetIOEx. Unable to create the CreateDBtimer with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
@@ -997,14 +934,14 @@ Public Class HSPI
 #Region "Actions Interface"
 
     Public Function ActionCount() As Integer Implements HomeSeerAPI.IPlugInAPI.ActionCount
-        'If g_bDebug Then Log("ActionCount called", LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionCount called", LogType.LOG_TYPE_INFO)
         If Not isRoot Then Return 0
         Return 1
     End Function
 
     Public ReadOnly Property ActionName(ByVal ActionNumber As Integer) As String Implements HomeSeerAPI.IPlugInAPI.ActionName
         Get
-            'If g_bDebug Then Log("ActionName called with ActionNumber = " & ActionNumber.ToString, LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionName called with ActionNumber = " & ActionNumber.ToString, LogType.LOG_TYPE_INFO)
             Select Case ActionNumber
                 Case 1
                     If MainInstance <> "" Then
@@ -1019,18 +956,18 @@ Public Class HSPI
 
     Public Property ActionAdvancedMode As Boolean Implements HomeSeerAPI.IPlugInAPI.ActionAdvancedMode
         Set(ByVal value As Boolean)
-            If g_bDebug Then Log("ActionAdvancedMode Set called with Value = " & value.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionAdvancedMode Set called with Value = " & value.ToString, LogType.LOG_TYPE_INFO)
             mvarActionAdvanced = value
         End Set
         Get
-            If g_bDebug Then Log("ActionAdvancedMode Get called and returned = " & mvarActionAdvanced, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionAdvancedMode Get called and returned = " & mvarActionAdvanced, LogType.LOG_TYPE_INFO)
             Return mvarActionAdvanced
         End Get
     End Property
 
     Public Function ActionBuildUI(ByVal sUnique As String, ByVal ActInfo As IPlugInAPI.strTrigActInfo) As String Implements HomeSeerAPI.IPlugInAPI.ActionBuildUI
         Dim stb As New StringBuilder
-        If g_bDebug Then Log("ActionBuildUI called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionBuildUI called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString, LogType.LOG_TYPE_INFO)
         Dim PlayerList As New clsJQuery.jqDropList("PlayerListAction" & sUnique, ActionsPageName, True)
         Dim CommandList As New clsJQuery.jqDropList("CommandListAction" & sUnique, ActionsPageName, True)
         Dim sKey As String
@@ -1072,11 +1009,11 @@ Public Class HSPI
             End If
 
             For Each sKey In action.Keys
-                'If g_bDebug Then Log("ActionFormatUI found skey = " & sKey.ToString & " and PlayerUDN = " & action(sKey), LogType.LOG_TYPE_INFO)
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionFormatUI found skey = " & sKey.ToString & " and PlayerUDN = " & action(sKey), LogType.LOG_TYPE_INFO)
                 Select Case True
                     Case InStr(sKey, "PlayerListAction") > 0
                         PlayerIndex = action(sKey)
-                        'If g_bDebug Then Log("ActionBuildUI found PlayerIndex with Actioninfo = " & PlayerIndex.ToString, LogType.LOG_TYPE_INFO)
+                        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionBuildUI found PlayerIndex with Actioninfo = " & PlayerIndex.ToString, LogType.LOG_TYPE_INFO)
                     Case InStr(sKey, "LinkPlayerAction") > 0
                         LinkList = action(sKey)
                     Case InStr(sKey, "AudioInputPlayerAction") > 0
@@ -1113,7 +1050,7 @@ Public Class HSPI
                         InputString = action(sKey)
                 End Select
             Next
-            If g_bDebug Then Log("ActionBuildUI found Command = " & CommandIndex & " and PlayerUDN = " & PlayerIndex & " and Text = " & InputIndex & " and Linklist = " & LinkList & " and Mute = " & MuteIndex & " and Shuffle = " & ShuffleIndex & " and Repeat = " & RepeatIndex & " and Loudness = " & LoudnessIndex, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionBuildUI found Command = " & CommandIndex & " and PlayerUDN = " & PlayerIndex & " and Text = " & InputIndex & " and Linklist = " & LinkList & " and Mute = " & MuteIndex & " and Shuffle = " & ShuffleIndex & " and Repeat = " & RepeatIndex & " and Loudness = " & LoudnessIndex, LogType.LOG_TYPE_INFO)
 
             Dim InputBox As New clsJQuery.jqTextBox("InputBoxAction" & sUnique, "text", InputIndex, ActionsPageName, 40, True)
             CommandList.AddItem("Play Track", "Play Track", CommandIndex = "Play Track")
@@ -1221,7 +1158,7 @@ Public Class HSPI
                     Dim ar() As String
                     ar = MusicApi.GetArtists("", "")
                     If ar IsNot Nothing Then
-                        If g_bDebug Then Log("ActionBuildUI for Player = " & ZoneName & "  has " & (UBound(ar) + 1).ToString & " entries in the ArtistList", LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionBuildUI for Player = " & ZoneName & "  has " & (UBound(ar) + 1).ToString & " entries in the ArtistList", LogType.LOG_TYPE_INFO)
                         For Each MediaItem In ar
                             If MediaItem <> "" Then
                                 ArtistList.AddItem(MediaItem, MediaItem, MediaItem = ArtistSelection)
@@ -1236,7 +1173,7 @@ Public Class HSPI
                     AlbumList.AddItem("--Please Select--", "", False)
                     ar = MusicApi.GetAlbums(ArtistSelection, "")
                     If ar IsNot Nothing Then
-                        If g_bDebug Then Log("ActionBuildUI for Player = " & ZoneName & "  has " & (UBound(ar) + 1).ToString & " entries in the AlbumList", LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionBuildUI for Player = " & ZoneName & "  has " & (UBound(ar) + 1).ToString & " entries in the AlbumList", LogType.LOG_TYPE_INFO)
                         For Each MediaItem In ar
                             If MediaItem <> "" Then
                                 AlbumList.AddItem(MediaItem, MediaItem, MediaItem = AlbumSelection)
@@ -1251,7 +1188,7 @@ Public Class HSPI
                     TrackList.AddItem("--Please Select--", "", False)
                     ar = MusicApi.DBGetTracks(ArtistSelection, AlbumSelection, "")
                     If ar IsNot Nothing Then
-                        If g_bDebug Then Log("ActionBuildUI for Player = " & ZoneName & "  has " & (UBound(ar) + 1).ToString & " entries in the TrackList", LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionBuildUI for Player = " & ZoneName & "  has " & (UBound(ar) + 1).ToString & " entries in the TrackList", LogType.LOG_TYPE_INFO)
                         For Each MediaItem In ar
                             If MediaItem <> "" Then
                                 'TrackList.AddItem(EncodeTags(MediaItem), EncodeTags(MediaItem), MediaItem = TrackSelection)
@@ -1327,7 +1264,7 @@ Public Class HSPI
                             ar = MusicApi.LibGetPodcastlists("")
                     End Select
                     If ar IsNot Nothing Then
-                        If g_bDebug Then Log("ActionBuildUI for Player = " & ZoneName & "  has " & (UBound(ar) + 1).ToString & " entries in the AdditionalList", LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionBuildUI for Player = " & ZoneName & "  has " & (UBound(ar) + 1).ToString & " entries in the AdditionalList", LogType.LOG_TYPE_INFO)
                         For Each MediaItem In ar
                             If MediaItem <> "" Then
                                 AdditionalList.AddItem(MediaItem, MediaItem, MediaItem = AddInfoSelection)
@@ -1358,7 +1295,7 @@ Public Class HSPI
                     Dim ar() As String = Nothing
                     ar = MusicApi.LibGetObjectslist("FV:2")
                     If ar IsNot Nothing Then
-                        If g_bDebug Then Log("ActionBuildUI for Player = " & ZoneName & "  has " & (UBound(ar) + 1).ToString & " entries in the AdditionalList", LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionBuildUI for Player = " & ZoneName & "  has " & (UBound(ar) + 1).ToString & " entries in the AdditionalList", LogType.LOG_TYPE_INFO)
                         For Each MediaItem In ar
                             If MediaItem <> "" Then
                                 AdditionalList.AddItem(MediaItem, MediaItem, MediaItem = AddInfoSelection)
@@ -1424,8 +1361,9 @@ Public Class HSPI
                     stb.Append(InputBox.Build)
                     Return stb.ToString
                 Case "Set Mute"
-                    Dim MuteList As New clsJQuery.jqDropList("MuteAction" & sUnique, ActionsPageName, True)
-                    MuteList.autoPostBack = True
+                    Dim MuteList As New clsJQuery.jqDropList("MuteAction" & sUnique, ActionsPageName, True) With {
+                        .autoPostBack = True
+                    }
                     MuteList.AddItem("--Please Select--", "", False)
                     MuteList.AddItem("Mute Off", "Mute Off", MuteIndex = "Mute Off")
                     MuteList.AddItem("Mute On", "Mute On", MuteIndex = "Mute On")
@@ -1433,8 +1371,9 @@ Public Class HSPI
                     stb.Append(MuteList.Build)
                     Return stb.ToString
                 Case "Set Loudness"
-                    Dim LoudnessList As New clsJQuery.jqDropList("LoudnessAction" & sUnique, ActionsPageName, True)
-                    LoudnessList.autoPostBack = True
+                    Dim LoudnessList As New clsJQuery.jqDropList("LoudnessAction" & sUnique, ActionsPageName, True) With {
+                        .autoPostBack = True
+                    }
                     LoudnessList.AddItem("--Please Select--", "", False)
                     LoudnessList.AddItem("Loudness Off", "Loudness Off", LoudnessIndex = "Loudness Off")
                     LoudnessList.AddItem("Loudness On", "Loudness On", LoudnessIndex = "Loudness On")
@@ -1442,8 +1381,9 @@ Public Class HSPI
                     stb.Append(LoudnessList.Build)
                     Return stb.ToString
                 Case "Set Repeat"
-                    Dim RepeatList As New clsJQuery.jqDropList("RepeatAction" & sUnique, ActionsPageName, True)
-                    RepeatList.autoPostBack = True
+                    Dim RepeatList As New clsJQuery.jqDropList("RepeatAction" & sUnique, ActionsPageName, True) With {
+                        .autoPostBack = True
+                    }
                     RepeatList.AddItem("--Please Select--", "", False)
                     RepeatList.AddItem("Repeat Off", "Repeat Off", RepeatIndex = "Repeat Off")
                     RepeatList.AddItem("Repeat On", "Repeat On", RepeatIndex = "Repeat On")
@@ -1451,8 +1391,9 @@ Public Class HSPI
                     stb.Append(RepeatList.Build)
                     Return stb.ToString
                 Case "Set Shuffle"
-                    Dim ShuffleList As New clsJQuery.jqDropList("ShuffleAction" & sUnique, ActionsPageName, True)
-                    ShuffleList.autoPostBack = True
+                    Dim ShuffleList As New clsJQuery.jqDropList("ShuffleAction" & sUnique, ActionsPageName, True) With {
+                        .autoPostBack = True
+                    }
                     ShuffleList.AddItem("--Please Select--", "", False)
                     ShuffleList.AddItem("Shuffle Off", "Shuffle Off", ShuffleIndex = "Shuffle Off")
                     ShuffleList.AddItem("Shuffle On", "Shuffle On", ShuffleIndex = "Shuffle On")
@@ -1477,7 +1418,7 @@ Public Class HSPI
     End Function
 
     Public Function ActionConfigured(ByVal ActInfo As IPlugInAPI.strTrigActInfo) As Boolean Implements HomeSeerAPI.IPlugInAPI.ActionConfigured
-        If g_bDebug Then Log("ActionConfigured called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionConfigured called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString, LogType.LOG_TYPE_INFO)
         Dim Configured As Boolean = False
         Dim sKey As String
         Dim itemsConfigured As Integer = 0
@@ -1508,7 +1449,7 @@ Public Class HSPI
         Try
             DeSerializeObject(ActInfo.DataIn, action)
             For Each sKey In action.Keys
-                If g_bDebug Then Log("ActionConfigured found sKey = " & sKey.ToString & " and Value = " & action(sKey), LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionConfigured found sKey = " & sKey.ToString & " and Value = " & action(sKey), LogType.LOG_TYPE_INFO)
                 Select Case True
                     Case InStr(sKey, "PlayerListAction") > 0 AndAlso action(sKey) <> ""
                         itemsConfigured += 1
@@ -1600,11 +1541,11 @@ Public Class HSPI
                     If itemsConfigured = 3 Then Configured = True
                 Case "Set Track Position"
                     If itemsConfigured <> 3 Then
-                        If g_bDebug Then Log("ActionConfigured returns False", LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionConfigured returns False", LogType.LOG_TYPE_INFO)
                         Return False
                     End If
                     If Val(InputBox) <> 0 Then
-                        If g_bDebug Then Log("ActionConfigured returns True", LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionConfigured returns True", LogType.LOG_TYPE_INFO)
                         Return True ' valid integer
                     End If
                     Dim Index As Integer
@@ -1613,10 +1554,10 @@ Public Class HSPI
                         If InputBox(Index) = ":" Then Counter += 1
                     Next
                     If Counter <> 2 Then
-                        If g_bDebug Then Log("ActionConfigured returns False", LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionConfigured returns False", LogType.LOG_TYPE_INFO)
                         Return False
                     Else
-                        If g_bDebug Then Log("ActionConfigured returns True", LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionConfigured returns True", LogType.LOG_TYPE_INFO)
                         Return True
                     End If
                 Case "Play URL"
@@ -1626,12 +1567,12 @@ Public Class HSPI
         Catch ex As Exception
             Log("Error in ActionConfigured with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug Then Log("ActionConfigured returns " & Configured.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionConfigured returns " & Configured.ToString, LogType.LOG_TYPE_INFO)
         Return Configured
     End Function
 
     Public Function ActionReferencesDevice(ByVal ActInfo As IPlugInAPI.strTrigActInfo, ByVal dvRef As Integer) As Boolean Implements HomeSeerAPI.IPlugInAPI.ActionReferencesDevice
-        If g_bDebug Then Log("ActionReferencesDevice called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString & " and dvRef = " & dvRef.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionReferencesDevice called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString & " and dvRef = " & dvRef.ToString, LogType.LOG_TYPE_INFO)
         '
         ' Actions in the sample plug-in do not reference devices, but for demonstration purposes we will pretend they do, 
         '   and that ALL actions reference our sample devices.
@@ -1651,7 +1592,7 @@ Public Class HSPI
         'End If
         ' I suspect that I need to compare the dvRef and check whether it has anything to do with my devices. Then I could ??? check the data-in and lift which player (s) are involved and see if the dvref belongs to any of the players referenced
         'For Each sKey In action.Keys
-        'If g_bDebug Then Log("ActionReferencesDevice found skey = " & sKey.ToString & " and action = " & action(sKey), LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionReferencesDevice found skey = " & sKey.ToString & " and action = " & action(sKey), LogType.LOG_TYPE_INFO)
         'Next
 
 
@@ -1664,7 +1605,7 @@ Public Class HSPI
 
     Public Function ActionFormatUI(ByVal ActInfo As IPlugInAPI.strTrigActInfo) As String Implements HomeSeerAPI.IPlugInAPI.ActionFormatUI
         Dim stb As New StringBuilder
-        If g_bDebug Then Log("ActionFormatUI called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionFormatUI called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString, LogType.LOG_TYPE_INFO)
         If ActInfo.DataIn Is Nothing Then
             ' no info, can't be good
             Return ""
@@ -1701,17 +1642,17 @@ Public Class HSPI
 
 
             For Each sKey In action.Keys
-                'If g_bDebug Then Log("ActionFormatUI found skey = " & sKey.ToString & " and PlayerUDN = " & action(sKey), LogType.LOG_TYPE_INFO)
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionFormatUI found skey = " & sKey.ToString & " and PlayerUDN = " & action(sKey), LogType.LOG_TYPE_INFO)
                 Select Case True
                     Case InStr(sKey, "PlayerListAction") > 0
                         PlayerUDN = action(sKey)
-                        If g_bDebug Then Log("ActionFormatUI found PlayerIndex with Actioninfo = " & PlayerUDN.ToString, LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionFormatUI found PlayerIndex with Actioninfo = " & PlayerUDN.ToString, LogType.LOG_TYPE_INFO)
                         If PlayerUDN <> "" Then
                             PlayerName = GetZoneByUDN(PlayerUDN)
                         End If
                     Case InStr(sKey, "LinkPlayerAction") > 0
                         LinkList = action(sKey)
-                        If g_bDebug Then Log("ActionFormatUI found Linklist = " & LinkList.ToString, LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionFormatUI found Linklist = " & LinkList.ToString, LogType.LOG_TYPE_INFO)
                     Case InStr(sKey, "AudioInputPlayerAction") > 0
                         AudioInputPlayerUDN = action(sKey)
                         If AudioInputPlayerUDN <> "" Then
@@ -1845,12 +1786,12 @@ Public Class HSPI
         Return stb.ToString
     End Function
 
-    Public Function ActionProcessPostUI(ByVal PostData As Collections.Specialized.NameValueCollection, _
+    Public Function ActionProcessPostUI(ByVal PostData As Collections.Specialized.NameValueCollection,
                                         ByVal ActInfoIN As IPlugInAPI.strTrigActInfo) As IPlugInAPI.strMultiReturn _
                                         Implements HomeSeerAPI.IPlugInAPI.ActionProcessPostUI
 
         Dim Ret As New HomeSeerAPI.IPlugInAPI.strMultiReturn
-        If g_bDebug Then Log("ActionProcessPostUI called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionProcessPostUI called", LogType.LOG_TYPE_INFO)
 
         Ret.sResult = ""
         ' We cannot be passed info ByRef from HomeSeer, so turn right around and return this same value so that if we want, 
@@ -1875,7 +1816,7 @@ Public Class HSPI
         parts = PostData
         Try
             For Each sKey In parts.Keys
-                If g_bDebug Then Log("ActionProcessPostUI found sKey " & sKey.ToString, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionProcessPostUI found sKey " & sKey.ToString, LogType.LOG_TYPE_INFO)
                 If sKey Is Nothing Then Continue For
                 If String.IsNullOrEmpty(sKey.Trim) Then Continue For
                 Select Case True
@@ -1895,7 +1836,7 @@ Public Class HSPI
                         Action.Add(CObj(parts(sKey)), sKey)
                     Case InStr(sKey, "CommandListAction") > 0
                         Command = parts(sKey)
-                        If g_bDebug Then Log("ActionProcessPostUI found Command " & Command.ToString, LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionProcessPostUI found Command " & Command.ToString, LogType.LOG_TYPE_INFO)
                         Action.Add(CObj(parts(sKey)), sKey)
                     Case InStr(sKey, "InputBoxAction") > 0
                         Select Case Command
@@ -1903,7 +1844,7 @@ Public Class HSPI
                                 Action.Add(CObj(parts(sKey)), sKey) ' only copy for correct command                                
                         End Select
                     Case InStr(sKey, "MuteAction") > 0
-                        If g_bDebug Then Log("ActionProcessPostUI found MuteAction and command =  " & Command.ToString, LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ActionProcessPostUI found MuteAction and command =  " & Command.ToString, LogType.LOG_TYPE_INFO)
                         Select Case Command
                             Case "Set Mute"
                                 Action.Add(CObj(parts(sKey)), sKey) ' only copy for correct command                                
@@ -1968,7 +1909,7 @@ Public Class HSPI
 
     Public Function HandleAction(ByVal ActInfo As IPlugInAPI.strTrigActInfo) As Boolean Implements HomeSeerAPI.IPlugInAPI.HandleAction
         HandleAction = False
-        If g_bDebug Then Log("HandleAction called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleAction called with evRef = " & ActInfo.evRef.ToString & " and SubTANumber = " & ActInfo.SubTANumber.ToString & " and TANumber = " & ActInfo.TANumber.ToString & " and UID = " & ActInfo.UID.ToString, LogType.LOG_TYPE_INFO)
         If ActInfo.DataIn Is Nothing Then
             ' no info, can't be good
             Return False
@@ -2007,7 +1948,7 @@ Public Class HSPI
             Dim InputString As String = ""
 
             For Each sKey In action.Keys
-                If g_bDebug Then Log("HandleAction found sKey = " & sKey.ToString & " and Value = " & action(sKey), LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleAction found sKey = " & sKey.ToString & " and Value = " & action(sKey), LogType.LOG_TYPE_INFO)
                 Select Case True
                     Case InStr(sKey, "PlayerListAction") > 0
                         PlayerUDN = action(sKey)
@@ -2205,10 +2146,10 @@ Public Class HSPI
                 Case "Set Repeat"
                     Select Case RepeatIndex
                         Case "Repeat Off"
-                            MusicApi.SonosRepeat = repeat_modes.repeat_off
+                            MusicApi.SonosRepeat = Repeat_modes.repeat_off
                             Return True
                         Case "Repeat On"
-                            MusicApi.SonosRepeat = repeat_modes.repeat_all
+                            MusicApi.SonosRepeat = Repeat_modes.repeat_all
                             Return True
                     End Select
                     Return False
@@ -2261,18 +2202,18 @@ Public Class HSPI
         ' <returns>The current state of the Condition flag.</returns>
         ' <remarks></remarks>
         Get
-            'If g_bDebug Then Log("Condition.get called for instance " & instance & " with evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Condition.get called for instance " & instance & " with evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
             Return ConditionSetFlag ' added in v3.1.25 to prevent that conditions are used as triggers 
         End Get
         Set(ByVal value As Boolean)
-            If g_bDebug Then Log("Condition.set called for instance " & instance & " with Value = " & value.ToString & " and evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Condition.set called for instance " & instance & " with Value = " & value.ToString & " and evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
             ConditionSetFlag = value ' added in v3.1.25 to prevent that conditions are used as triggers
         End Set
     End Property
 
     Public ReadOnly Property HasConditions(ByVal TriggerNumber As Integer) As Boolean Implements HomeSeerAPI.IPlugInAPI.HasConditions
         Get
-            'If g_bDebug Then Log("HasConditions.get called for instance " & instance & " with TriggerNumber = " & TriggerNumber.ToString, LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HasConditions.get called for instance " & instance & " with TriggerNumber = " & TriggerNumber.ToString, LogType.LOG_TYPE_INFO)
             Select Case TriggerNumber
                 Case 1
                     Return False
@@ -2291,14 +2232,14 @@ Public Class HSPI
 
     Public ReadOnly Property HasTriggers() As Boolean Implements HomeSeerAPI.IPlugInAPI.HasTriggers
         Get
-            'If g_bDebug Then Log("HasTriggers called", LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HasTriggers called", LogType.LOG_TYPE_INFO)
             Return True
         End Get
     End Property
 
     Public ReadOnly Property TriggerCount As Integer Implements HomeSeerAPI.IPlugInAPI.TriggerCount
         Get
-            'If g_bDebug Then Log("TriggerCount called for instance " & instance & " " & " and ConditionFlag = " & ConditionSetFlag.ToString, LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerCount called for instance " & instance & " " & " and ConditionFlag = " & ConditionSetFlag.ToString, LogType.LOG_TYPE_INFO)
             If Not isRoot Then
                 Return 0
             Else
@@ -2309,7 +2250,7 @@ Public Class HSPI
 
     Public ReadOnly Property TriggerName(ByVal TriggerNumber As Integer) As String Implements HomeSeerAPI.IPlugInAPI.TriggerName
         Get
-            If g_bDebug Then Log("TriggerName called for instance " & instance & " with TriggerNumber = " & TriggerNumber & " and ConditionFlag = " & ConditionSetFlag.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerName called for instance " & instance & " with TriggerNumber = " & TriggerNumber & " and ConditionFlag = " & ConditionSetFlag.ToString, LogType.LOG_TYPE_INFO)
             If MainInstance <> "" Then
                 Select Case TriggerNumber
                     Case 1
@@ -2334,21 +2275,21 @@ Public Class HSPI
 
     Public ReadOnly Property SubTriggerCount(ByVal TriggerNumber As Integer) As Integer Implements HomeSeerAPI.IPlugInAPI.SubTriggerCount
         Get
-            'If g_bDebug Then Log("SubTriggerCount called for instance " & instance & " with TriggerNumber = " & TriggerNumber, LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SubTriggerCount called for instance " & instance & " with TriggerNumber = " & TriggerNumber, LogType.LOG_TYPE_INFO)
             Return 0
         End Get
     End Property
 
     Public ReadOnly Property SubTriggerName(ByVal TriggerNumber As Integer, ByVal SubTriggerNumber As Integer) As String Implements HomeSeerAPI.IPlugInAPI.SubTriggerName
         Get
-            'If g_bDebug Then Log("SubTriggerName called for instance " & instance & " with TriggerNumber = " & TriggerNumber, LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SubTriggerName called for instance " & instance & " with TriggerNumber = " & TriggerNumber, LogType.LOG_TYPE_INFO)
             Return ""
         End Get
     End Property
 
     Public Function TriggerBuildUI(ByVal sUnique As String, ByVal TrigInfo As HomeSeerAPI.IPlugInAPI.strTrigActInfo) As String Implements HomeSeerAPI.IPlugInAPI.TriggerBuildUI
         Dim stb As New StringBuilder
-        If g_bDebug Then Log("TriggerBuildUI called for instance " & instance & " with sUnique = " & sUnique.ToString & " and evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerBuildUI called for instance " & instance & " with sUnique = " & sUnique.ToString & " and evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
         Dim PlayerList As New clsJQuery.jqDropList("PlayerListTrigger" & sUnique, TriggersPageName, True)
         Dim CommandList As New clsJQuery.jqDropList("CommandListTrigger" & sUnique, TriggersPageName, True)
         Dim LinkgroupList As New clsJQuery.jqDropList("LinkgroupListTrigger" & sUnique, TriggersPageName, True)
@@ -2375,20 +2316,20 @@ Public Class HSPI
         Dim LinkgroupIndex As String = ""
         Dim InputIndex As String = ""
         For Each sKey In trigger.Keys
-            'If g_bDebug Then Log("TriggerBuildUI found skey = " & sKey.ToString & " and PlayerUDN = " & trigger(sKey), LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerBuildUI found skey = " & sKey.ToString & " and PlayerUDN = " & trigger(sKey), LogType.LOG_TYPE_INFO)
             Select Case True
                 Case InStr(sKey, "PlayerListTrigger") > 0
                     PlayerIndex = trigger(sKey)
-                    If g_bDebug Then Log("TriggerBuildUI found PlayerIndex with triggerinfo = " & PlayerIndex.ToString, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerBuildUI found PlayerIndex with triggerinfo = " & PlayerIndex.ToString, LogType.LOG_TYPE_INFO)
                 Case InStr(sKey, "CommandListTrigger") > 0
                     CommandIndex = trigger(sKey)
-                    If g_bDebug Then Log("TriggerBuildUI found CommandIndex with triggerinfo = " & CommandIndex.ToString, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerBuildUI found CommandIndex with triggerinfo = " & CommandIndex.ToString, LogType.LOG_TYPE_INFO)
                 Case InStr(sKey, "InputBoxTrigger") > 0
                     InputIndex = trigger(sKey)
-                    If g_bDebug Then Log("TriggerBuildUI found InputIndex with triggerinfo = " & CommandIndex.ToString, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerBuildUI found InputIndex with triggerinfo = " & InputIndex.ToString, LogType.LOG_TYPE_INFO)
                 Case InStr(sKey, "LinkgroupListTrigger") > 0
                     LinkgroupIndex = trigger(sKey)
-                    If g_bDebug Then Log("TriggerBuildUI found LinkgroupIndex with triggerinfo = " & LinkgroupIndex.ToString, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerBuildUI found LinkgroupIndex with triggerinfo = " & LinkgroupIndex.ToString, LogType.LOG_TYPE_INFO)
             End Select
         Next
         Dim InputBox As New clsJQuery.jqTextBox("InputBoxTrigger" & sUnique, "text", InputIndex, TriggersPageName, 40, True)
@@ -2484,7 +2425,7 @@ Public Class HSPI
 
     Public ReadOnly Property TriggerConfigured(ByVal TrigInfo As HomeSeerAPI.IPlugInAPI.strTrigActInfo) As Boolean Implements HomeSeerAPI.IPlugInAPI.TriggerConfigured
         Get
-            If g_bDebug Then Log("TriggerConfigured called for instance " & instance & " with evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerConfigured called for instance " & instance & " with evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
             Dim Configured As Boolean = False
             Dim sKey As String
             Dim itemsConfigured As Integer = 0
@@ -2493,7 +2434,7 @@ Public Class HSPI
             If Not (TrigInfo.DataIn Is Nothing) Then
                 DeSerializeObject(TrigInfo.DataIn, trigger)
                 For Each sKey In trigger.Keys
-                    'If g_bDebug Then Log("TriggerConfigured found sKey = " & sKey.ToString & " and Value = " & trigger(sKey), LogType.LOG_TYPE_INFO)
+                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerConfigured found sKey = " & sKey.ToString & " and Value = " & trigger(sKey), LogType.LOG_TYPE_INFO)
                     Select Case True
                         Case InStr(sKey, "PlayerListTrigger") > 0 AndAlso trigger(sKey) <> ""
                             itemsConfigured += 1
@@ -2511,7 +2452,7 @@ Public Class HSPI
                 Next
                 If itemsConfigured = itemsToConfigure Then Configured = True
             End If
-            If g_bDebug Then Log("TriggerConfigured returns " & Configured.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerConfigured returns " & Configured.ToString, LogType.LOG_TYPE_INFO)
             Return Configured
         End Get
     End Property
@@ -2521,13 +2462,13 @@ Public Class HSPI
         ' Triggers in the sample plug-in do not reference devices, but for demonstration purposes we will pretend they do, 
         '   and that ALL triggers reference our sample devices.
         '
-        If g_bDebug Then Log("TriggerReferencesDevice called for instance " & instance & " with TrigInfo = " & TrigInfo.ToString & " and dvRef = " & dvRef.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerReferencesDevice called for instance " & instance & " with TrigInfo = " & TrigInfo.ToString & " and dvRef = " & dvRef.ToString, LogType.LOG_TYPE_INFO)
         'If dvRef = -1 Then Return True
         Return False
     End Function
 
     Public Function TriggerFormatUI(ByVal TrigInfo As HomeSeerAPI.IPlugInAPI.strTrigActInfo) As String Implements HomeSeerAPI.IPlugInAPI.TriggerFormatUI
-        If g_bDebug Then Log("TriggerFormatUI called for instance " & instance & " with evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerFormatUI called for instance " & instance & " with evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
         Dim stb As New StringBuilder
         Dim sKey As String
         Dim PlayerUDN As String = ""
@@ -2543,7 +2484,7 @@ Public Class HSPI
         End If
 
         For Each sKey In trigger.Keys
-            'If g_bDebug Then Log("TriggerFormatUI found sKey = " & sKey.ToString & " and Value = " & trigger(sKey), LogType.LOG_TYPE_INFO)
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerFormatUI found sKey = " & sKey.ToString & " and Value = " & trigger(sKey), LogType.LOG_TYPE_INFO)
             Select Case True
                 Case InStr(sKey, "PlayerListTrigger") > 0
                     PlayerUDN = trigger(sKey)
@@ -2593,17 +2534,17 @@ Public Class HSPI
 
     End Function
 
-    Public Function TriggerProcessPostUI(ByVal PostData As System.Collections.Specialized.NameValueCollection, _
+    Public Function TriggerProcessPostUI(ByVal PostData As System.Collections.Specialized.NameValueCollection,
                                          ByVal TrigInfoIn As HomeSeerAPI.IPlugInAPI.strTrigActInfo) As HomeSeerAPI.IPlugInAPI.strMultiReturn Implements HomeSeerAPI.IPlugInAPI.TriggerProcessPostUI
-        If g_bDebug Then Log("TriggerProcessPostUI called for instance " & instance & " with evRef = " & TrigInfoIn.evRef.ToString & " and SubTANumber = " & TrigInfoIn.SubTANumber.ToString & " and TANumber = " & TrigInfoIn.TANumber.ToString & " and UID = " & TrigInfoIn.UID.ToString, LogType.LOG_TYPE_INFO)
-        Dim Ret As New HomeSeerAPI.IPlugInAPI.strMultiReturn
-
-        Ret.sResult = ""
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerProcessPostUI called for instance " & instance & " with evRef = " & TrigInfoIn.evRef.ToString & " and SubTANumber = " & TrigInfoIn.SubTANumber.ToString & " and TANumber = " & TrigInfoIn.TANumber.ToString & " and UID = " & TrigInfoIn.UID.ToString, LogType.LOG_TYPE_INFO)
         ' We cannot be passed info ByRef from HomeSeer, so turn right around and return this same value so that if we want, 
         '   we can exit here by returning 'Ret', all ready to go.  If in this procedure we need to change DataOut or TrigInfo,
         '   we can still do that.
-        Ret.DataOut = TrigInfoIn.DataIn
-        Ret.TrigActInfo = TrigInfoIn
+        Dim Ret As New HomeSeerAPI.IPlugInAPI.strMultiReturn With {
+            .sResult = "",
+            .DataOut = TrigInfoIn.DataIn,
+            .TrigActInfo = TrigInfoIn
+        }
 
         If PostData Is Nothing Then Return Ret
         If PostData.Count < 1 Then Return Ret
@@ -2653,7 +2594,7 @@ Public Class HSPI
         '   conditions.
         '
         TriggerTrue = False
-        If g_bDebug Then Log("TriggerTrue called for instance " & instance & " with evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerTrue called for instance " & instance & " with evRef = " & TrigInfo.evRef.ToString & " and SubTANumber = " & TrigInfo.SubTANumber.ToString & " and TANumber = " & TrigInfo.TANumber.ToString & " and UID = " & TrigInfo.UID.ToString, LogType.LOG_TYPE_INFO)
         If TrigInfo.TANumber <> 2 Then Return False ' this should not be!
         If TrigInfo.DataIn Is Nothing Then Return False ' we can't work without data
         Dim trigger As New trigger
@@ -2665,7 +2606,7 @@ Public Class HSPI
         Dim InputBox As String = ""
         Dim Linkgroup As String = ""
         For Each sKey In trigger.Keys
-            If g_bDebug Then Log("TriggerTrue found sKey = " & sKey.ToString & " and Value = " & trigger(sKey), LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("TriggerTrue found sKey = " & sKey.ToString & " and Value = " & trigger(sKey), LogType.LOG_TYPE_INFO)
             Select Case True
                 Case InStr(sKey, "PlayerListTrigger") > 0
                     PlayerUDN = trigger(sKey)
@@ -2705,21 +2646,21 @@ Public Class HSPI
         If MusicApi Is Nothing Then Return False
         Select Case Command
             Case "IsPlaying"
-                If MusicApi.PlayerState = player_state_values.Playing Then Return True Else Return False
+                If MusicApi.PlayerState = Player_state_values.Playing Then Return True Else Return False
             Case "IsPaused"
-                If MusicApi.PlayerState = player_state_values.Paused Then Return True Else Return False
+                If MusicApi.PlayerState = Player_state_values.Paused Then Return True Else Return False
             Case "IsStopped"
-                If MusicApi.PlayerState = player_state_values.Stopped Then Return True Else Return False
+                If MusicApi.PlayerState = Player_state_values.Stopped Then Return True Else Return False
             Case "IsMutted"
                 If MusicApi.PlayerMute Then Return True Else Return False
             Case "IsNotMutted"
                 If MusicApi.PlayerMute Then Return False Else Return True
             Case "IsNotPlaying"
-                If MusicApi.PlayerState <> player_state_values.Playing Then Return True Else Return False
+                If MusicApi.PlayerState <> Player_state_values.Playing Then Return True Else Return False
             Case "IsNotPaused"
-                If MusicApi.PlayerState <> player_state_values.Paused Then Return True Else Return False
+                If MusicApi.PlayerState <> Player_state_values.Paused Then Return True Else Return False
             Case "IsNotStopped"
-                If MusicApi.PlayerState <> player_state_values.Stopped Then Return True Else Return False
+                If MusicApi.PlayerState <> Player_state_values.Stopped Then Return True Else Return False
             Case "hasTrack"
                 If Trim(MusicApi.Track.ToUpper) = Trim(InputBox.ToUpper) Then Return True Else Return False
             Case "hasAlbum"
@@ -2742,7 +2683,7 @@ Public Class HSPI
 
 
     Public Sub UpdateDevices(ByVal parms As Object)
-        If g_bDebug And gIOEnabled Then Log("UpdateDevices was called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("UpdateDevices was called", LogType.LOG_TYPE_INFO)
     End Sub
 
     Private Function CreatePlayerDevice(ByVal HSRef As Integer, ByVal ZoneName As String, ZoneModel As String, NewDevice As Boolean) As Integer
@@ -2768,10 +2709,11 @@ Public Class HSPI
                 dv.Device_Type_String(hs) = SonosHSDevices.Player.ToString
                 dv.MISC_Set(hs, Enums.dvMISC.SHOW_VALUES)
                 dv.Address(hs) = "Player"
-                Dim DT As New DeviceTypeInfo
-                DT.Device_API = DeviceTypeInfo.eDeviceAPI.Media
-                DT.Device_Type = DeviceTypeInfo.eDeviceType_Media.Root
-                DT.Device_SubType_Description = "Sonos Player Master Control"
+                Dim DT As New DeviceTypeInfo With {
+                    .Device_API = DeviceTypeInfo.eDeviceAPI.Media,
+                    .Device_Type = DeviceTypeInfo.eDeviceType_Media.Root,
+                    .Device_SubType_Description = "Sonos Player Master Control"
+                }
                 dv.DeviceType_Set(hs) = DT
                 dv.Status_Support(hs) = True
                 'hs.SetDeviceString(HSRef, "_", False)
@@ -2806,153 +2748,169 @@ Public Class HSPI
                 hs.DeviceVGP_ClearAll(HSRef, True)
 
                 Dim Pair As VSPair
-                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                Pair.PairType = VSVGPairType.SingleValue
-                Pair.Value = psPlay
-                Pair.Status = "Play"
-                Pair.Render = Enums.CAPIControlType.Button
+                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                    .PairType = VSVGPairType.SingleValue,
+                    .Value = psPlay,
+                    .Status = "Play",
+                    .Render = Enums.CAPIControlType.Button
+                }
                 Pair.Render_Location.Row = 1
                 Pair.Render_Location.Column = 1
                 hs.DeviceVSP_AddPair(HSRef, Pair)
 
-                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                Pair.PairType = VSVGPairType.SingleValue
-                Pair.Value = psStop
-                Pair.Status = "Stop"
-                Pair.Render = Enums.CAPIControlType.Button
+                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                    .PairType = VSVGPairType.SingleValue,
+                    .Value = psStop,
+                    .Status = "Stop",
+                    .Render = Enums.CAPIControlType.Button
+                }
                 Pair.Render_Location.Row = 1
                 Pair.Render_Location.Column = 2
                 hs.DeviceVSP_AddPair(HSRef, Pair)
 
-                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                Pair.PairType = VSVGPairType.SingleValue
-                Pair.Value = psPause
-                Pair.Status = "Pause"
-                Pair.Render = Enums.CAPIControlType.Button
+                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                    .PairType = VSVGPairType.SingleValue,
+                    .Value = psPause,
+                    .Status = "Pause",
+                    .Render = Enums.CAPIControlType.Button
+                }
                 Pair.Render_Location.Row = 1
                 Pair.Render_Location.Column = 3
                 hs.DeviceVSP_AddPair(HSRef, Pair)
 
                 If ZoneModel.ToUpper = "WD100" Then
-                    Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                    Pair.PairType = VSVGPairType.SingleValue
-                    Pair.Value = psBuildiPodDB
-                    Pair.Status = "BuildDB"
-                    Pair.Render = Enums.CAPIControlType.Button
+                    Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                        .PairType = VSVGPairType.SingleValue,
+                        .Value = psBuildiPodDB,
+                        .Status = "BuildDB",
+                        .Render = Enums.CAPIControlType.Button
+                    }
                     Pair.Render_Location.Row = 1
                     Pair.Render_Location.Column = 4
                     hs.DeviceVSP_AddPair(HSRef, Pair)
                 End If
 
-                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                Pair.PairType = VSVGPairType.SingleValue
-                Pair.Value = psPrevious
-                Pair.Status = "Prev"
-                Pair.Render = Enums.CAPIControlType.Button
+                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                    .PairType = VSVGPairType.SingleValue,
+                    .Value = psPrevious,
+                    .Status = "Prev",
+                    .Render = Enums.CAPIControlType.Button
+                }
                 Pair.Render_Location.Row = 2
                 Pair.Render_Location.Column = 1
                 hs.DeviceVSP_AddPair(HSRef, Pair)
 
-                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                Pair.PairType = VSVGPairType.SingleValue
-                Pair.Value = psNext
-                Pair.Status = "Next"
-                Pair.Render = Enums.CAPIControlType.Button
+                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                    .PairType = VSVGPairType.SingleValue,
+                    .Value = psNext,
+                    .Status = "Next",
+                    .Render = Enums.CAPIControlType.Button
+                }
                 Pair.Render_Location.Row = 2
                 Pair.Render_Location.Column = 2
                 hs.DeviceVSP_AddPair(HSRef, Pair)
 
-                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                Pair.PairType = VSVGPairType.SingleValue
-                Pair.Value = psShuffle
-                Pair.Status = "Shuffle"
-                Pair.Render = Enums.CAPIControlType.Button
+                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                    .PairType = VSVGPairType.SingleValue,
+                    .Value = psShuffle,
+                    .Status = "Shuffle",
+                    .Render = Enums.CAPIControlType.Button
+                }
                 Pair.Render_Location.Row = 2
                 Pair.Render_Location.Column = 3
                 hs.DeviceVSP_AddPair(HSRef, Pair)
 
-                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                Pair.PairType = VSVGPairType.SingleValue
-                Pair.Value = psRepeat
-                Pair.Status = "Repeat"
-                Pair.Render = Enums.CAPIControlType.Button
+                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                    .PairType = VSVGPairType.SingleValue,
+                    .Value = psRepeat,
+                    .Status = "Repeat",
+                    .Render = Enums.CAPIControlType.Button
+                }
                 Pair.Render_Location.Row = 2
                 Pair.Render_Location.Column = 4
                 hs.DeviceVSP_AddPair(HSRef, Pair)
 
-                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                Pair.PairType = VSVGPairType.SingleValue
-                Pair.Value = psVolDown
-                Pair.Status = "Vol - Dn"
-                Pair.Render = Enums.CAPIControlType.Button
+                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                    .PairType = VSVGPairType.SingleValue,
+                    .Value = psVolDown,
+                    .Status = "Vol - Dn",
+                    .Render = Enums.CAPIControlType.Button
+                }
                 Pair.Render_Location.Row = 3
                 Pair.Render_Location.Column = 1
                 hs.DeviceVSP_AddPair(HSRef, Pair)
 
-                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                Pair.PairType = VSVGPairType.Range
-                Pair.Value = psVolSlider
-                Pair.RangeStart = 0
-                Pair.RangeEnd = 100
-                Pair.RangeStatusPrefix = "Volume "
-                Pair.RangeStatusSuffix = "%"
-                Pair.Render = Enums.CAPIControlType.ValuesRangeSlider
+                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                    .PairType = VSVGPairType.Range,
+                    .Value = psVolSlider,
+                    .RangeStart = 0,
+                    .RangeEnd = 100,
+                    .RangeStatusPrefix = "Volume ",
+                    .RangeStatusSuffix = "%",
+                    .Render = Enums.CAPIControlType.ValuesRangeSlider
+                }
                 Pair.Render_Location.Row = 3
                 Pair.Render_Location.Column = 2
                 'hs.DeviceVSP_AddPair(HSRef, Pair)  ' two sliders on same device doesn't work, neither can I set the value
 
-                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                Pair.PairType = VSVGPairType.SingleValue
-                Pair.Value = psVolUp
-                Pair.Status = "Vol - Up"
-                Pair.Render = Enums.CAPIControlType.Button
+                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                    .PairType = VSVGPairType.SingleValue,
+                    .Value = psVolUp,
+                    .Status = "Vol - Up",
+                    .Render = Enums.CAPIControlType.Button
+                }
                 Pair.Render_Location.Row = 3
                 Pair.Render_Location.Column = 2
                 hs.DeviceVSP_AddPair(HSRef, Pair)
 
-                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                Pair.PairType = VSVGPairType.SingleValue
-                Pair.Value = psMute
-                Pair.Status = "Mute"
-                Pair.Render = Enums.CAPIControlType.Button
+                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                    .PairType = VSVGPairType.SingleValue,
+                    .Value = psMute,
+                    .Status = "Mute",
+                    .Render = Enums.CAPIControlType.Button
+                }
                 Pair.Render_Location.Row = 3
                 Pair.Render_Location.Column = 3
                 hs.DeviceVSP_AddPair(HSRef, Pair)
 
-                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                Pair.PairType = VSVGPairType.SingleValue
-                Pair.Value = psBalanceLeft
-                Pair.Status = "Bal - Left"
-                Pair.Render = Enums.CAPIControlType.Button
+                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                    .PairType = VSVGPairType.SingleValue,
+                    .Value = psBalanceLeft,
+                    .Status = "Bal - Left",
+                    .Render = Enums.CAPIControlType.Button
+                }
                 Pair.Render_Location.Row = 4
                 Pair.Render_Location.Column = 1
                 hs.DeviceVSP_AddPair(HSRef, Pair)
 
-                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                Pair.PairType = VSVGPairType.Range
-                Pair.Value = psBalanceSlider
-                Pair.RangeStart = 200
-                Pair.RangeEnd = 400
-                Pair.RangeStatusPrefix = "Balance L <-> R "
-                Pair.Render = Enums.CAPIControlType.ValuesRangeSlider
+                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                    .PairType = VSVGPairType.Range,
+                    .Value = psBalanceSlider,
+                    .RangeStart = 200,
+                    .RangeEnd = 400,
+                    .RangeStatusPrefix = "Balance L <-> R ",
+                    .Render = Enums.CAPIControlType.ValuesRangeSlider
+                }
                 Pair.Render_Location.Row = 4
                 Pair.Render_Location.Column = 2
                 'hs.DeviceVSP_AddPair(HSRef, Pair) ' two sliders on same device doesn't work, neither can I set the value
 
-                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                Pair.PairType = VSVGPairType.SingleValue
-                Pair.Value = psBalanceRight
-                Pair.Status = "Bal - Right"
-                Pair.Render = Enums.CAPIControlType.Button
+                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                    .PairType = VSVGPairType.SingleValue,
+                    .Value = psBalanceRight,
+                    .Status = "Bal - Right",
+                    .Render = Enums.CAPIControlType.Button
+                }
                 Pair.Render_Location.Row = 4
                 Pair.Render_Location.Column = 2
                 hs.DeviceVSP_AddPair(HSRef, Pair)
 
-                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                Pair.PairType = VSVGPairType.SingleValue
-                Pair.Value = psLoudness
-                Pair.Status = "Loudness"
-                Pair.Render = Enums.CAPIControlType.Button
+                Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                    .PairType = VSVGPairType.SingleValue,
+                    .Value = psLoudness,
+                    .Status = "Loudness",
+                    .Render = Enums.CAPIControlType.Button
+                }
                 Pair.Render_Location.Row = 4
                 Pair.Render_Location.Column = 3
                 hs.DeviceVSP_AddPair(HSRef, Pair)
@@ -2969,7 +2927,7 @@ Public Class HSPI
         Dim Index As Integer
         Dim ZoneInfo() As PlayerRecord
         ReDim ZoneInfo(0)
-        If g_bDebug Then Log("FindZonePlayers: Attempting to locate all connected ZonePlayers. This may take up to 9 seconds.", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("FindZonePlayers: Attempting to locate all connected ZonePlayers. This may take up to 9 seconds.", LogType.LOG_TYPE_INFO)
 
         Dim MyDevicesLinkedList As MyUPnPDevices = Nothing
         MyDevicesLinkedList = MySSDPDevice.StartSSDPDiscovery("urn:schemas-upnp-org:device:ZonePlayer:1") '("upnp:rootdevice") ' MySSDPDevice.StartSSDPDiscovery("urn:schemas-upnp-org:device:ZonePlayer:1")
@@ -2977,9 +2935,11 @@ Public Class HSPI
         If MyDevicesLinkedList Is Nothing Then
             Log("No UPnPDevices found. Please ensure the network is functional and that UPnPDevices devices are attached.", LogType.LOG_TYPE_WARNING)
             'Exit Function removed in version 7. If no players are on the network when we start, the eventhandler will never be called and other devices that come in late are never discovered
+        Else    ' moved this code here to avoid error due to MyDeviceLinkedList.Count being Nothing
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("FindZonePlayers - Discovery succeeded: " & MyDevicesLinkedList.Count & " ZonePlayer(s) found.", LogType.LOG_TYPE_INFO)
         End If
 
-        If g_bDebug Then Log("FindZonePlayers - Discovery succeeded: " & MyDevicesLinkedList.Count & " ZonePlayer(s) found.", LogType.LOG_TYPE_INFO)
+        ' If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("FindZonePlayers - Discovery succeeded: " & MyDevicesLinkedList.Count & " ZonePlayer(s) found.", LogType.LOG_TYPE_INFO) moved to else case on 9/9/2019
 
         Dim DeviceCount As Integer = 0
         Try
@@ -2998,14 +2958,14 @@ Public Class HSPI
                             Device.Services.Item("urn:upnp-org:serviceId:DeviceProperties").InvokeAction("GetZoneAttributes", InArg, OutArg)
                             ZoneInfo(Index).ZoneName = OutArg(0) ' this is CurrentZoneName
                             ZoneInfo(Index).PlayerIcon = Replace(OutArg(1), "x-rincon-roomicon:", "") ' this is player icon x-rincon-roomicon:office
-                            If g_bDebug Then Log("FindZonePlayers found Zone Name = " & OutArg(0) & " and Stored in ZoneInfo at Index = " & Index.ToString & " with UDN  = " & Device.UniqueDeviceName & " Friendly Name = " & Device.FriendlyName & " and Icon = " & ZoneInfo(Index).PlayerIcon, LogType.LOG_TYPE_INFO)
+                            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("FindZonePlayers found Zone Name = " & OutArg(0) & " and Stored in ZoneInfo at Index = " & Index.ToString & " with UDN  = " & Device.UniqueDeviceName & " Friendly Name = " & Device.FriendlyName & " and Icon = " & ZoneInfo(Index).PlayerIcon, LogType.LOG_TYPE_INFO)
                         Catch ex As Exception
-                            If g_bDebug Then Log("Error in FindZonePlayers while getting ZoneAttributes with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in FindZonePlayers while getting ZoneAttributes with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                         End Try
                         ZoneInfo(Index).IPAddress = Device.IPAddress
                         Try
                             Dim IconURL As String = Device.IconURL("image/png", 200, 200, 16) 'image/png image/x-png image/tiff image/bmp image/pjpeg image/jpeg
-                            If g_bDebug Then Log("FindZonePlayers for zoneplayer = " & ZoneInfo(Index).ZoneName & " found IconURL = " & IconURL, LogType.LOG_TYPE_INFO)
+                            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("FindZonePlayers for zoneplayer = " & ZoneInfo(Index).ZoneName & " found IconURL = " & IconURL, LogType.LOG_TYPE_INFO)
                             ZoneInfo(Index).PlayerIcon = IconURL
                         Catch ex As Exception
                             Log("Error in FindZonePlayers for zoneplayer = " & ZoneInfo(Index).ZoneName & ". Could not get ICON info with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -3013,8 +2973,8 @@ Public Class HSPI
                         Index = Index + 1
                     ElseIf Mid(Device.UniqueDeviceName, 1, 11) <> "uuid:RINCON" Then
                         ' this is the UPNP service of HS itself on an XP machine responding
-                        'If g_bDebug Then Log( "FindZonePlayers found non Sonos device with UDN =  " & Device.UniqueDeviceName & " Friendly Name = " & Device.FriendlyName)
-                        If g_bDebug Then Log("FindZonePlayers found non Sonos device with UDN =  " & Device.UniqueDeviceName & " Friendly Name = " & Device.FriendlyName, LogType.LOG_TYPE_WARNING)
+                        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "FindZonePlayers found non Sonos device with UDN =  " & Device.UniqueDeviceName & " Friendly Name = " & Device.FriendlyName)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("FindZonePlayers found non Sonos device with UDN =  " & Device.UniqueDeviceName & " Friendly Name = " & Device.FriendlyName, LogType.LOG_TYPE_WARNING)
                     End If
                 Next
                 ZoneCount = Index
@@ -3022,7 +2982,7 @@ Public Class HSPI
             If ZoneCount > 0 Then FindZonePlayers = ZoneInfo
             MyDevicesLinkedList = Nothing
             ZoneInfo = Nothing
-            If g_bDebug Then Log("FindZonePlayers - Discovery succeeded: " & ZoneCount.ToString & " ZonePlayer(s) found.", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("FindZonePlayers - Discovery succeeded: " & ZoneCount.ToString & " ZonePlayer(s) found.", LogType.LOG_TYPE_INFO)
             Try
                 RemoveHandler MySSDPDevice.NewDeviceFound, AddressOf NewDeviceFound
             Catch ex As Exception
@@ -3047,7 +3007,7 @@ Public Class HSPI
     End Function
 
     Public Sub NewDeviceFound(inUDN As String)
-        If g_bDebug Then Log("NewDeviceFound called with UDN = " & inUDN, LogType.LOG_TYPE_WARNING)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("NewDeviceFound called with UDN = " & inUDN, LogType.LOG_TYPE_WARNING)
         Try
             SyncLock (MyNewDiscoveredDeviceQueue)
                 MyNewDiscoveredDeviceQueue.Enqueue(inUDN)
@@ -3061,14 +3021,14 @@ Public Class HSPI
 
     Private Sub AddNewDiscoveredDevice()
         If NewDeviceHandlerReEntryFlag Then
-            If g_bDebug Then Log("AddNewDiscoveredDevice has Re-Entry while processing Notification queue with # elements = " & MyNewDiscoveredDeviceQueue.Count.ToString, LogType.LOG_TYPE_WARNING)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddNewDiscoveredDevice has Re-Entry while processing Notification queue with # elements = " & MyNewDiscoveredDeviceQueue.Count.ToString, LogType.LOG_TYPE_WARNING)
             'MissedNewDeviceNotificationHandlerFlag = True
             If MyNewDiscoveredDeviceQueue.Count > 0 Then MyTimeoutActionArray(TOAddNewDevice) = TOAddNewDeviceValue ' rearm the timer to prevent events from getting lost added v16
             Exit Sub
         End If
         NewDeviceHandlerReEntryFlag = True
 
-        If g_bDebug Then Log("AddNewDiscoveredDevice is processing Notification queue with # elements = " & MyNewDiscoveredDeviceQueue.Count.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddNewDiscoveredDevice is processing Notification queue with # elements = " & MyNewDiscoveredDeviceQueue.Count.ToString, LogType.LOG_TYPE_INFO)
         Dim NewUDN As String = ""
         Dim NeedsToBeAdded As Boolean = False
         Try
@@ -3079,9 +3039,9 @@ Public Class HSPI
                 If NewUDN <> "" Then
                     Dim UPnPDeviceInfo As MyUPnpDeviceInfo = Nothing
                     Dim NewUPnPDevice As MyUPnPDevice = MySSDPDevice.Item("uuid:" & NewUDN, True)
-                    If g_bDebug Then Log("AddNewDiscoveredDevice dequeued UDN = " & NewUDN, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddNewDiscoveredDevice dequeued UDN = " & NewUDN, LogType.LOG_TYPE_INFO)
                     If NewUPnPDevice Is Nothing Then
-                        If g_bDebug Then Log("AddNewDiscoveredDevice dequeued UDN = " & NewUDN & " but found no UPNPDevice", LogType.LOG_TYPE_WARNING)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddNewDiscoveredDevice dequeued UDN = " & NewUDN & " but found no UPNPDevice", LogType.LOG_TYPE_WARNING)
                     Else
                         If Mid(NewUPnPDevice.UniqueDeviceName, 1, 12) = "uuid:RINCON_" Or Mid(NewUPnPDevice.UniqueDeviceName, 1, 16) = "uuid:DOCKRINCON_" Then
                             NeedsToBeAdded = True
@@ -3091,7 +3051,7 @@ Public Class HSPI
                 End If
             End While
         Catch ex As Exception
-            If g_bDebug Then Log("Error in AddNewDiscoveredDevice while processing Notification queue with # elements = " & MyNewDiscoveredDeviceQueue.Count.ToString & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in AddNewDiscoveredDevice while processing Notification queue with # elements = " & MyNewDiscoveredDeviceQueue.Count.ToString & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
         If MyNewDiscoveredDeviceQueue.Count > 0 Then MyTimeoutActionArray(TOAddNewDevice) = TOAddNewDeviceValue ' rearm the timer to prevent events from getting lost added v16
@@ -3126,14 +3086,14 @@ Public Class HSPI
                     NewUPnPDevice.Services.Item("urn:upnp-org:serviceId:DeviceProperties").InvokeAction("GetZoneAttributes", InArg, OutArg)
                     NewZoneName = OutArg(0) ' this is CurrentZoneName
                     NewPlayerIcon = Replace(OutArg(1), "x-rincon-roomicon:", "") ' this is player icon x-rincon-roomicon:office
-                    If g_bDebug Then Log("AddNewDiscoveredDevice found Zone Name = " & NewZoneName & " with UDN  = " & NewUPnPDevice.UniqueDeviceName & " Friendly Name = " & NewUPnPDevice.FriendlyName & " and Icon = " & NewPlayerIcon, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddNewDiscoveredDevice found Zone Name = " & NewZoneName & " with UDN  = " & NewUPnPDevice.UniqueDeviceName & " Friendly Name = " & NewUPnPDevice.FriendlyName & " and Icon = " & NewPlayerIcon, LogType.LOG_TYPE_INFO)
                 Catch ex As Exception
-                    If g_bDebug Then Log("Error in AddNewDiscoveredDevice while getting ZoneAttributes with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in AddNewDiscoveredDevice while getting ZoneAttributes with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
                 Dim NewIconURL As String = ""
                 Try
                     NewIconURL = NewUPnPDevice.IconURL("image/png", 200, 200, 16) 'image/png image/x-png image/tiff image/bmp image/pjpeg image/jpeg
-                    If g_bDebug Then Log("AddNewDiscoveredDevice for zoneplayer = " & NewZoneName & " found IconURL = " & NewIconURL, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddNewDiscoveredDevice for zoneplayer = " & NewZoneName & " found IconURL = " & NewIconURL, LogType.LOG_TYPE_INFO)
                 Catch ex As Exception
                     Log("Error in AddNewDiscoveredDevice for zoneplayer = " & NewZoneName & ". Could not get ICON info with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
@@ -3159,7 +3119,7 @@ Public Class HSPI
                     Catch ex As Exception
                         Log("Error in AddNewDiscoveredDevice updating ZoneInfo. UDN = " & NewUDN & " with error: " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
-                    If g_bDebug Then Log("AddNewDiscoveredDevice found Zonename = " & NewZoneName & " on line.", LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddNewDiscoveredDevice found Zonename = " & NewZoneName & " on line.", LogType.LOG_TYPE_INFO)
                 Else
                     ' this is a new zone, go create it
                     ' create this new device
@@ -3187,7 +3147,7 @@ Public Class HSPI
                         WriteStringIniFile(NewUDN, DeviceInfoIndex.diIPPort.ToString, NewUPnPDevice.IPPort)
                         WriteStringIniFile(NewUDN, DeviceInfoIndex.diRoomIcon.ToString, NewPlayerIcon)
                         WriteStringIniFile(NewUDN, DeviceInfoIndex.diDeviceIConURL.ToString, NewIconURL)
-                        If g_bDebug Then Log("AddNewDiscoveredDevice has logged new device with ZoneName = " & NewZoneName, LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddNewDiscoveredDevice has logged new device with ZoneName = " & NewZoneName, LogType.LOG_TYPE_INFO)
                     Catch ex As Exception
                         Log("Error in AddNewDiscoveredDevice writing info to ini file for Zoneplayer = " & NewZoneName & " with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                         GC.Collect()
@@ -3212,13 +3172,13 @@ Public Class HSPI
                         Log("Error in AddNewDiscoveredDevice while adding the UPnPDevices for Zoneplayer = " & NewZoneName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
                     CreateOneSonosController(NewUDN)
-                    If g_bDebug Then Log("AddNewDiscoveredDevice successfully created a new device for Transport. Zonename = " & NewZoneName, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddNewDiscoveredDevice successfully created a new device for Transport. Zonename = " & NewZoneName, LogType.LOG_TYPE_INFO)
                 End If
             Else
-                'If g_bDebug Then Log("Error in AddNewDiscoveredDevice; empty ZoneName/UDN. ZoneName = " & NewZoneName & ". ZoneUDN = " & NewUDN, LogType.LOG_TYPE_ERROR)
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in AddNewDiscoveredDevice; empty ZoneName/UDN. ZoneName = " & NewZoneName & ". ZoneUDN = " & NewUDN, LogType.LOG_TYPE_ERROR)
             End If
         Catch ex As Exception
-            If g_bDebug Then Log("Error in AddNewDiscoveredDevice adding Player = " & NewZoneName & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in AddNewDiscoveredDevice adding Player = " & NewZoneName & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
         GC.Collect()
         'If MissedNewDeviceNotificationHandlerFlag Then MyTimeoutActionArray(TOAddNewDevice) = TOAddNewDeviceValue ' rearm the timer to prevent events from getting lost
@@ -3227,7 +3187,7 @@ Public Class HSPI
     End Sub
 
     Public Sub MultiCastDiedEvent()
-        If g_bDebug Then Log("Error. MultiCastDiedEvent received. Terminating the PI to try to restart it", LogType.LOG_TYPE_ERROR)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error. MultiCastDiedEvent received. Terminating the PI to try to restart it", LogType.LOG_TYPE_ERROR)
         'ShutdownIO() removed dcor in version .
     End Sub
 
@@ -3238,7 +3198,7 @@ Public Class HSPI
         Dim DeviceRef As Integer = -1
         SonosPlayerInfo = FindUPnPDeviceInfo(NewUDN)
         If SonosPlayerInfo Is Nothing Then
-            If g_bDebug Then Log("Error in CreateOneSonosController while retrieving the SonosPlayerInfo for UDN = uuid:" & NewUDN, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in CreateOneSonosController while retrieving the SonosPlayerInfo for UDN = uuid:" & NewUDN, LogType.LOG_TYPE_ERROR)
             Exit Sub
         End If
         Try
@@ -3355,7 +3315,7 @@ Public Class HSPI
                 If ZoneModel.ToUpper = "SUB" Then
                     ZoneName = "SUB"
                 End If
-                If g_bDebug Then Log("BuildHSSonosDevices: looking for " & ZoneName & " in ZoneInfo and Refresh = " & Refresh.ToString, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("BuildHSSonosDevices: looking for " & ZoneName & " in ZoneInfo and Refresh = " & Refresh.ToString, LogType.LOG_TYPE_INFO)
                 ZoneUDN = ZoneInfo(I).UDN
                 If ZoneUDN <> "" Then
                     ' go find it in the array
@@ -3375,7 +3335,7 @@ Public Class HSPI
                         SonosPlayerInfo.UPnPDeviceAdminStateActive = True ' dcor needs fixing
                         SonosPlayerInfo.ZoneCurrentIcon = ZoneRoomIcon
                         SonosPlayerInfo.ZoneDeviceIconURL = ZoneDeviceIconURL
-                        If g_bDebug Then Log("BuildHSSonosDevices found Zone Name = " & ZoneName, LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("BuildHSSonosDevices found Zone Name = " & ZoneName, LogType.LOG_TYPE_INFO)
                     Else
                         ' this is a new zone, go create it
                         ' create this new device
@@ -3406,7 +3366,7 @@ Public Class HSPI
                             WriteStringIniFile(PlayerUDN, DeviceInfoIndex.diIPAddress.ToString, ZoneIPAddress)
                             WriteStringIniFile(PlayerUDN, DeviceInfoIndex.diRoomIcon.ToString, ZoneRoomIcon)
                             WriteStringIniFile(PlayerUDN, DeviceInfoIndex.diDeviceIConURL.ToString, ZoneDeviceIconURL)
-                            If g_bDebug Then Log("BuildHSSonosDevices has logged new device with UPnPDeviceName = " & ZoneName, LogType.LOG_TYPE_INFO)
+                            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("BuildHSSonosDevices has logged new device with UPnPDeviceName = " & ZoneName, LogType.LOG_TYPE_INFO)
                         Catch ex As Exception
                             Log("Error in DetectUPnPDevices 1 while adding the UPnPDevices with Index = " & I.ToString & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                             Exit Sub
@@ -3431,7 +3391,7 @@ Public Class HSPI
                             Log("Error in DetectUPnPDevices 2 while adding the UPnPDevices with Index = " & I.ToString & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                         End Try
 
-                        If g_bDebug Then Log("BuildHSSonosDevices: Creating new device for Transport. Zonename = " & ZoneName, LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("BuildHSSonosDevices: Creating new device for Transport. Zonename = " & ZoneName, LogType.LOG_TYPE_INFO)
                     End If
                 Else
                     Log("BuildHSSonosDevices: Error. Looking for empty ZoneName/UDN. ZoneName = " & ZoneName & ". ZoneUDN = " & ZoneUDN, LogType.LOG_TYPE_ERROR)
@@ -3445,7 +3405,7 @@ Public Class HSPI
                     ZoneInfo(I).PlayerIcon = ""
                     ZoneInfo(I).IconURL = ""
                 Catch ex As Exception
-                    If g_bDebug Then Log("Warning in BuildHSSonosDeviceswhen clearing out ZoneInfo with error = " & ex.Message, LogType.LOG_TYPE_WARNING)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in BuildHSSonosDeviceswhen clearing out ZoneInfo with error = " & ex.Message, LogType.LOG_TYPE_WARNING)
                 End Try
             Next
         Catch ex As Exception
@@ -3457,7 +3417,7 @@ Public Class HSPI
 
     Public Function CheckPlayerIsPairable(PlayerType As String) As Boolean
         CheckPlayerIsPairable = False
-        If PlayerType = "S5" Or PlayerType = "S3" Or PlayerType = "S1" Or PlayerType = "S12" Or PlayerType = "S13" Or PlayerType = "S6" Or PlayerType = "S18" Then
+        If PlayerType = "S5" Or PlayerType = "S3" Or PlayerType = "S1" Or PlayerType = "S12" Or PlayerType = "S13" Or PlayerType = "S6" Or PlayerType = "S18" Or PlayerType = "S21" Then
             ' added playertype 18 (S1 type) on 7/12/2019 in v3.1.0.31
             Return True
         End If
@@ -3492,13 +3452,13 @@ Public Class HSPI
         If Not SonosPlayer Is Nothing Then
             Try
                 If SonosPlayer.MyChannelMapSet <> "" Then
-                    If g_bDebug Then Log("ZoneNamesHaveChanged was called for " & SonosPlayerInfo.ZoneName & " but no changes were made because the zone is paired", LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ZoneNamesHaveChanged was called for " & SonosPlayerInfo.ZoneName & " but no changes were made because the zone is paired", LogType.LOG_TYPE_INFO)
                     Exit Function
                 ElseIf SonosPlayer.MyHTSatChanMapSet <> "" Then
-                    If g_bDebug Then Log("ZoneNamesHaveChanged was called for " & SonosPlayerInfo.ZoneName & " but no changes were made because the zone is paired to Playbar", LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ZoneNamesHaveChanged was called for " & SonosPlayerInfo.ZoneName & " but no changes were made because the zone is paired to Playbar", LogType.LOG_TYPE_INFO)
                     Exit Function
                 Else
-                    If g_bDebug Then Log("ZoneNamesHaveChanged was called for " & SonosPlayerInfo.ZoneName & " but no ChannelMapSet or HTSatChanMapSet info found", LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ZoneNamesHaveChanged was called for " & SonosPlayerInfo.ZoneName & " but no ChannelMapSet or HTSatChanMapSet info found", LogType.LOG_TYPE_INFO)
                 End If
             Catch ex As Exception
                 Log("Error in ZoneNamesHaveChanged for " & SonosPlayerInfo.ZoneName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -3515,7 +3475,7 @@ Public Class HSPI
 
     Private Sub CheckForDuplicateZoneNames()
 
-        If g_bDebug Then Log("CheckForDuplicateZoneNames called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CheckForDuplicateZoneNames called", LogType.LOG_TYPE_INFO)
 
         If MyHSDeviceLinkedList.Count = 0 Then
             Exit Sub
@@ -3561,7 +3521,7 @@ Public Class HSPI
 
     Private Function CheckZoneNameAlreadyExists(inZoneName As String, inZoneUDN As String) As Boolean
         CheckZoneNameAlreadyExists = False
-        'If g_bDebug Then Log("CheckZoneNameAlreadyExists called with inZoneName = " & inZoneName & " and inZoneUDN" & inZoneUDN, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CheckZoneNameAlreadyExists called with inZoneName = " & inZoneName & " and inZoneUDN" & inZoneUDN, LogType.LOG_TYPE_INFO)
         If MyHSDeviceLinkedList.Count = 0 Then
             Exit Function
         End If
@@ -3576,7 +3536,7 @@ Public Class HSPI
                 End If
             Next
         Catch ex As Exception
-            If g_bDebug Then Log("Error in CheckZoneNameAlreadyExists with inZoneName = " & inZoneName & " and inZoneUDN" & inZoneUDN & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in CheckZoneNameAlreadyExists with inZoneName = " & inZoneName & " and inZoneUDN" & inZoneUDN & " and error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
@@ -3587,15 +3547,15 @@ Public Class HSPI
             Exit Sub
         End If
 
-        If g_bDebug Then Log("CreateSonosControllers: found " & MyHSDeviceLinkedList.Count.ToString & " Device Codes", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateSonosControllers: found " & MyHSDeviceLinkedList.Count.ToString & " Device Codes", LogType.LOG_TYPE_INFO)
 
         For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
             If Not HSDevice.ZoneOnLine Then
                 ' this player was in the HS list but not detected, it may be off-line at this point
-                If g_bDebug Then Log("CreateSonosControllers: ZonePlayer in HS DB not found on-line. ZoneHSRef = " & HSDevice.ZonePlayerRef.ToString & ". ZoneUDN = " & HSDevice.ZoneUDN, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateSonosControllers: ZonePlayer in HS DB not found on-line. ZoneHSRef = " & HSDevice.ZonePlayerRef.ToString & ". ZoneUDN = " & HSDevice.ZoneUDN, LogType.LOG_TYPE_INFO)
             Else
-                'If g_bDebug Then Log( "CreateSonosControllers: ZonePlayer in HS DB found on-line. ZoneName = " & SonosPlayersInfo(Index).ZoneName & ". ZoneHSCode = " & SonosPlayersInfo(Index ).ZoneHSCode & ". Zone Device Type = " & SonosPlayersInfo(Index ).ZoneDeviceType & ". ZoneUDN = " & SonosPlayersInfo(Index ).ZoneUDN)
-                'If g_bDebug Then Log( "CreateSonosControllers: ZonePlayer in HS DB found on-line. ZoneTDC = " & SonosPlayersInfo(Index).ZoneTDC & ". ZoneCDC = " & SonosPlayersInfo(Index).ZoneCDC & ". ZoneRDC = " & SonosPlayersInfo(Index ).ZoneRDC)
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "CreateSonosControllers: ZonePlayer in HS DB found on-line. ZoneName = " & SonosPlayersInfo(Index).ZoneName & ". ZoneHSCode = " & SonosPlayersInfo(Index ).ZoneHSCode & ". Zone Device Type = " & SonosPlayersInfo(Index ).ZoneDeviceType & ". ZoneUDN = " & SonosPlayersInfo(Index ).ZoneUDN)
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "CreateSonosControllers: ZonePlayer in HS DB found on-line. ZoneTDC = " & SonosPlayersInfo(Index).ZoneTDC & ". ZoneCDC = " & SonosPlayersInfo(Index).ZoneCDC & ". ZoneRDC = " & SonosPlayersInfo(Index ).ZoneRDC)
             End If
         Next
 
@@ -3610,7 +3570,7 @@ Public Class HSPI
 
     Private Function GetNextFreeDeviceIndex() As Integer
         GetNextFreeDeviceIndex = 0
-        If g_bDebug Then Log("GetNextFreeDeviceIndex called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetNextFreeDeviceIndex called", LogType.LOG_TYPE_INFO)
         Try
             Dim SonosDevices As New System.Collections.Generic.Dictionary(Of String, String)()
             SonosDevices = GetIniSection("UPnP Devices UDN to Info") '  As Dictionary(Of String, String)
@@ -3630,7 +3590,7 @@ Public Class HSPI
                                     End If
                                 End If
                             Catch ex As Exception
-                                If g_bDebug Then Log("Error in GetNextFreeDeviceIndex with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetNextFreeDeviceIndex with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                             End Try
                         End If
                     Next
@@ -3640,9 +3600,9 @@ Public Class HSPI
                     End If
                 End While
                 GetNextFreeDeviceIndex = LowestFreeIndex
-                If g_bDebug Then Log("GetNextFreeDeviceIndex found Index = " & LowestFreeIndex.ToString, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetNextFreeDeviceIndex found Index = " & LowestFreeIndex.ToString, LogType.LOG_TYPE_INFO)
             Else
-                If g_bDebug Then Log("GetNextFreeDeviceIndex found no devices in the .ini file", LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetNextFreeDeviceIndex found no devices in the .ini file", LogType.LOG_TYPE_INFO)
             End If
         Catch ex As Exception
             Log("Error in GetNextFreeDeviceIndex1 with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -3670,7 +3630,7 @@ Public Class HSPI
             Next
             WriteStringIniFile("Sonos Zonenames", "Names", SonosZoneNames)
             WriteStringIniFile("Sonos Zonenames", "UDNs", SonosUDNs)
-            If SuperDebug Then Log("WriteSonosNamesToIniFile wrote new string " & SonosZoneNames, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlEvents Then Log("WriteSonosNamesToIniFile wrote new string " & SonosZoneNames, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
             Log("Error in WriteSonosNamesToIniFile creating SonosZoneNames with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
@@ -3679,14 +3639,14 @@ Public Class HSPI
     Private Sub DestroySonosControllers()
         Dim SonosPlayer As HSPI
         If MyHSDeviceLinkedList Is Nothing Then
-            If g_bDebug Then Log("DestroySonosControllers called for instance " & instance & " but no devices found", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DestroySonosControllers called for instance " & instance & " but no devices found", LogType.LOG_TYPE_INFO)
             Exit Sub
         End If
         If MyHSDeviceLinkedList.Count = 0 Then
-            If g_bDebug Then Log("DestroySonosControllers called for instance " & instance & " but no devices found", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DestroySonosControllers called for instance " & instance & " but no devices found", LogType.LOG_TYPE_INFO)
             Exit Sub
         End If
-        If g_bDebug Then Log("DestroySonosControllers for instance " & instance & " found " & MyHSDeviceLinkedList.Count.ToString & " Device Codes", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DestroySonosControllers for instance " & instance & " found " & MyHSDeviceLinkedList.Count.ToString & " Device Codes", LogType.LOG_TYPE_INFO)
         For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
             If Not HSDevice.ZonePlayerControllerRef Is Nothing Then
                 Try
@@ -3709,7 +3669,7 @@ Public Class HSPI
     Public Function GetSonosPlayerByHSDeviceRef(ByVal hsRef As Integer) As HSPI
         GetSonosPlayerByHSDeviceRef = Nothing
         If MyHSDeviceLinkedList.Count = 0 Then
-            If g_bDebug Then Log("Error: ZonePlayer not found in GetSonosPlayerByHSDeviceCode. hsRef = " & hsRef.ToString & ". ZoneCount = " & MyHSDeviceLinkedList.Count.ToString, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error: ZonePlayer not found in GetSonosPlayerByHSDeviceCode. hsRef = " & hsRef.ToString & ". ZoneCount = " & MyHSDeviceLinkedList.Count.ToString, LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
         For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
@@ -3719,32 +3679,32 @@ Public Class HSPI
                     Exit Function
                 End If
             Catch ex As Exception
-                If g_bDebug Then Log("Error: ZonePlayer not found in GetSonosPlayerByHSDeviceCode. hsRef = " & hsRef.ToString & " Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error: ZonePlayer not found in GetSonosPlayerByHSDeviceCode. hsRef = " & hsRef.ToString & " Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
         Next
-        If g_bDebug Then Log("Error: ZonePlayer not found in GetSonosPlayerByHSDeviceCode. hsRef = " & hsRef.ToString & ". ZoneCount = " & MyHSDeviceLinkedList.Count.ToString, LogType.LOG_TYPE_ERROR)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error: ZonePlayer not found in GetSonosPlayerByHSDeviceCode. hsRef = " & hsRef.ToString & ". ZoneCount = " & MyHSDeviceLinkedList.Count.ToString, LogType.LOG_TYPE_ERROR)
     End Function
 
     Public Function GetSonosPlayerByAPIIndex(ByVal Index As Integer) As HSPI
         GetSonosPlayerByAPIIndex = Nothing
         If MyHSDeviceLinkedList.Count = 0 Then
-            If g_bDebug Then Log("Error in GetSonosPlayerByAPIIndex. ZonePlayer not found. ZoneIndex : " & Index.ToString, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetSonosPlayerByAPIIndex. ZonePlayer not found. ZoneIndex : " & Index.ToString, LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
         For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
             If HSDevice.ZoneDeviceAPIIndex = Index Then
                 GetSonosPlayerByAPIIndex = HSDevice.ZonePlayerControllerRef
-                'If g_bDebug Then Log( "GetSonosPlayer found ZonePlayer : " & Index.Message, LogType.LOG_TYPE_ERROR)
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetSonosPlayer found ZonePlayer : " & Index.Message, LogType.LOG_TYPE_ERROR)
                 Exit Function
             End If
         Next
-        If g_bDebug Then Log("Error in GetSonosPlayer. ZonePlayer not found. ZoneIndex : " & Index.ToString, LogType.LOG_TYPE_ERROR)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetSonosPlayer. ZonePlayer not found. ZoneIndex : " & Index.ToString, LogType.LOG_TYPE_ERROR)
     End Function
 
     Public Function GetSonosPlayerByUDN(ByVal Name As String) As HSPI
         GetSonosPlayerByUDN = Nothing
         If MyHSDeviceLinkedList.Count = 0 Then
-            If g_bDebug Then Log("Error in GetSonosPlayer. ZonePlayer not found. ZoneName : " & Name, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetSonosPlayer. ZonePlayer not found. ZoneName : " & Name, LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
         If Mid(Name, 1, 5) = "uuid:" Then
@@ -3761,35 +3721,35 @@ Public Class HSPI
                     End If
                 ElseIf (HSDevice.ZoneName = Name) Or (HSDevice.ZoneUDN = Name) Then
                     GetSonosPlayerByUDN = HSDevice.ZonePlayerControllerRef
-                    'If g_bDebug Then Log( "GetSonosPlayer found ZonePlayer : " & Name)
+                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetSonosPlayer found ZonePlayer : " & Name)
                     Exit Function
                 End If
             Next
         Catch ex As Exception
         End Try
-        If g_bDebug Then Log("Error in GetSonosPlayer. ZonePlayer not found. ZoneName : " & Name, LogType.LOG_TYPE_ERROR)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetSonosPlayer. ZonePlayer not found. ZoneName : " & Name, LogType.LOG_TYPE_ERROR)
     End Function
 
     Private Function FindUPnPDeviceInfo(ByVal UDN As String) As MyUPnpDeviceInfo
         FindUPnPDeviceInfo = Nothing
         If MyHSDeviceLinkedList.Count = 0 Then
-            If SuperDebug Then Log("Warning in FindUPnPDeviceInfo for UDN = " & UDN & ". The array does not exist ", LogType.LOG_TYPE_WARNING)
+            If piDebuglevel > DebugLevel.dlEvents Then Log("Warning in FindUPnPDeviceInfo for UDN = " & UDN & ". The array does not exist ", LogType.LOG_TYPE_WARNING)
             Exit Function
         End If
         Try
             For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
                 If HSDevice.ZoneUDN = UDN Then
-                    If SuperDebug Then Log("FindUPnPDeviceInfo found UDN = " & UDN & ". Array Size = " & MyHSDeviceLinkedList.Count.ToString, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlEvents Then Log("FindUPnPDeviceInfo found UDN = " & UDN & ". Array Size = " & MyHSDeviceLinkedList.Count.ToString, LogType.LOG_TYPE_INFO)
                     FindUPnPDeviceInfo = HSDevice
                     Exit Function
                 Else
-                    If SuperDebug Then Log("FindUPnPDeviceInfo did not find UDN = " & UDN & " but found = " & HSDevice.ZoneUDN, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlEvents Then Log("FindUPnPDeviceInfo did not find UDN = " & UDN & " but found = " & HSDevice.ZoneUDN, LogType.LOG_TYPE_INFO)
                 End If
             Next
         Catch ex As Exception
             Log("Error in FindUPnPDeviceInfo Finding UPnPDevicveInfo. UDN = " & UDN & ". Array Size = " & MyHSDeviceLinkedList.Count.ToString & " with error: " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If SuperDebug Then Log("Warning in FindUPnPDeviceInfo did not find UDN = " & UDN & ". Array Size = " & MyHSDeviceLinkedList.Count.ToString, LogType.LOG_TYPE_WARNING)
+        If piDebuglevel > DebugLevel.dlEvents Then Log("Warning in FindUPnPDeviceInfo did not find UDN = " & UDN & ". Array Size = " & MyHSDeviceLinkedList.Count.ToString, LogType.LOG_TYPE_WARNING)
     End Function
 
     Private Sub BuildButtonStringRef(Ref As Integer)
@@ -3800,71 +3760,80 @@ Public Class HSPI
         Try
             Dim Pair As VSPair
 
-            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Status)
-            Pair.PairType = VSVGPairType.SingleValue
-            Pair.Value = msDisconnected
-            Pair.Status = "Disconnected"
+            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Status) With {
+                .PairType = VSVGPairType.SingleValue,
+                .Value = msDisconnected,
+                .Status = "Disconnected"
+            }
             hs.DeviceVSP_AddPair(Ref, Pair)
 
-            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Status)
-            Pair.PairType = VSVGPairType.SingleValue
-            Pair.Value = msInitializing
-            Pair.Status = "Initializing"
+            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Status) With {
+                .PairType = VSVGPairType.SingleValue,
+                .Value = msInitializing,
+                .Status = "Initializing"
+            }
             hs.DeviceVSP_AddPair(Ref, Pair)
 
-            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Status)
-            Pair.PairType = VSVGPairType.SingleValue
-            Pair.Value = msConnected
-            Pair.Status = "Connected"
+            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Status) With {
+                .PairType = VSVGPairType.SingleValue,
+                .Value = msConnected,
+                .Status = "Connected"
+            }
             hs.DeviceVSP_AddPair(Ref, Pair)
 
-            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Status)
-            Pair.PairType = VSVGPairType.SingleValue
-            Pair.Value = msBuildingDB
-            Pair.Status = "Building DB"
+            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Status) With {
+                .PairType = VSVGPairType.SingleValue,
+                .Value = msBuildingDB,
+                .Status = "Building DB"
+            }
             hs.DeviceVSP_AddPair(Ref, Pair)
 
-            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-            Pair.PairType = VSVGPairType.SingleValue
-            Pair.Value = msPlayAll
-            Pair.Status = "All Zones Play"
-            Pair.Render = Enums.CAPIControlType.Button
+            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                .PairType = VSVGPairType.SingleValue,
+                .Value = msPlayAll,
+                .Status = "All Zones Play",
+                .Render = Enums.CAPIControlType.Button
+            }
             Pair.Render_Location.Row = 1
             Pair.Render_Location.Column = 1
             hs.DeviceVSP_AddPair(Ref, Pair)
 
-            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-            Pair.PairType = VSVGPairType.SingleValue
-            Pair.Value = msPauseAll
-            Pair.Status = "All Zones Pause"
-            Pair.Render = Enums.CAPIControlType.Button
+            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                .PairType = VSVGPairType.SingleValue,
+                .Value = msPauseAll,
+                .Status = "All Zones Pause",
+                .Render = Enums.CAPIControlType.Button
+            }
             Pair.Render_Location.Row = 1
             Pair.Render_Location.Column = 2
             hs.DeviceVSP_AddPair(Ref, Pair)
 
-            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-            Pair.PairType = VSVGPairType.SingleValue
-            Pair.Value = msMuteAll
-            Pair.Status = "All Zones Mute On"
-            Pair.Render = Enums.CAPIControlType.Button
+            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                .PairType = VSVGPairType.SingleValue,
+                .Value = msMuteAll,
+                .Status = "All Zones Mute On",
+                .Render = Enums.CAPIControlType.Button
+            }
             Pair.Render_Location.Row = 2
             Pair.Render_Location.Column = 1
             hs.DeviceVSP_AddPair(Ref, Pair)
 
-            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-            Pair.PairType = VSVGPairType.SingleValue
-            Pair.Value = msUnmuteAll
-            Pair.Status = "All Zones Mute Off"
-            Pair.Render = Enums.CAPIControlType.Button
+            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                .PairType = VSVGPairType.SingleValue,
+                .Value = msUnmuteAll,
+                .Status = "All Zones Mute Off",
+                .Render = Enums.CAPIControlType.Button
+            }
             Pair.Render_Location.Row = 2
             Pair.Render_Location.Column = 2
             hs.DeviceVSP_AddPair(Ref, Pair)
 
-            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-            Pair.PairType = VSVGPairType.SingleValue
-            Pair.Value = msBuildDB
-            Pair.Status = "BuildDB"
-            Pair.Render = Enums.CAPIControlType.Button
+            Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                .PairType = VSVGPairType.SingleValue,
+                .Value = msBuildDB,
+                .Status = "BuildDB",
+                .Render = Enums.CAPIControlType.Button
+            }
             Pair.Render_Location.Row = 3
             Pair.Render_Location.Column = 1
             hs.DeviceVSP_AddPair(Ref, Pair)
@@ -3877,22 +3846,24 @@ Public Class HSPI
                 Dim RowIndex As Integer = 4
 
                 For Each LinkgroupZone In LinkgroupZones
-                    If g_bDebug Then Log("BuildButtonStringRef Found LinkgroupZoneSource = " & LinkgroupZone, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("BuildButtonStringRef Found LinkgroupZoneSource = " & LinkgroupZone, LogType.LOG_TYPE_INFO)
 
-                    Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                    Pair.PairType = VSVGPairType.SingleValue
-                    Pair.Value = ButtonValue
-                    Pair.Status = "Link-" & LinkgroupZone
-                    Pair.Render = Enums.CAPIControlType.Button
+                    Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                        .PairType = VSVGPairType.SingleValue,
+                        .Value = ButtonValue,
+                        .Status = "Link-" & LinkgroupZone,
+                        .Render = Enums.CAPIControlType.Button
+                    }
                     Pair.Render_Location.Row = RowIndex
                     Pair.Render_Location.Column = 1
                     hs.DeviceVSP_AddPair(Ref, Pair)
 
-                    Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control)
-                    Pair.PairType = VSVGPairType.SingleValue
-                    Pair.Value = ButtonValue + 1
-                    Pair.Status = "Unlink-" & LinkgroupZone
-                    Pair.Render = Enums.CAPIControlType.Button
+                    Pair = New VSPair(HomeSeerAPI.ePairStatusControl.Control) With {
+                        .PairType = VSVGPairType.SingleValue,
+                        .Value = ButtonValue + 1,
+                        .Status = "Unlink-" & LinkgroupZone,
+                        .Render = Enums.CAPIControlType.Button
+                    }
                     Pair.Render_Location.Row = RowIndex
                     Pair.Render_Location.Column = 2
                     hs.DeviceVSP_AddPair(Ref, Pair)
@@ -3907,11 +3878,9 @@ Public Class HSPI
     End Sub
 
     Public Sub ReadIniFile()
-        g_bDebug = GetBooleanIniFile("Options", "Debug", False)
-        SuperDebug = GetBooleanIniFile("Options", "SuperDebug", False)
-        UPnPDebuglevel = GetIntegerIniFile("Options", "UPnPDebugLevel", DebugLevel.dlOff)
-        If g_bDebug Then Log("ReadIniFile called", LogType.LOG_TYPE_INFO)
-        gLogErrorsOnly = GetBooleanIniFile("Options", "LogErrorOnly", False)
+        upnpDebuglevel = GetIntegerIniFile("Options", "UPnPDebugLevel", DebugLevel.dlErrorsOnly)
+        piDebuglevel = GetIntegerIniFile("Options", "PIDebugLevel", DebugLevel.dlErrorsOnly)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ReadIniFile called", LogType.LOG_TYPE_INFO)
 
         Try
             If GetStringIniFile("Options", "NoRediscovery", "") = "" Then
@@ -3934,7 +3903,7 @@ Public Class HSPI
                 MaxNbrOfUPNPObjects = cMaxNbrOfUPNP ' = maximum
                 WriteIntegerIniFile("Options", "MaxNbrofUPNPObjects", cMaxNbrOfUPNP)
             End If
-            If g_bDebug Then Log("INIT: MaxNbrOfUPNPObjects set to " & MaxNbrOfUPNPObjects, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("INIT: MaxNbrOfUPNPObjects set to " & MaxNbrOfUPNPObjects, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
             Log("Error in ReadIniFile reading MaxNbrOfUPNPObjects with error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
@@ -4269,7 +4238,7 @@ Public Class HSPI
                 Dim DeviceUDNS As New System.Collections.Generic.Dictionary(Of String, String)()
                 DeviceUDNS = GetIniSection("UPnP Devices UDN to Info")
                 If DeviceUDNS Is Nothing Then
-                    If g_bDebug Then Log("Warning in ConvertToZoneUDN. Could not convert Zone = " & Zone, LogType.LOG_TYPE_WARNING)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in ConvertToZoneUDN. Could not convert Zone = " & Zone, LogType.LOG_TYPE_WARNING)
                     Exit Function
                 End If
                 For Each DeviceUDN In DeviceUDNS
@@ -4278,7 +4247,7 @@ Public Class HSPI
                         Exit Function
                     End If
                 Next
-                If g_bDebug Then Log("Warning in ConvertToZoneUDN. Could not convert Zone = " & Zone, LogType.LOG_TYPE_WARNING)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in ConvertToZoneUDN. Could not convert Zone = " & Zone, LogType.LOG_TYPE_WARNING)
             End If
         Catch ex As Exception
         End Try
@@ -4307,7 +4276,7 @@ Public Class HSPI
         Dim SonosPlayer As HSPI
         Dim NewStart As Boolean = GetBooleanIniFile("Options", "RefreshDevices", False)
 
-        If g_bDebug Then Log("Initializing Sonos Devices", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Initializing Sonos Devices", LogType.LOG_TYPE_INFO)
         '
         ' Let's set the initial HomeSeer options for our plug-in
         '
@@ -4317,7 +4286,7 @@ Public Class HSPI
 
             MasterHSDeviceRef = GetIntegerIniFile("Settings", "MasterHSDeviceRef", -1)
             If MasterHSDeviceRef <> -1 Then ' we already have a a masterHS device
-                If g_bDebug Then Log("InitializeSonosDevices found MasterHSDeviceRef in the inifile. MasterHSDeviceRef = " & MasterHSDeviceRef.ToString, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("InitializeSonosDevices found MasterHSDeviceRef in the inifile. MasterHSDeviceRef = " & MasterHSDeviceRef.ToString, LogType.LOG_TYPE_INFO)
             Else
                 NewStart = True
                 Log("InitializeSonosDevices is deleting all existing HS devices", LogType.LOG_TYPE_WARNING)
@@ -4351,11 +4320,12 @@ Public Class HSPI
                     dv.MISC_Set(hs, Enums.dvMISC.SHOW_VALUES)
                     dv.Image(hs) = ImagesPath & "Sonos.jpg"
                     dv.ImageLarge(hs) = ImagesPath & "Sonos.jpg"
-                    If g_bDebug Then Log("InitializeSonosDevices added image  " & ImagesPath & "sonos.jpg", LogType.LOG_TYPE_INFO)
-                    Dim DT As New DeviceTypeInfo
-                    DT.Device_API = DeviceTypeInfo.eDeviceAPI.Media
-                    DT.Device_Type = DeviceTypeInfo.eDeviceType_Media.Root
-                    DT.Device_SubType_Description = "Sonos PlugIn Master Controller"
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("InitializeSonosDevices added image  " & ImagesPath & "sonos.jpg", LogType.LOG_TYPE_INFO)
+                    Dim DT As New DeviceTypeInfo With {
+                        .Device_API = DeviceTypeInfo.eDeviceAPI.Media,
+                        .Device_Type = DeviceTypeInfo.eDeviceType_Media.Root,
+                        .Device_SubType_Description = "Sonos PlugIn Master Controller"
+                    }
                     dv.DeviceType_Set(hs) = DT
                     dv.Status_Support(hs) = True
                     dv.Address(hs) = "Master"
@@ -4406,7 +4376,7 @@ Public Class HSPI
         CreateSonosControllers()
         'CheckForDuplicateZoneNames()
 
-        If g_bDebug Then Log("InitializeSonosDevices: Done Initializing Sonos Devices", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("InitializeSonosDevices: Done Initializing Sonos Devices", LogType.LOG_TYPE_INFO)
         Try
             WriteIntegerIniFile("Options", "PreviousVersion", CurrentVersion)
         Catch ex As Exception
@@ -4455,7 +4425,7 @@ Public Class HSPI
 
     Public Sub DoRediscover()
 
-        If SuperDebug Then Log("DoRediscover called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlEvents Then Log("DoRediscover called", LogType.LOG_TYPE_INFO)
 
         Try
             Dim AllDevices As MyUPnPDevices = MySSDPDevice.GetAllDevices()
@@ -4464,24 +4434,24 @@ Public Class HSPI
                     If (DLNADevice.UniqueDeviceName <> "") And (DLNADevice.Location <> "") And DLNADevice.Alive Then
                         ' check whether this devices was known to us and on-line
                         ' go find it in the array
-                        If SuperDebug Then Log("DoRediscover found UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlEvents Then Log("DoRediscover found UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_INFO)
                         Dim DLNADeviceInfo As MyUPnpDeviceInfo = Nothing
                         Dim NewUDN As String = Replace(DLNADevice.UniqueDeviceName, "uuid:", "")
                         DLNADeviceInfo = FindUPnPDeviceInfo(NewUDN)
                         If DLNADeviceInfo Is Nothing Then
                             If (DLNADevice.ModelNumber <> "ZB100" And DLNADevice.ModelNumber <> "BR200") Then
-                                If g_bDebug Then Log("DoRediscover found New UDN = " & NewUDN & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoRediscover found New UDN = " & NewUDN & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
                                 NewDeviceFound(NewUDN)
                             End If
                         Else
                             Dim SonosPlayer As HSPI = GetSonosPlayerByUDN(NewUDN)
                             If SonosPlayer Is Nothing Then
                                 ' this should really not be
-                                If g_bDebug Then Log("DoRediscover shouldn't have found UDN = " & NewUDN & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoRediscover shouldn't have found UDN = " & NewUDN & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
                                 NewDeviceFound(NewUDN)
                             Else
                                 If SonosPlayer.DeviceStatus.ToUpper <> "ONLINE" Then
-                                    If g_bDebug Then Log("DoRediscover found Known UDN = " & NewUDN & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoRediscover found Known UDN = " & NewUDN & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_WARNING)
                                     NewDeviceFound(NewUDN)
                                 End If
                             End If
@@ -4499,7 +4469,7 @@ Public Class HSPI
         SonosSettingsHaveChanged = GetBooleanIniFile("SettingsReplicationState", "SonosSettingsHaveChanged", False)
         If Not SonosSettingsHaveChanged Then Exit Sub
         If Not AutoUpdate Then Exit Sub
-        If g_bDebug Then Log("DoCheckChange Called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckChange Called", LogType.LOG_TYPE_INFO)
         Dim ImmediateUpdate As Boolean = GetBooleanIniFile("Options", "Immediate Auto Update", False)
         If AutoUpdateTime = "" And Not ImmediateUpdate Then Exit Sub
         Dim Times
@@ -4520,7 +4490,7 @@ Public Class HSPI
             'Log( Now.Minute)
             If (AutoUpdateInMinutes >= (24 * 60)) Or (NowinMinutes >= AutoUpdateInMinutes And NowinMinutes <= AutoUpdateInMinutes + Math.Round(TOCheckChangeValue * 10 / 60)) Or ImmediateUpdate Then
                 ' if a time is enterred that is bigger then 24h, immediately start creating DB
-                If g_bDebug Then Log("Update Time Reached", LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Update Time Reached", LogType.LOG_TYPE_INFO)
                 'SonosSettingsHaveChanged = False ' Hopefully this will prevent some reentry
                 WriteBooleanIniFile("SettingsReplicationState", "SonosSettingsHaveChanged", False)
                 If MusicDBIsBeingEstablished Then Exit Sub ' we have retry right here
@@ -4552,7 +4522,7 @@ Public Class HSPI
             Mid(inZoneUDN, 1, 5) = "     "
             inZoneUDN = Trim(inZoneUDN)
         End If
-        If g_bDebug Then Log("CreateWebLink called with ZoneUDN = " & inZoneUDN & " and PageName = " & PlayerControlPage & ":" & inZoneUDN, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CreateWebLink called with ZoneUDN = " & inZoneUDN & " and PageName = " & PlayerControlPage & ":" & inZoneUDN, LogType.LOG_TYPE_INFO)
         Try
             ' Private TestPlayerConfigPage As PlayerControl   ' a jquery web page
             If MainInstance <> "" Then
@@ -4577,11 +4547,11 @@ Public Class HSPI
             ' register a configuration link that will appear on the interfaces page
             Dim wpd As New WebPageDesc
             ' register a normal page to appear in the HomeSeer menu
-            wpd = New WebPageDesc
-            wpd.link = PlayerControlPage
-
-            wpd.page_title = "Sonos " & inZoneName & " Config"
-            wpd.plugInName = sIFACE_NAME
+            wpd = New WebPageDesc With {
+                .link = PlayerControlPage,
+                .page_title = "Sonos " & inZoneName & " Config",
+                .plugInName = sIFACE_NAME
+            }
             If MainInstance <> "" Then
                 wpd.linktext = "Instance " & MainInstance & " " & inZoneName
                 wpd.plugInInstance = MainInstance & "-" & inZoneUDN & "&clientid=0"
@@ -4596,16 +4566,16 @@ Public Class HSPI
     End Sub
 
     Public Sub DeleteWebLink(inZoneUDN As String, inZoneName As String)
-        If g_bDebug Then Log("DeleteWebLink called with ZoneUDN = " & inZoneUDN & ", ZoneName = " & inZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeleteWebLink called with ZoneUDN = " & inZoneUDN & ", ZoneName = " & inZoneName, LogType.LOG_TYPE_INFO)
         Try
             If MyPlayerControlWebPage IsNot Nothing Then
                 Dim wpd As New WebPageDesc
                 ' register a normal page to appear in the HomeSeer menu
-                wpd = New WebPageDesc
-                wpd.link = PlayerControlPage
-
-                wpd.page_title = "Sonos " & inZoneName & " Config"
-                wpd.plugInName = sIFACE_NAME
+                wpd = New WebPageDesc With {
+                    .link = PlayerControlPage,
+                    .page_title = "Sonos " & inZoneName & " Config",
+                    .plugInName = sIFACE_NAME
+                }
                 If MainInstance <> "" Then
                     wpd.linktext = "Instance " & MainInstance & " " & inZoneName
                     wpd.plugInInstance = MainInstance & "-" & inZoneUDN & "&clientid=0"
@@ -4621,7 +4591,7 @@ Public Class HSPI
                 'End If
                 MyPlayerControlWebPage.Dispose()
                 MyPlayerControlWebPage = Nothing
-                If g_bDebug Then Log("DeleteWebLink for ZoneUDN = " & inZoneUDN & ", ZoneName = " & inZoneName & " removed weblink successfully", LogType.LOG_TYPE_INFO) ' added v3.1.025
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeleteWebLink for ZoneUDN = " & inZoneUDN & ", ZoneName = " & inZoneName & " removed weblink successfully", LogType.LOG_TYPE_INFO) ' added v3.1.025
             End If
         Catch ex As Exception
             Log("Error in DeleteWebLink for ZoneUDN = " & inZoneUDN & ". Unable to UnRegister the link(ex) with error: " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -4633,34 +4603,34 @@ Public Class HSPI
             Mid(ZoneUDN, 1, 5) = "     "
             ZoneUDN = Trim(ZoneUDN)
         End If
-        If g_bDebug Then Log("ChangeWebLink called with ZoneUDN = " & ZoneUDN & " and NewZoneName = " & NewZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ChangeWebLink called with ZoneUDN = " & ZoneUDN & " and NewZoneName = " & NewZoneName, LogType.LOG_TYPE_INFO)
         Try
 
             ' register a configuration link that will appear on the interfaces page
             Dim wpd As New WebPageDesc
             ' register a normal page to appear in the HomeSeer menu
-            wpd = New WebPageDesc
-            wpd.link = PlayerControlPage
-
-            wpd.page_title = "Sonos " & NewZoneName & " Config"
-            wpd.plugInName = sIFACE_NAME
+            wpd = New WebPageDesc With {
+                .link = PlayerControlPage,
+                .page_title = "Sonos " & NewZoneName & " Config",
+                .plugInName = sIFACE_NAME
+            }
 
             If MainInstance <> "" Then
                 wpd.linktext = "Instance " & MainInstance & " " & OldZoneName
-                wpd.plugInInstance = MainInstance & "-" & ZoneUDN 'instance
+                wpd.plugInInstance = MainInstance & "-" & ZoneUDN & "&clientid=0" 'instance
             Else
                 wpd.linktext = NewZoneName
-                wpd.plugInInstance = ZoneUDN 'instance
+                wpd.plugInInstance = ZoneUDN & "&clientid=0" 'instance
             End If
 
             hs.UnRegisterLinkEx(wpd)
 
             If MainInstance <> "" Then
                 wpd.linktext = "Instance " & MainInstance & " " & NewZoneName
-                wpd.plugInInstance = MainInstance & "-" & ZoneUDN 'instance
+                wpd.plugInInstance = MainInstance & "-" & ZoneUDN & "&clientid=0" 'instance
             Else
                 wpd.linktext = NewZoneName
-                wpd.plugInInstance = ZoneUDN 'instance
+                wpd.plugInInstance = ZoneUDN & "&clientid=0" 'instance
             End If
             hs.RegisterLinkEx(wpd)
         Catch ex As Exception
@@ -4725,7 +4695,7 @@ Public Class HSPI
     Public Function ZoneNameChanged(ByVal OldZoneName As String, ByVal ZoneUDN As String, ByVal NewZoneName As String, OverRulePairing As Boolean) As Boolean
         ' need complete fixing. All HS devices needs to be checked against this UDN and then name needs to be changed
         ZoneNameChanged = False
-        If g_bDebug Then Log("ZoneNameChanged called with OldZoneName = " & OldZoneName & " and NewZoneName = " & NewZoneName & " and OverrulePairing = " & OverRulePairing.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ZoneNameChanged called with OldZoneName = " & OldZoneName & " and NewZoneName = " & NewZoneName & " and OverrulePairing = " & OverRulePairing.ToString, LogType.LOG_TYPE_INFO)
         ' we need to update the HS device Names
         ' Update the SonosInfo
         ' Update the .ini file
@@ -4783,11 +4753,13 @@ Public Class HSPI
                     Catch ex As Exception
                         Log("Error in ZoneNameChanged where HS Device cannot be found with error " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
+                    Dim SonosPlayer As HSPI = GetAPIByUDN(HSDevice.ZoneUDN)                 ' added 9/26/2019
+                    If SonosPlayer IsNot Nothing Then SonosPlayer.ZoneName = NewZoneName    ' added 9/26/2019
                     HSDevice.ZoneName = NewZoneName
                     ZoneNameChanged = True
                     WriteSonosNamesToIniFile()
                 Else
-                    'If g_bDebug Then Log( "ZoneNameChanged was looking for " & ZoneUDN & " and found " & SonosPlayersInfo(Index).ZoneUDN)
+                    'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "ZoneNameChanged was looking for " & ZoneUDN & " and found " & SonosPlayersInfo(Index).ZoneUDN)
                 End If
             Next
         Catch ex As Exception
@@ -4797,7 +4769,7 @@ Public Class HSPI
     End Function
 
     Private Sub UpdateIniFileNameChange(ZoneUDN As String, NewZoneName As String, infoIndex As DeviceInfoIndex, DevType As String)
-        If g_bDebug Then Log("UpdateIniFileNameChange called with ZoneUDN = " & ZoneUDN & " and NewZoneName = " & NewZoneName & " and infoIndex = " & infoIndex.ToString & " and DevType = " & DevType, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("UpdateIniFileNameChange called with ZoneUDN = " & ZoneUDN & " and NewZoneName = " & NewZoneName & " and infoIndex = " & infoIndex.ToString & " and DevType = " & DevType, LogType.LOG_TYPE_INFO)
         Dim dv As Scheduler.Classes.DeviceClass
         Dim Ref As Integer
         Ref = GetIntegerIniFile(ZoneUDN, infoIndex.ToString, -1)
@@ -4818,7 +4790,7 @@ Public Class HSPI
     Public Sub ZoneRoomIconChanged(ByVal ZoneUDN As String, ByVal NewRoomIcon As String)
         ' need complete fixing. All HS devices needs to be checked against this UDN and then name needs to be changed
 
-        If g_bDebug Then Log("ZoneRoomIconChanged called with ZoneUDN = " & ZoneUDN & " and NewRoomIcon = " & NewRoomIcon, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ZoneRoomIconChanged called with ZoneUDN = " & ZoneUDN & " and NewRoomIcon = " & NewRoomIcon, LogType.LOG_TYPE_INFO)
 
         Dim dv As Scheduler.Classes.DeviceClass
         Dim Ref As Integer
@@ -4876,7 +4848,7 @@ Public Class HSPI
     End Sub
 
     Private Sub UpdateIniFileRoomIconChange(ZoneUDN As String, NewRoomIcon As String, infoIndex As DeviceInfoIndex)
-        If g_bDebug Then Log("UpdateIniFileRoomIconChange called with ZoneUDN = " & ZoneUDN & " and NewRoomIcon = " & NewRoomIcon & " and infoIndex = " & infoIndex.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("UpdateIniFileRoomIconChange called with ZoneUDN = " & ZoneUDN & " and NewRoomIcon = " & NewRoomIcon & " and infoIndex = " & infoIndex.ToString, LogType.LOG_TYPE_INFO)
         Dim dv As Scheduler.Classes.DeviceClass
         Dim Ref As Integer
         Ref = GetIntegerIniFile(ZoneUDN, infoIndex.ToString, -1)
@@ -4896,7 +4868,7 @@ Public Class HSPI
 
     Public Sub SetDeviceStringConnected()
         hs.SetDeviceValueByRef(MasterHSDeviceRef, msConnected, True)
-        If g_bDebug Then Log("SetDeviceStringConnected called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SetDeviceStringConnected called", LogType.LOG_TYPE_INFO)
     End Sub
 
 #End Region
@@ -5017,7 +4989,7 @@ Public Class HSPI
 
 
     Public Sub SaveAllPlayersState() ' This procedure will save the state of all on-line players
-        If g_bDebug Then Log("SaveAllPlayersState called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SaveAllPlayersState called", LogType.LOG_TYPE_INFO)
         ' [Sonos Zonenames]
         'Names=Master Bedroom;:;ZP90:|:Patio;:;ZP120:|:Kitchen;:;ZP120:|:Family Room;:;ZP90:|:Wireless Dock;:;WD100:|:Office;:;S5:|:Office2;:;S5
         'UDNs=uuid:RINCON_000E5825227A01400:|:uuid:RINCON_000E5832D2D401400:|:uuid:RINCON_000E5833F3CC01400:|:uuid:RINCON_000E5824C3B001400:|:uuid:RINCON_000E5860905A01400:|:uuid:RINCON_000E5858C97A01400
@@ -5026,7 +4998,7 @@ Public Class HSPI
         AllZoneNameString = GetStringIniFile("Sonos Zonenames", "UDNs", "")
         Dim SonosPlayerToBeSaved As HSPI
         If AllZoneNameString = "" Then
-            If g_bDebug Then Log("Error in SaveAllPlayersState didn't find the UDN string in the [Sonos Zonenames] section in the .ini file", LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in SaveAllPlayersState didn't find the UDN string in the [Sonos Zonenames] section in the .ini file", LogType.LOG_TYPE_ERROR)
             Exit Sub
         End If
         AllZoneNames = Split(AllZoneNameString, ":|:")
@@ -5034,18 +5006,18 @@ Public Class HSPI
             For Each ZoneToBeSaved In AllZoneNames
                 SonosPlayerToBeSaved = GetAPIByUDN(ZoneToBeSaved)
                 If SonosPlayerToBeSaved IsNot Nothing Then
-                    If g_bDebug Then Log("SaveAllPlayersState: Start Save Current Track Info for Zone = " & ZoneToBeSaved, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SaveAllPlayersState: Start Save Current Track Info for Zone = " & ZoneToBeSaved, LogType.LOG_TYPE_INFO)
                     SonosPlayerToBeSaved.SaveCurrentTrackInfo("SaveAllPlayersInternalGroup", True, True)
                 End If
             Next
         Catch ex As Exception
             Log("Error in SaveAllPlayersState with error: " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug Then Log("SaveAllPlayersState done", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SaveAllPlayersState done", LogType.LOG_TYPE_INFO)
     End Sub
 
     Public Sub RestoreAllPlayersState() ' This procedure will restore all on-line players to their previously stored state
-        If g_bDebug Then Log("RestoreAllPlayersState called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RestoreAllPlayersState called", LogType.LOG_TYPE_INFO)
         ' [Sonos Zonenames]
         'Names=Master Bedroom;:;ZP90:|:Patio;:;ZP120:|:Kitchen;:;ZP120:|:Family Room;:;ZP90:|:Wireless Dock;:;WD100:|:Office;:;S5:|:Office2;:;S5
         'UDNs=uuid:RINCON_000E5825227A01400:|:uuid:RINCON_000E5832D2D401400:|:uuid:RINCON_000E5833F3CC01400:|:uuid:RINCON_000E5824C3B001400:|:uuid:RINCON_000E5860905A01400:|:uuid:RINCON_000E5858C97A01400
@@ -5054,7 +5026,7 @@ Public Class HSPI
         AllZoneNameString = GetStringIniFile("Sonos Zonenames", "UDNs", "")
         Dim SonosPlayerToBeRestored As HSPI
         If AllZoneNameString = "" Then
-            If g_bDebug Then Log("Error in RestoreAllPlayersState didn't find the UDN string in the [Sonos Zonenames] section in the .ini file", LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in RestoreAllPlayersState didn't find the UDN string in the [Sonos Zonenames] section in the .ini file", LogType.LOG_TYPE_ERROR)
             Exit Sub
         End If
         Try
@@ -5062,14 +5034,14 @@ Public Class HSPI
             For Each ZoneToBeRestored In AllZoneNames
                 SonosPlayerToBeRestored = GetAPIByUDN(ZoneToBeRestored)
                 If SonosPlayerToBeRestored IsNot Nothing Then
-                    If g_bDebug Then Log("RestoreAllPlayersState: Start Restore Track Info for Zone = " & ZoneToBeRestored, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RestoreAllPlayersState: Start Restore Track Info for Zone = " & ZoneToBeRestored, LogType.LOG_TYPE_INFO)
                     SonosPlayerToBeRestored.RestoreCurrentTrackInfo("SaveAllPlayersInternalGroup", False)
                 End If
             Next
         Catch ex As Exception
             Log("Error in RestoreAllPlayersState with error: " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        If g_bDebug Then Log("RestoreAllPlayersState done", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RestoreAllPlayersState done", LogType.LOG_TYPE_INFO)
     End Sub
 
 
@@ -5078,20 +5050,20 @@ Public Class HSPI
         'Normally, plug-ins return 1 for this value.
 
         If Not gIOEnabled Then
-            If g_bDebug Then Log("NumInstances for instance = " & instance & " was called before end of initialization.", LogType.LOG_TYPE_WARNING)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("NumInstances for instance = " & instance & " was called before end of initialization.", LogType.LOG_TYPE_WARNING)
             ' we're not intialized yet, this is a problem. 
             'wait(10)
         Else
-            If g_bDebug Then Log("NumInstances was called for instance = " & instance, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("NumInstances was called for instance = " & instance, LogType.LOG_TYPE_INFO)
         End If
         If instance <> "" Then Return 1 Else Return 0
         'NumInstances = NbrOfSonosPlayers
-        'If g_bDebug Then Log("NumInstances called. Instances is " & NumInstances.ToString, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("NumInstances called. Instances is " & NumInstances.ToString, LogType.LOG_TYPE_INFO)
     End Function
 
     Public Function GetInstanceName(ByVal Instance As Integer) As String
         ' Returns the name of this instance as set in the plug-in configuration.
-        If g_bDebug Then Log("GetInstanceName called with value : " & Instance.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetInstanceName called with value : " & Instance.ToString, LogType.LOG_TYPE_INFO)
         If Instance <> "" Then
             Return ZoneName
         Else
@@ -5100,9 +5072,9 @@ Public Class HSPI
 
 
         GetInstanceName = ""
-        If g_bDebug Then Log("GetInstanceName called with value : " & Instance.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetInstanceName called with value : " & Instance.ToString, LogType.LOG_TYPE_INFO)
         If MyHSDeviceLinkedList.Count = 0 Then
-            If g_bDebug Then Log("Error in GetInstanceName. ZoneInstance not found. Instance : " & Instance, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetInstanceName. ZoneInstance not found. Instance : " & Instance, LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
         For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
@@ -5118,9 +5090,9 @@ Public Class HSPI
     Public Function GetInstanceUDN(ByVal Instance As Integer) As String
         ' Returns the name of this instance as set in the plug-in configuration.
         GetInstanceUDN = ""
-        'If g_bDebug Then Log( "GetInstanceUDN called with value : " & Instance.ToString)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetInstanceUDN called with value : " & Instance.ToString)
         If MyHSDeviceLinkedList.Count = 0 Then
-            If g_bDebug Then Log("Error in GetInstanceUDN. ZonePlayer not found. Instance : " & Instance, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetInstanceUDN. ZonePlayer not found. Instance : " & Instance, LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
         For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
@@ -5136,9 +5108,9 @@ Public Class HSPI
         ' Returns the name of this instance as set in the plug-in configuration.
         ' this is either a zone name or a zone UDN in starting with uuid:RINCON
         GetInstanceByName = 0
-        'If g_bDebug Then Log( "GetInstanceByName called with value : " & Instance)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetInstanceByName called with value : " & Instance)
         If MyHSDeviceLinkedList.Count = 0 Then
-            If g_bDebug Then Log("Error in GetInstanceByName. ZonePlayer not found. Instance : " & Instance, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetInstanceByName. ZonePlayer not found. Instance : " & Instance, LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
         Instance = Trim(Instance)
@@ -5161,9 +5133,9 @@ Public Class HSPI
         ' Returns the name of this instance as set in the plug-in configuration.
         ' this is either a zone name or a zone UDN in starting with uuid:RINCON
         GetAPIByUDN = Nothing
-        'If g_bDebug Then Log( "GetInstanceByName called with value : " & Instance)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetInstanceByName called with value : " & Instance)
         If MyHSDeviceLinkedList.Count = 0 Then
-            If g_bDebug Then Log("Error in GetAPIByUDN. Device not found. UDN : " & inUDN, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetAPIByUDN. Device not found. UDN : " & inUDN, LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
         inUDN = Trim(inUDN)
@@ -5186,7 +5158,7 @@ Public Class HSPI
     Public Function GetZoneNamebyUDN(ByVal inUDN As String) As String
         GetZoneNamebyUDN = ""
         If MyHSDeviceLinkedList.Count = 0 Then
-            If g_bDebug Then Log("Error in GetZoneNamebyUDN. ZonePlayer not found. inUDN : " & inUDN, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetZoneNamebyUDN. ZonePlayer not found. inUDN : " & inUDN, LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
         inUDN = Trim(inUDN)
@@ -5203,13 +5175,13 @@ Public Class HSPI
                 Exit Function
             End If
         Next
-        If g_bDebug Then Log("Warning GetZoneNamebyUDN found no ZoneName for UDN = " & inUDN & " and has " & MyHSDeviceLinkedList.Count.ToString & " players in array", LogType.LOG_TYPE_WARNING)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning GetZoneNamebyUDN found no ZoneName for UDN = " & inUDN & " and has " & MyHSDeviceLinkedList.Count.ToString & " players in array", LogType.LOG_TYPE_WARNING)
     End Function
 
     Public Function GetUDNbyZoneName(ByVal inZoneName As String) As String
         GetUDNbyZoneName = ""
         If MyHSDeviceLinkedList.Count = 0 Then
-            If g_bDebug Then Log("Error in GetUDNbyZoneName. ZonePlayer not found. inZoneName : " & inZoneName, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetUDNbyZoneName. ZonePlayer not found. inZoneName : " & inZoneName, LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
         inZoneName = Trim(inZoneName)
@@ -5233,13 +5205,13 @@ Public Class HSPI
                 Exit Function
             End If
         Next
-        If g_bDebug Then Log("Warning GetUDNbyZoneName found no UDN for Zone Name = " & inZoneName & " and has " & MyHSDeviceLinkedList.Count.ToString & " players in array", LogType.LOG_TYPE_WARNING)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning GetUDNbyZoneName found no UDN for Zone Name = " & inZoneName & " and has " & MyHSDeviceLinkedList.Count.ToString & " players in array", LogType.LOG_TYPE_WARNING)
     End Function
 
     Public Function GetMultiZoneAPI() As Object
         ' returns HSMultiZoneAPI class
         ' Returns a reference to the HSMultiZoneAPI object if supported. If the plug-in does not support this class then this call returns nothing.
-        'If g_bDebug And gIOEnabled Then Log("GetMultiZoneAPI was called for instance = " & instance, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("GetMultiZoneAPI was called for instance = " & instance, LogType.LOG_TYPE_INFO)
         GetMultiZoneAPI = Nothing
     End Function
 
@@ -5249,12 +5221,12 @@ Public Class HSPI
         ' Returns a reference to the HSMusicAPI for the given instance number or instance name. This function is overloaded and may accept either the instance number or name. 
         'The returned object is a reference to the HSMusicAPI as defined in the next section.
         GetMusicAPI = Nothing
-        'If g_bDebug Then Log("GetMusicAPI (Integer) was called with Value: " & instance.ToString, LogType.LOG_TYPE_INFO)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetMusicAPI (Integer) was called with Value: " & instance.ToString, LogType.LOG_TYPE_INFO)
         'Log( "GetMusicAPI (Integer) was called with Value: " & instance.ToString)
 
         If instance = 0 Then Exit Function
         If MyHSDeviceLinkedList.Count = 0 Then
-            If g_bDebug Then Log("Error in GetMusicAPI. ZonePlayer not found. Integer Instance : " & instance, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetMusicAPI. ZonePlayer not found. Integer Instance : " & instance, LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
         For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
@@ -5264,7 +5236,7 @@ Public Class HSPI
                 Exit Function
             End If
         Next
-        If g_bDebug Then Log("Warning GetMusicAPI (Integer) was called with Value: " & instance.ToString & " but found no player", LogType.LOG_TYPE_WARNING)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning GetMusicAPI (Integer) was called with Value: " & instance.ToString & " but found no player", LogType.LOG_TYPE_WARNING)
     End Function
 
     Public Function GetMusicAPI(ByVal instance As String) As HSPI
@@ -5275,11 +5247,11 @@ Public Class HSPI
         'The returned object is a reference to the HSMusicAPI as defined in the next section.
         GetMusicAPI = Nothing
         Dim SearchIndex As Integer = 0
-        'If g_bDebug Then Log( "GetMusicAPI (string) was called with Value: " & instance.ToString)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "GetMusicAPI (string) was called with Value: " & instance.ToString)
         'Log( "GetMusicAPI (string) was called with Value: " & instance.ToString)
         If instance = "" Then Exit Function
         If MyHSDeviceLinkedList.Count = 0 Then
-            If g_bDebug Then Log("Error in GetMusicAPI. ZonePlayer not found. String Instance : " & instance, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetMusicAPI. ZonePlayer not found. String Instance : " & instance, LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
 
@@ -5295,9 +5267,9 @@ Public Class HSPI
     Public Function GetHSDeviceReference(ByVal inUDN As String) As Integer
         GetHSDeviceReference = -1
         Dim SearchIndex As Integer = 0
-        If SuperDebug Then Log("GetHSDeviceReference was called with inUDN : " & inUDN.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlEvents Then Log("GetHSDeviceReference was called with inUDN : " & inUDN.ToString, LogType.LOG_TYPE_INFO)
         If MyHSDeviceLinkedList.Count = 0 Then
-            If g_bDebug Then Log("Error in GetHSDeviceReference. ZonePlayer not found. Instance : " & instance, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetHSDeviceReference. ZonePlayer not found. Instance : " & instance, LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
         If Mid(inUDN, 1, 5) = "uuid:" Then
@@ -5309,7 +5281,7 @@ Public Class HSPI
             If HSDevice.ZoneUDN = inUDN Or HSDevice.ZoneName = inUDN Then
                 If HSDevice.ZonePlayerControllerRef IsNot Nothing Then
                     GetHSDeviceReference = HSDevice.ZonePlayerControllerRef.GetHSDeviceRefPlayer()
-                    If SuperDebug Then Log("GetHSDeviceReference called with Name: " & instance.ToString & " and Found DeviceReference = " & GetHSDeviceReference.ToString, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlEvents Then Log("GetHSDeviceReference called with Name: " & instance.ToString & " and Found DeviceReference = " & GetHSDeviceReference.ToString, LogType.LOG_TYPE_INFO)
                     Exit Function
                 End If
             End If
@@ -5318,7 +5290,7 @@ Public Class HSPI
 
     Public Function LinkAZone(ByVal TargetUDN As String, ByVal SourceUDN As String) As Boolean
         LinkAZone = False
-        If g_bDebug Then Log("LinkAZone called with TargetUDN : " & TargetUDN & " and SourceUDN = " & SourceUDN, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LinkAZone called with TargetUDN : " & TargetUDN & " and SourceUDN = " & SourceUDN, LogType.LOG_TYPE_INFO)
         ' UDN is in the format x-rincon:RINCON_000E5824C3B001400 or x-sonos-dock:RINCON_000E5860905A01400 in case of wireless dock
         If InStr(SourceUDN, "-sonos-dock:") <> 0 Then
             Try
@@ -5344,12 +5316,12 @@ Public Class HSPI
             SonosPlayer = Nothing
             LinkAZone = True
         Else
-            If g_bDebug Then Log("LinkAZone called with TargetUDN : " & TargetUDN & " and SourceUDN = " & SourceUDN & " but didn't find SourcePlayer. Request queued", LogType.LOG_TYPE_WARNING)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("LinkAZone called with TargetUDN : " & TargetUDN & " and SourceUDN = " & SourceUDN & " but didn't find SourcePlayer. Request queued", LogType.LOG_TYPE_WARNING)
         End If
     End Function
 
     Public Sub UnlinkAZone(ByVal TargetUDN As String, ByVal SourceUDN As String)
-        If g_bDebug Then Log("UnlinkAZone called with TargetUDN : " & TargetUDN & " and SourceUDN = " & SourceUDN, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("UnlinkAZone called with TargetUDN : " & TargetUDN & " and SourceUDN = " & SourceUDN, LogType.LOG_TYPE_INFO)
         ' SourceUDN is in the format x-rincon:RINCON_000E5824C3B001400 or x-sonos-dock:RINCON_000E5860905A01400 in case of wireless dock
         ' TargetUDN is in the format uuid:RINCON_000E5824C3B001400
         If InStr(SourceUDN, "-sonos-dock:") <> 0 Then
@@ -5394,7 +5366,7 @@ Public Class HSPI
                     Index += 1
                 End If
             Next
-            If g_bDebug Then Log("GetAllActiveZones called and found " & Index.ToString & " Player UDNs", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetAllActiveZones called and found " & Index.ToString & " Player UDNs", LogType.LOG_TYPE_INFO)
             GetAllActiveZones = ZoneUDNs
         Catch ex As Exception
             Log("Error in GetAllActiveZones with error " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -5405,15 +5377,15 @@ Public Class HSPI
 
     Private Sub SendEventForAllZones()
         ' 	generate some event from all players to get ipad/iphone clients updated when they come back on-line
-        If g_bDebug And gIOEnabled Then Log("SendEventForAllZones called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("SendEventForAllZones called", LogType.LOG_TYPE_INFO)
         If MyHSDeviceLinkedList.Count = 0 Then
             Exit Sub
         End If
         Try
             For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
                 If HSDevice.ZonePlayerControllerRef IsNot Nothing Then
-                    HSDevice.ZonePlayerControllerRef.PlayChangeNotifyCallback(player_status_change.PlayStatusChanged, HSDevice.ZonePlayerControllerRef.PlayerState, False)
-                    HSDevice.ZonePlayerControllerRef.PlayChangeNotifyCallback(player_status_change.SongChanged, player_state_values.UpdateHSServerOnly, False)
+                    HSDevice.ZonePlayerControllerRef.PlayChangeNotifyCallback(Player_status_change.PlayStatusChanged, HSDevice.ZonePlayerControllerRef.PlayerState, False)
+                    HSDevice.ZonePlayerControllerRef.PlayChangeNotifyCallback(Player_status_change.SongChanged, Player_state_values.UpdateHSServerOnly, False)
                 End If
             Next
         Catch ex As Exception
@@ -5427,7 +5399,7 @@ Public Class HSPI
 #Region "    Speaker Proxy Related Procedures    "
 
     Public Sub SpeakIn(ByVal device As Integer, ByVal text As String, ByVal wait As Boolean, ByVal host As String) Implements HomeSeerAPI.IPlugInAPI.SpeakIn
-        If g_bDebug Then Log("SpeakIn called for Device = " & device.ToString & ", Text = " & text & ", Wait=" & wait.ToString & ", Host = " & host & ", PIInitialized = " & MyPIisInitialized.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SpeakIn called for Device = " & device.ToString & ", Text = " & text & ", Wait=" & wait.ToString & ", Host = " & host & ", PIInitialized = " & MyPIisInitialized.ToString, LogType.LOG_TYPE_INFO)
         If Not MyPIisInitialized Then
             If Not MyPostAnnouncementAction = PostAnnouncementAction.paaAlwaysDrop Then hs.SpeakProxy(device, text, wait, host)
             Exit Sub
@@ -5524,17 +5496,17 @@ Public Class HSPI
         ' [LinkgroupZoneDestination]
         ' Test=Master Bedroom|Patio
 
-        If g_bDebug Then Log("HandleLinkEvents called with ButtonName = " & ButtonName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkEvents called with ButtonName = " & ButtonName, LogType.LOG_TYPE_INFO)
         Dim LinkgroupZones() As String
         Dim LinkgroupZone As String
         LinkgroupZone = GetStringIniFile("LinkgroupNames", "Names", "")
         If LinkgroupZone = "" Then
-            If g_bDebug Then Log("Error in HandleLinkEvents didn't find the [LinkgroupNames] in the .ini file", LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in HandleLinkEvents didn't find the [LinkgroupNames] in the .ini file", LogType.LOG_TYPE_ERROR)
             Exit Sub
         End If
         LinkgroupZones = Split(LinkgroupZone, "|")
         For Each LinkgroupZone In LinkgroupZones
-            If g_bDebug Then Log("HandleLinkEvents: Found LinkgroupZoneSource = " & LinkgroupZone, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkEvents: Found LinkgroupZoneSource = " & LinkgroupZone, LogType.LOG_TYPE_INFO)
             If ("Link-" & LinkgroupZone) = ButtonName Then
                 MyLinkState = True
                 'HandleLinking(LinkgroupZone, True)
@@ -5547,12 +5519,12 @@ Public Class HSPI
                 Exit Sub
             End If
         Next
-        If g_bDebug Then Log("Error in HandleLinkEvents. Couldn't find " & LinkgroupZone & "  in [LinkgroupNames] in the .ini file", LogType.LOG_TYPE_ERROR)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in HandleLinkEvents. Couldn't find " & LinkgroupZone & "  in [LinkgroupNames] in the .ini file", LogType.LOG_TYPE_ERROR)
     End Sub
 
     Public Function HandleLinkingOn(ByVal LinkgroupName As String, Optional ByVal IsFile As Boolean = False) As Integer ' returns a delay in seconds
         HandleLinkingOn = 0
-        If g_bDebug Then Log("HandleLinkingOn called with LinkgroupName = " & LinkgroupName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn called with LinkgroupName = " & LinkgroupName, LogType.LOG_TYPE_INFO)
         Dim NbrOfLinkgroupZones As Integer = 0
         Dim LinkgroupZoneSource As String
         Dim MaxWaitForVolumeToAdjust As Integer = 0
@@ -5562,7 +5534,7 @@ Public Class HSPI
         MySavedPlayerList = MyLocalLinkgroupArray.MySavedPlayerList
         LinkgroupZoneSource = GetStringIniFile("LinkgroupZoneSource", LinkgroupName, "")
         If LinkgroupZoneSource = "" Then
-            If g_bDebug Then Log("Error in HandleLinkingOn didn't find " & LinkgroupName & " under [LinkgroupZoneSource] in the .ini file", LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in HandleLinkingOn didn't find " & LinkgroupName & " under [LinkgroupZoneSource] in the .ini file", LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
         Dim LinkgroupZoneSourceDetails() As String
@@ -5572,7 +5544,7 @@ Public Class HSPI
             UseLinkGroupAsTTS = CBool(LinkgroupZoneSourceDetails(1))  ' changed in v3.0.0.20 and removed the Not Cbool
             LinkgroupZoneSource = LinkgroupZoneSourceDetails(0)
         End If
-        If g_bDebug Then Log("HandleLinkingOn found " & LinkgroupZoneSource & " as source and Audio Input = " & UseLinkGroupAsTTS.ToString & " and Save Source = " & IsFile.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn found " & LinkgroupZoneSource & " as source and Audio Input = " & UseLinkGroupAsTTS.ToString & " and Save Source = " & IsFile.ToString, LogType.LOG_TYPE_INFO)
         Dim SourceSonosPlayer As HSPI
         Dim DestinationSonosPlayer As HSPI
         Try
@@ -5588,7 +5560,7 @@ Public Class HSPI
         If IsFile Then
             ' we need to save the Source as well
             If SourceSonosPlayer.ZoneIsASlave Then
-                If g_bDebug Then Log("HandleLinkingOn found source player to be a slave and switched to the master", LogType.LOG_TYPE_INFO) ' added 7/12/2019 in v3.1.0.31
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn found source player to be a slave and switched to the master", LogType.LOG_TYPE_INFO) ' added 7/12/2019 in v3.1.0.31
                 SourceSonosPlayer = MyHSPIControllerRef.GetAPIByUDN(SourceSonosPlayer.ZoneMasterUDN)
                 If SourceSonosPlayer Is Nothing Then    ' added 7/25/2019 in v3.1.0.36
                     Log("Error in HandleLinkingOn: Controller for LinkgroupZoneSource = " & LinkgroupZoneSource & " after switching to master not found", LogType.LOG_TYPE_ERROR)
@@ -5607,7 +5579,7 @@ Public Class HSPI
         Dim LinkgroupZoneDetail() As String
         LinkgroupZoneDestination = GetStringIniFile("LinkgroupZoneDestination", LinkgroupName, "")
         If LinkgroupZoneDestination = "" Then
-            If g_bDebug Then Log("Error in HandleLinkingOn didn't find " & LinkgroupName & " under [LinkgroupZoneDestination] in the .ini file", LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in HandleLinkingOn didn't find " & LinkgroupName & " under [LinkgroupZoneDestination] in the .ini file", LogType.LOG_TYPE_ERROR)
             Exit Function
         End If
         LinkgroupZoneDestinations = Split(LinkgroupZoneDestination, "|")
@@ -5623,9 +5595,9 @@ Public Class HSPI
                         Log("Error in HandleLinkingOn for LinkgroupZoneDestination = " & LinkgroupZone & " not found", LogType.LOG_TYPE_ERROR)
                     Else
                         If DestinationSonosPlayer.ZoneIsASlave Then
-                            If g_bDebug Then Log("HandleLinkingOn detected PairedSlave = " & DestinationSonosPlayer.GetZoneName & " and UDN = " & DestinationSonosPlayer.GetUDN & " and will save the Master Only", LogType.LOG_TYPE_INFO)
+                            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn detected PairedSlave = " & DestinationSonosPlayer.GetZoneName & " and UDN = " & DestinationSonosPlayer.GetUDN & " and will save the Master Only", LogType.LOG_TYPE_INFO)
                             DestinationSonosPlayer = MyHSPIControllerRef.GetAPIByUDN(DestinationSonosPlayer.ZoneMasterUDN)
-                            If g_bDebug Then Log("HandleLinkingOn detected PairedSlave and switched to Master = " & DestinationSonosPlayer.GetZoneName & " and UDN = " & DestinationSonosPlayer.GetUDN, LogType.LOG_TYPE_INFO)
+                            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn detected PairedSlave and switched to Master = " & DestinationSonosPlayer.GetZoneName & " and UDN = " & DestinationSonosPlayer.GetUDN, LogType.LOG_TYPE_INFO)
                         End If
                         Try
                             SaveLinkedPlayers(DestinationSonosPlayer.GetUDN, SourceSonosPlayer.GetUDN, LinkgroupName)
@@ -5637,10 +5609,10 @@ Public Class HSPI
                                     MyLocalLinkgroupArray = MyLinkgroupArray.GetLinkGroupInfo(LinkgroupName)
                                     MySavedPlayerList = MyLocalLinkgroupArray.MySavedPlayerList
                                     If Not MySavedPlayerList.IsAlreadyStored(DestinationSonosPlayer.GetUDN) Then
-                                        If g_bDebug Then Log("HandleLinkingOn: Start Save Current Track Info for player = " & DestinationSonosPlayer.GetZoneName, LogType.LOG_TYPE_INFO)
+                                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn: Start Save Current Track Info for player = " & DestinationSonosPlayer.GetZoneName, LogType.LOG_TYPE_INFO)
                                         DestinationSonosPlayer.SaveCurrentTrackInfo(LinkgroupName, False, False)
                                         MySavedPlayerList.Add(DestinationSonosPlayer.GetUDN)
-                                        If g_bDebug Then Log("HandleLinkingOn: End Save Current Track Info for player = " & DestinationSonosPlayer.GetZoneName, LogType.LOG_TYPE_INFO)
+                                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn: End Save Current Track Info for player = " & DestinationSonosPlayer.GetZoneName, LogType.LOG_TYPE_INFO)
                                     End If
                                 Catch ex As Exception
                                     Log("Error in SaveLinkedPlayers getting the SavedPlayerList with error: " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -5652,7 +5624,7 @@ Public Class HSPI
                             Log("DestinationZoneIndex = " & DestinationSonosPlayer.GetUDN, LogType.LOG_TYPE_ERROR)
                         End Try
                     End If
-                    If g_bDebug Then Log("HandleLinkingOn: Done Saving LinkgroupZoneDestination = " & DestinationSonosPlayer.GetZoneName, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn: Done Saving LinkgroupZoneDestination = " & DestinationSonosPlayer.GetZoneName, LogType.LOG_TYPE_INFO)
                 End If
             End If
         Next
@@ -5669,7 +5641,7 @@ Public Class HSPI
         'wait(0.5)
         'End If
         'Catch ex As Exception
-        'If g_bDebug Then Log("Error in HandleLinkingOn while separating a Stereo Pair with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in HandleLinkingOn while separating a Stereo Pair with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         'End Try
         ' moved this post seperation in v.85 because when the slave zone in a paired is source for an announcement, this stop command will be forwarded to the master and
         ' after the announcement is over, the master will never get a play nor was the master saved
@@ -5695,13 +5667,13 @@ Public Class HSPI
                     ElseIf UBound(LinkgroupZoneDetail) > 0 Then
                         NewZoneVolume = Trim(LinkgroupZoneDetail(1))
                     End If
-                    If g_bDebug Then Log("HandleLinkingOn: Start LinkgroupZoneDestination = " & LinkgroupZoneDetail(0), LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn: Start LinkgroupZoneDestination = " & LinkgroupZoneDetail(0), LogType.LOG_TYPE_INFO)
                     DestinationSonosPlayer = GetAPIByUDN(LinkgroupZoneDetail(0))
                     If DestinationSonosPlayer Is Nothing Then
                         Log("Error in HandleLinkingOn for LinkgroupZoneDestination = " & LinkgroupZoneDetail(0) & " not found", LogType.LOG_TYPE_ERROR)
                     Else
                         If DestinationSonosPlayer.ZoneIsASlave Then
-                            If g_bDebug Then Log("HandleLinkingOn detected PairedSlave = " & DestinationSonosPlayer.GetZoneName & " and will switch to the Master", LogType.LOG_TYPE_INFO)
+                            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn detected PairedSlave = " & DestinationSonosPlayer.GetZoneName & " and will switch to the Master", LogType.LOG_TYPE_INFO)
                             DestinationSonosPlayer = MyHSPIControllerRef.GetAPIByUDN(DestinationSonosPlayer.ZoneMasterUDN)
                         End If
                         Try
@@ -5718,28 +5690,13 @@ Public Class HSPI
                             MetaData = MetaData & AnnouncementAuthor & "</dc:creator><upnp:album>"
                             MetaData = MetaData & AnnouncementAlbum & "</upnp:album><r:albumArtist>"
                             MetaData = MetaData & AnnouncementAuthor & "</r:albumArtist></item></DIDL-Lite>"
-                            ' dcor01 
-                            'Try
-                            'If DestinationSonosPlayer.ZoneIsPairMaster Then
-                            ' separate pair
-                            'DestinationSonosPlayer.SeparateStereoPair()
-                            'wait(0.5)
-                            'ElseIf DestinationSonosPlayer.ZoneIsPairSlave Then
-                            'Dim MasterPairPlayer As HSPI
-                            'MasterPairPlayer = GetSonosPlayerByUDN(DestinationSonosPlayer.GetZonePairMasterUDN)
-                            'MasterPairPlayer.SeparateStereoPair()
-                            'wait(0.5)
-                            'End If
-                            'Catch ex As Exception
-                            'If g_bDebug Then Log("Error 2 in HandleLinkingOn while separating a Stereo Pair with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
-                            'End Try
-                            'If Not UseLinkGroupAsTTS Or IsFile Then
+
                             If SourceSonosPlayer.GetUDN <> DestinationSonosPlayer.GetUDN Then ' this part was rewritten for V3.0.0.20
                                 ' only when TTS mode should we have the source zone participate as destination. In all other cases this will cause a loop
                                 If SourceSonosPlayer.ZoneModel <> "WD100" Then
                                     DestinationSonosPlayer.PlayURI("x-rincon:" & SourceSonosPlayer.GetUDN, MetaData) ' group
                                     If MyAnnouncementWaitBetweenPlayers > 0 Then
-                                        If g_bDebug Then Log("HandleLinkingOn waiting for " & MyAnnouncementWaitBetweenPlayers & " 10th of a seconds between issues play commands to other players", LogType.LOG_TYPE_INFO)
+                                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn waiting for " & MyAnnouncementWaitBetweenPlayers & " 10th of a seconds between issues play commands to other players", LogType.LOG_TYPE_INFO)
                                         wait(MyAnnouncementWaitBetweenPlayers / 10)
                                     End If
                                 Else
@@ -5776,20 +5733,20 @@ Public Class HSPI
                             Log("Error in HandleLinkingOn getting Controller for LinkgroupZoneDestination = " & DestinationSonosPlayer.GetZoneName & " with error: " & ex.Message, LogType.LOG_TYPE_ERROR)
                         End Try
                     End If
-                    If g_bDebug Then Log("HandleLinkingOn: Done LinkgroupZoneDestination = " & DestinationSonosPlayer.GetZoneName, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn: Done LinkgroupZoneDestination = " & DestinationSonosPlayer.GetZoneName, LogType.LOG_TYPE_INFO)
                 End If
             End If
         Next
         'If MaxWaitForVolumeToAdjust > 0 Then ' removed in v101
-        'If g_bDebug Then Log( "HandleLinkingOn waiting for " & MaxWaitForVolumeToAdjust & " seconds to adjust the volume")
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "HandleLinkingOn waiting for " & MaxWaitForVolumeToAdjust & " seconds to adjust the volume")
         'Wait(MaxWaitForVolumeToAdjust)
         'End If
         HandleLinkingOn = MaxWaitForVolumeToAdjust ' changed in v101
-        If g_bDebug Then Log("HandleLinkingOn done with LinkgroupName = " & LinkgroupName & " and Delay = " & MaxWaitForVolumeToAdjust.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn done with LinkgroupName = " & LinkgroupName & " and Delay = " & MaxWaitForVolumeToAdjust.ToString, LogType.LOG_TYPE_INFO)
     End Function
 
     Public Sub HandleLinkingOff(ByVal LinkgroupName As String)
-        If g_bDebug Then Log("HandleLinkingOff called with LinkgroupName = " & LinkgroupName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOff called with LinkgroupName = " & LinkgroupName, LogType.LOG_TYPE_INFO)
         Dim MySavedPlayerList As SavedPlayerList
         Dim MyLocalLinkgroupArray As LinkGroupInfo
         Try
@@ -5853,17 +5810,17 @@ Public Class HSPI
         If NbrOfPlayers <> 0 Then
             wait(NbrOfPlayers)
         End If
-        If g_bDebug Then Log("HandleLinkingOff done with LinkgroupName = " & LinkgroupName & " and # players = " & NbrOfPlayers.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOff done with LinkgroupName = " & LinkgroupName & " and # players = " & NbrOfPlayers.ToString, LogType.LOG_TYPE_INFO)
     End Sub
 
     Public Function CheckPlayerInLinkgroup(ByVal SearchZoneUDN As String, ByVal SourceZoneUDN As String, ByVal DestinationZoneString As String) As Boolean
         CheckPlayerInLinkgroup = False
-        If g_bDebug Then Log("CheckPlayerInLinkgroup called with SearchZoneUDN = " & SearchZoneUDN & " and SourceZoneUDN = " & SourceZoneUDN & " and DestinationZoneString = " & DestinationZoneString.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CheckPlayerInLinkgroup called with SearchZoneUDN = " & SearchZoneUDN & " and SourceZoneUDN = " & SourceZoneUDN & " and DestinationZoneString = " & DestinationZoneString.ToString, LogType.LOG_TYPE_INFO)
         SearchZoneUDN = GetUDNbyZoneName(SearchZoneUDN) ' just in case this procedure was called with a zone name (old implementation)
         SourceZoneUDN = GetUDNbyZoneName(SourceZoneUDN)
         If SearchZoneUDN = SourceZoneUDN Then
             CheckPlayerInLinkgroup = True
-            If g_bDebug Then Log("CheckPlayerInLinkgroup found match for SearchZoneUDN = " & SearchZoneUDN & " and SourceZoneUDN", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CheckPlayerInLinkgroup found match for SearchZoneUDN = " & SearchZoneUDN & " and SourceZoneUDN", LogType.LOG_TYPE_INFO)
             Exit Function
         End If
         Dim DestinationZoneStrings As String()
@@ -5873,7 +5830,7 @@ Public Class HSPI
             If TempLinkGroupZone <> "" Then
                 TempLinkGroupZoneDetails = Split(TempLinkGroupZone, ";")
                 If GetUDNbyZoneName(TempLinkGroupZoneDetails(0)) = SearchZoneUDN Then
-                    If g_bDebug Then Log("CheckPlayerInLinkgroup found match for SearchZoneUDN = " & SearchZoneUDN & " in DestinationZoneString = " & DestinationZoneString.ToString, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CheckPlayerInLinkgroup found match for SearchZoneUDN = " & SearchZoneUDN & " in DestinationZoneString = " & DestinationZoneString.ToString, LogType.LOG_TYPE_INFO)
                     CheckPlayerInLinkgroup = True
                     Exit Function
                 End If
@@ -5882,7 +5839,7 @@ Public Class HSPI
     End Function
 
     Public Sub SaveLinkedPlayers(ByVal SearchZoneUDN As String, ByVal SourceZoneUDN As String, ByVal LinkGroupName As String)
-        If g_bDebug Then Log("SaveLinkedPlayers called with SearchZoneUDN = " & SearchZoneUDN & " and SourceZoneUDN = " & SourceZoneUDN & " and LinkGroupName = " & LinkGroupName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SaveLinkedPlayers called with SearchZoneUDN = " & SearchZoneUDN & " and SourceZoneUDN = " & SourceZoneUDN & " and LinkGroupName = " & LinkGroupName, LogType.LOG_TYPE_INFO)
         'SearchZoneUDN = GetUDNbyZoneName(SearchZoneUDN) ' just in case this procedure was called with a zone name (old implementation)
         'SourceZoneUDN = GetUDNbyZoneName(SourceZoneUDN)
         Dim LinkgroupZoneDestination As String
@@ -5903,7 +5860,7 @@ Public Class HSPI
                         TargetPlayer = MyHSPIControllerRef.GetAPIByUDN(TargetPlayer.ZoneMasterUDN)
                     End If
                     If TargetPlayer.GetUDN <> SourceZoneUDN Then
-                        If g_bDebug Then Log("SaveLinkedPlayers is comparing TargetZone = " & TargetPlayer.GetZoneName & " in String = " & LinkgroupZoneDestination & " and SourceZoneUDN = " & SourceZoneUDN, LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SaveLinkedPlayers is comparing TargetZone = " & TargetPlayer.GetZoneName & " in String = " & LinkgroupZoneDestination & " and SourceZoneUDN = " & SourceZoneUDN, LogType.LOG_TYPE_INFO)
                         Dim DestinationZoneStrings As String()
                         DestinationZoneStrings = Split(LinkgroupZoneDestination, "|")
                         For Each TempLinkGroupZone In DestinationZoneStrings
@@ -5921,7 +5878,7 @@ Public Class HSPI
                                         End If
                                     End If
                                     If TempPlayer.GetUDN = TargetPlayer.GetUDN Then
-                                        If g_bDebug Then Log("SaveLinkedPlayers found a match between announcement link group and Linkgroup with Linked Zone = " & TargetPlayer.GetZoneName & " and LinkgroupZone = " & TempPlayer.GetZoneName, LogType.LOG_TYPE_INFO)
+                                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SaveLinkedPlayers found a match between announcement link group and Linkgroup with Linked Zone = " & TargetPlayer.GetZoneName & " and LinkgroupZone = " & TempPlayer.GetZoneName, LogType.LOG_TYPE_INFO)
                                         ' found 
                                         WasFound = True
                                         Exit For
@@ -5938,7 +5895,7 @@ Public Class HSPI
                                 MyLocalLinkgroupArray = MyLinkgroupArray.GetLinkGroupInfo(LinkGroupName)
                                 MySavedPlayerList = MyLocalLinkgroupArray.MySavedPlayerList
                                 If Not MySavedPlayerList.IsAlreadyStored(TargetPlayer.GetUDN) Then
-                                    If g_bDebug Then Log("SaveLinkedPlayers did not find the linked zone in the announcement Linkgroup, most likely a paired/linked player. Linked ZoneUDN = " & TargetZone, LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SaveLinkedPlayers did not find the linked zone in the announcement Linkgroup, most likely a paired/linked player. Linked ZoneUDN = " & TargetZone, LogType.LOG_TYPE_INFO)
                                     TargetPlayer.SaveCurrentTrackInfo(LinkGroupName, False, False)
                                     MySavedPlayerList.Add(TargetPlayer.GetUDN)
                                 End If
@@ -5956,7 +5913,7 @@ Public Class HSPI
     End Sub
 
     Public Sub RestoreLinkedPlayers(ByVal SearchZoneUDN As String, ByVal SourceZoneUDN As String, ByVal DestinationZoneString As String, ByVal LinkGroupName As String)
-        If g_bDebug Then Log("RestoreLinkedPlayers called with SearchZoneUDN = " & SearchZoneUDN & " and SourceZoneUDN = " & SourceZoneUDN & " and DestinationZoneString = " & DestinationZoneString.ToString & " and LinkGroupName = " & LinkGroupName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RestoreLinkedPlayers called with SearchZoneUDN = " & SearchZoneUDN & " and SourceZoneUDN = " & SourceZoneUDN & " and DestinationZoneString = " & DestinationZoneString.ToString & " and LinkGroupName = " & LinkGroupName, LogType.LOG_TYPE_INFO)
         SearchZoneUDN = GetUDNbyZoneName(SearchZoneUDN) ' just in case this procedure was called with a zone name (old implementation)
         SourceZoneUDN = GetUDNbyZoneName(SourceZoneUDN)
         Dim LinkgroupZoneDestination As String
@@ -5971,7 +5928,7 @@ Public Class HSPI
             For Each TargetZone In TargetZones
                 WasFound = False
                 If TargetZone <> "" And TargetZone <> SourceZoneUDN Then
-                    If g_bDebug Then Log("RestoreLinkedPlayers is comparing TargetZone = " & TargetZone & " in String = " & LinkgroupZoneDestination, LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RestoreLinkedPlayers is comparing TargetZone = " & TargetZone & " in String = " & LinkgroupZoneDestination, LogType.LOG_TYPE_INFO)
                     Dim DestinationZoneStrings As String()
                     DestinationZoneStrings = Split(LinkgroupZoneDestination, "|")
                     For Each TempLinkGroupZone In DestinationZoneStrings
@@ -5982,7 +5939,7 @@ Public Class HSPI
                                 TempLinkGroupZoneDetails(0) = Trim(TempLinkGroupZoneDetails(0))
                             End If
                             If GetUDNbyZoneName(TempLinkGroupZoneDetails(0)) = TargetZone Then
-                                If g_bDebug Then Log("RestoreLinkedPlayers found match between announcement link group and Linkgroup with Linked Zone = " & TargetZone & " and LinkgroupZone = " & GetUDNbyZoneName(TempLinkGroupZoneDetails(0)), LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RestoreLinkedPlayers found match between announcement link group and Linkgroup with Linked Zone = " & TargetZone & " and LinkgroupZone = " & GetUDNbyZoneName(TempLinkGroupZoneDetails(0)), LogType.LOG_TYPE_INFO)
                                 ' found 
                                 WasFound = True
                                 Exit For
@@ -5991,7 +5948,7 @@ Public Class HSPI
                     Next
                     If Not WasFound Then
                         ' this means the zone was not found so save it
-                        If g_bDebug Then Log("RestoreLinkedPlayers did not find the linked zone in the announcement Linkgroup. Linked Zone = " & TargetZone, LogType.LOG_TYPE_WARNING)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RestoreLinkedPlayers did not find the linked zone in the announcement Linkgroup. Linked Zone = " & TargetZone, LogType.LOG_TYPE_WARNING)
                         Dim SaveSonosPlayer As HSPI
                         SaveSonosPlayer = GetAPIByUDN(TargetZone)
                         If SaveSonosPlayer IsNot Nothing Then
@@ -6010,14 +5967,15 @@ Public Class HSPI
         'AnnouncementsInQueue = True  ' moved in v83 to the end of this procedure
         'MyTimeoutActionArray(TOCheckAnnouncement) = 1
         'MyAnnouncementCountdown = 100
-        If g_bDebug Then Log("AddAnnouncementToQueue called for LinkGroupName = " & LinkGroupName & " and Text = " & text, LogType.LOG_TYPE_INFO)
-        Dim AnnouncementItem As New AnnouncementItems
-        AnnouncementItem.LinkGroupName = LinkGroupName
-        AnnouncementItem.device = device
-        AnnouncementItem.text = text
-        AnnouncementItem.host = host
-        AnnouncementItem.IsFile = Not GetLinkgroupSourceZoneAudioInputFlag(LinkGroupName)
-        AnnouncementItem.SourceZoneMusicAPI = GetLinkgroupSourceZone(LinkGroupName)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddAnnouncementToQueue called for LinkGroupName = " & LinkGroupName & " and Text = " & text, LogType.LOG_TYPE_INFO)
+        Dim AnnouncementItem As New AnnouncementItems With {
+            .LinkGroupName = LinkGroupName,
+            .device = device,
+            .text = text,
+            .host = host,
+            .IsFile = Not GetLinkgroupSourceZoneAudioInputFlag(LinkGroupName),
+            .SourceZoneMusicAPI = GetLinkgroupSourceZone(LinkGroupName)
+        }
         If AnnouncementItem.SourceZoneMusicAPI Is Nothing Then
             Log("Error in AddAnnouncementToQueue for LinkGroupName = " & LinkGroupName & ". SourceZone was not found", LogType.LOG_TYPE_ERROR)
             AnnouncementItem = Nothing
@@ -6056,7 +6014,7 @@ Public Class HSPI
 
     Private Function GetTailOfAnnouncementQueue() As AnnouncementItems
         GetTailOfAnnouncementQueue = AnnouncementLink
-        If g_bDebug Then Log("GetTailOfAnnouncementQueue called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetTailOfAnnouncementQueue called", LogType.LOG_TYPE_INFO)
         If AnnouncementLink Is Nothing Then
             Exit Function
         End If
@@ -6065,10 +6023,10 @@ Public Class HSPI
         Dim LoopIndex As Integer = 0
         Try
             Do
-                If g_bDebug Then Log("GetTailOfAnnouncementQueue called and found Linkgroup = " & AnnouncementItem.LinkGroupName & " and text = " & AnnouncementItem.text, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetTailOfAnnouncementQueue called and found Linkgroup = " & AnnouncementItem.LinkGroupName & " and text = " & AnnouncementItem.text, LogType.LOG_TYPE_INFO)
                 If AnnouncementItem.Next_ Is Nothing Then
                     GetTailOfAnnouncementQueue = AnnouncementItem
-                    If g_bDebug Then Log("GetTailOfAnnouncementQueue called and tail found", LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetTailOfAnnouncementQueue called and tail found", LogType.LOG_TYPE_INFO)
                     Exit Function
                 End If
                 AnnouncementItem = AnnouncementItem.Next_
@@ -6086,7 +6044,7 @@ Public Class HSPI
     End Function
 
     Private Sub DeleteHeadOfAnnouncementQueue()
-        If g_bDebug Then Log("DeleteHeadOfAnnouncementQueue called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DeleteHeadOfAnnouncementQueue called", LogType.LOG_TYPE_INFO)
         If AnnouncementLink Is Nothing Then
             ' this should not be!
             Exit Sub
@@ -6109,14 +6067,14 @@ Public Class HSPI
     Private Sub DoCheckAnnouncementQueue()
 
         If Not AnnouncementsInQueue Then Exit Sub
-        If g_bDebug Then Log("DoCheckAnnouncementQueue called AnnouncementinQueue = " & AnnouncementsInQueue.ToString & " and AnnouncementInProgress = " & AnnouncementInProgress.ToString & " and AnnouncementCountdown = " & MyAnnouncementCountdown.ToString & " AnnouncementReEntry = " & AnnouncementReEntry.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue called AnnouncementinQueue = " & AnnouncementsInQueue.ToString & " and AnnouncementInProgress = " & AnnouncementInProgress.ToString & " and AnnouncementCountdown = " & MyAnnouncementCountdown.ToString & " AnnouncementReEntry = " & AnnouncementReEntry.ToString, LogType.LOG_TYPE_INFO)
 
         If AnnouncementReEntry Then
-            If SuperDebug Then
+            If piDebuglevel > DebugLevel.dlEvents Then
                 If AnnouncementLink IsNot Nothing Then
-                    If g_bDebug Then Log("DoCheckAnnouncementQueue called and cause re-entry. Announcement state = " & AnnouncementLink.State_.ToString, LogType.LOG_TYPE_WARNING)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue called and cause re-entry. Announcement state = " & AnnouncementLink.State_.ToString, LogType.LOG_TYPE_WARNING)
                 Else
-                    If g_bDebug Then Log("DoCheckAnnouncementQueue called and cause re-entry. No Announcementlink ?", LogType.LOG_TYPE_WARNING)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue called and cause re-entry. No Announcementlink ?", LogType.LOG_TYPE_WARNING)
                 End If
             End If
             Exit Sub ' re-entry
@@ -6136,7 +6094,7 @@ Public Class HSPI
                         AnnouncementLink.State_ = AnnouncementState.asFilePlayed
                         Log("Error in DoCheckAnnouncementQueue. " & MyMaxAnnouncementTime.ToString & " seconds expired since the announcement started and no end was received.", LogType.LOG_TYPE_ERROR)
                     ElseIf Not AnnouncementLink.SourceZoneMusicAPI Is Nothing Then
-                        If AnnouncementLink.SourceZoneMusicAPI.CurrentPlayerState = player_state_values.Stopped And AnnouncementLink.SourceZoneMusicAPI.HasAnnouncementStarted Then
+                        If AnnouncementLink.SourceZoneMusicAPI.CurrentPlayerState = Player_state_values.Stopped And AnnouncementLink.SourceZoneMusicAPI.HasAnnouncementStarted Then
                             ' OK the announcement is over
                             AnnouncementLink.State_ = AnnouncementState.asFilePlayed
                         Else
@@ -6144,19 +6102,19 @@ Public Class HSPI
                             AnnouncementLink.SourceZoneMusicAPI.CheckAnnouncementHasStarted() ' added in v109 
                             If Not AnnouncementLink.SourceZoneMusicAPI.HasAnnouncementStarted Then
                                 If MyAnnouncementCountdown <= MyMaxAnnouncementTime - 5 And ResendPlay = 0 Then
-                                    If g_bDebug Then Log("Warning in DoCheckAnnouncementQueue. Announcement hasn't started after " & (MyMaxAnnouncementTime - MyAnnouncementCountdown + 1).ToString & " seconds", LogType.LOG_TYPE_WARNING)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DoCheckAnnouncementQueue. Announcement hasn't started after " & (MyMaxAnnouncementTime - MyAnnouncementCountdown + 1).ToString & " seconds", LogType.LOG_TYPE_WARNING)
                                     'AnnouncementLink.SourceZoneMusicAPI.SetTransportState("Play", True) ' was removed/added in v0.91 removed in v.93
                                     'AnnouncementLink.SourceZoneMusicAPI.SubmitDiagnostics() ' was removed/added for test purposes in v0.91
                                     ResendPlay = 1
                                 ElseIf MyAnnouncementCountdown <= MyMaxAnnouncementTime - 30 And ResendPlay = 1 Then
-                                    If g_bDebug Then Log("Warning in DoCheckAnnouncementQueue. Announcement hasn't started after " & (MyMaxAnnouncementTime - MyAnnouncementCountdown + 1).ToString & " seconds", LogType.LOG_TYPE_WARNING)
+                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DoCheckAnnouncementQueue. Announcement hasn't started after " & (MyMaxAnnouncementTime - MyAnnouncementCountdown + 1).ToString & " seconds", LogType.LOG_TYPE_WARNING)
                                     'AnnouncementLink.SourceZoneMusicAPI.SetTransportState("Play", True) ' was removed/added in v0.91 removed in v.93
                                     'AnnouncementLink.SourceZoneMusicAPI.SubmitDiagnostics() ' was removed/added for test purposes in v0.91
                                     ResendPlay = 2
                                     ' the announcement has started and is running.
                                     ' Having trouble with repeat_all showing up, in v.18 I'll add a check and force no-repeat in case it is wrong
-                                    If AnnouncementLink.SourceZoneMusicAPI.SonosRepeat <> repeat_modes.repeat_off Then
-                                        If g_bDebug Then Log("Warning in DoCheckAnnouncementQueue. Sourceplayer mysteriously jumped to repeat state", LogType.LOG_TYPE_WARNING)
+                                    If AnnouncementLink.SourceZoneMusicAPI.SonosRepeat <> Repeat_modes.repeat_off Then
+                                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DoCheckAnnouncementQueue. Sourceplayer mysteriously jumped to repeat state", LogType.LOG_TYPE_WARNING)
                                         AnnouncementLink.SourceZoneMusicAPI.PlayModeNormal()
                                     End If
                                 End If
@@ -6189,30 +6147,30 @@ Public Class HSPI
             AnnouncementInProgress = False
             MyAnnouncementIndex = 0
             AnnouncementReEntry = False
-            If g_bDebug Then Log("Error in DoCheckAnnouncementQueue. No AnnouncementLink", LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue. No AnnouncementLink", LogType.LOG_TYPE_ERROR)
             Exit Sub
         End If
-        If g_bDebug Then Log("DoCheckAnnouncementQueue called for linkgroup " & AnnouncementLink.LinkGroupName & " and State = " & AnnouncementLink.State_.ToString & " and isFile = " & AnnouncementLink.IsFile.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue called for linkgroup " & AnnouncementLink.LinkGroupName & " and State = " & AnnouncementLink.State_.ToString & " and isFile = " & AnnouncementLink.IsFile.ToString, LogType.LOG_TYPE_INFO)
         ' Look at first announcement in Queue
         Dim AnnouncementItem As AnnouncementItems
         AnnouncementItem = AnnouncementLink
         If AnnouncementItem.State_ = AnnouncementState.asIdle Then
             ' Announcement event: add new event here
-            PlayChangeNotifyCallback(player_status_change.AnnouncementChange, player_state_values.AnnouncementStart, True)
+            PlayChangeNotifyCallback(Player_status_change.AnnouncementChange, Player_state_values.AnnouncementStart, True)
             ResendPlay = 0
             AnnouncementItem.State_ = AnnouncementState.asLinking
-            If SuperDebug Then Log("DoCheckAnnouncementQueue called HandleLinking", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlEvents Then Log("DoCheckAnnouncementQueue called HandleLinking", LogType.LOG_TYPE_INFO)
             AnnouncementItem.DelayinSec = HandleLinkingOn(AnnouncementItem.LinkGroupName, AnnouncementLink.IsFile)
             AnnouncementItem.AbsoluteTime = Now
-            If SuperDebug Then Log("DoCheckAnnouncementQueue done calling HandleLinking", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlEvents Then Log("DoCheckAnnouncementQueue done calling HandleLinking", LogType.LOG_TYPE_INFO)
             If AnnouncementItem.IsFile Then
                 Try ' added on 7/12/2019 in v3.1.0.31 If source player is not the master, the monitoring and other actions won't work
                     If AnnouncementItem.SourceZoneMusicAPI.ZoneIsASlave Then
-                        If g_bDebug Then Log("DoCheckAnnouncementQueue found source player to be a slave and switched to the master", LogType.LOG_TYPE_INFO)
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue found source player to be a slave and switched to the master", LogType.LOG_TYPE_INFO)
                         AnnouncementItem.SourceZoneMusicAPI = MyHSPIControllerRef.GetAPIByUDN(AnnouncementItem.SourceZoneMusicAPI.ZoneMasterUDN)
                     End If
                 Catch ex As Exception
-                    If g_bDebug Then Log("Error in DoCheckAnnouncementQueue switching to the master with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue switching to the master with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                 End Try
                 Try
                     AnnouncementItem.SourceZoneMusicAPI.ClearQueue()
@@ -6226,7 +6184,7 @@ Public Class HSPI
         ElseIf AnnouncementItem.State_ = AnnouncementState.asLinking Then
             ' this is re-entrance
             AnnouncementReEntry = False
-            If SuperDebug Then Log("DoCheckAnnouncementQueue is waiting in Linking state and existing procedure", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlEvents Then Log("DoCheckAnnouncementQueue is waiting in Linking state and existing procedure", LogType.LOG_TYPE_INFO)
             Exit Sub
         End If
         Dim StartQueueIndex As Integer = MyAnnouncementIndex + 1
@@ -6235,7 +6193,7 @@ Public Class HSPI
             TextStrings = Split(AnnouncementItem.text, "|")
             Dim Index As Integer = 0
             For Each TextString In TextStrings
-                If g_bDebug Then Log("DoCheckAnnouncementQueue is Linked and activated with HostName = " & AnnouncementItem.host & " Text = " & TextString & " and LinkgroupName = " & AnnouncementItem.LinkGroupName, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue is Linked and activated with HostName = " & AnnouncementItem.host & " Text = " & TextString & " and LinkgroupName = " & AnnouncementItem.LinkGroupName, LogType.LOG_TYPE_INFO)
                 If AnnouncementItem.IsFile Then
                     Dim FileName As String
                     Dim ExtensionIndex As Integer = 0
@@ -6248,7 +6206,7 @@ Public Class HSPI
                     End If
                     FileName = "Ann_" & RemoveBlanks(AnnouncementItem.LinkGroupName) & "_" & MyAnnouncementIndex.ToString
 
-                    If g_bDebug Then Log("DoCheckAnnouncementQueue adds file = " & Path & FileName & " to Queue", LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue adds file = " & Path & FileName & " to Queue", LogType.LOG_TYPE_INFO)
                     'hs.SpeakToFile(Text, "VoiceCB", FileName, "")
                     If File.Exists(TextString) Then
                         Try
@@ -6259,19 +6217,19 @@ Public Class HSPI
                             End If
                             FileName = FileName + Extensiontype
                         Catch ex As Exception
-                            If g_bDebug Then Log("Error in DoCheckAnnouncementQueue when searching for the file type with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue when searching for the file type with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                         End Try
                         Try
                             System.IO.File.Delete(Path & FileName)
                         Catch ex As Exception
-                            'If g_bDebug Then Log( "Error in DoCheckAnnouncementQueue when deleting file " & Path & FileName & " Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "Error in DoCheckAnnouncementQueue when deleting file " & Path & FileName & " Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                         End Try
                         Try
                             System.IO.File.Copy(TextString, Path & FileName, True)
-                            'If g_bDebug Then Log( "DoCheckAnnouncementQueue copying file " & Path & FileName)
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "DoCheckAnnouncementQueue copying file " & Path & FileName)
                             AnnouncementItem.State_ = AnnouncementState.asSpeaking
                         Catch ex As Exception
-                            If g_bDebug Then Log("Error in DoCheckAnnouncementQueue in SpeakToFile copying file = " & TextString & " to " & Path & FileName & " with error " & ex.Message, LogType.LOG_TYPE_ERROR)
+                            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue in SpeakToFile copying file = " & TextString & " to " & Path & FileName & " with error " & ex.Message, LogType.LOG_TYPE_ERROR)
                             AnnouncementInProgress = False
                             AnnouncementItem.State_ = AnnouncementState.asFilePlayed
                             AnnouncementReEntry = False
@@ -6287,12 +6245,16 @@ Public Class HSPI
                         End Try
                         AnnouncementItem.State_ = AnnouncementState.asSpeaking
                         Try
-                            If g_bDebug Then Log("DoCheckAnnouncementQueue calling SpeakToFile with Text " & TextString & " and File " & Path & FileName, LogType.LOG_TYPE_INFO)
+                            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue calling SpeakToFile with Text " & TextString & " and File " & Path & FileName, LogType.LOG_TYPE_INFO)
                             Dim Voice As String = CheckForVoiceTag(TextString)
                             hs.SpeakToFile(TextString, Voice, Path & FileName)
-                            If SuperDebug Then Log("DoCheckAnnouncementQueue finished SpeakToFile", LogType.LOG_TYPE_INFO)
+                            If piDebuglevel > DebugLevel.dlEvents Then Log("DoCheckAnnouncementQueue finished SpeakToFile", LogType.LOG_TYPE_INFO)
                         Catch ex As Exception
                             Log("Error in DoCheckAnnouncementQueue called SpeakToFile unsuccessfully with Text " & TextString & " and File " & Path & FileName & " and error " & ex.Message, LogType.LOG_TYPE_ERROR)
+                            ' added 9/4/2019 because when failing, it will take forever to timeout
+                            AnnouncementItem.State_ = AnnouncementState.asFilePlayed
+                            AnnouncementReEntry = False
+                            Exit Sub
                         End Try
                     End If
 
@@ -6317,10 +6279,10 @@ Public Class HSPI
                             If UCase(Extensiontype) = ".MP3" Then
                                 ' fixed in v.99 AnnouncementItem.SourceZoneMusicAPI.AddTrackToQueue("x-rincon-mp3radio://" & HSIpAddress & HTTPPort & AnnouncementPath & FileName, MetaData, MyAnnouncementIndex + 1, False)
                                 AnnouncementItem.SourceZoneMusicAPI.AddTrackToQueue("http://" & HSIpAddress & HTTPPort & AnnouncementURL & FileName, MetaData, MyAnnouncementIndex + 1, False)
-                                If g_bDebug Then Log("DoCheckAnnouncementQueue is adding a track to the Queue = http://" & HSIpAddress & HTTPPort & AnnouncementURL & FileName, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue is adding a track to the Queue = http://" & HSIpAddress & HTTPPort & AnnouncementURL & FileName, LogType.LOG_TYPE_INFO)
                             Else
                                 AnnouncementItem.SourceZoneMusicAPI.AddTrackToQueue("http://" & HSIpAddress & HTTPPort & AnnouncementURL & FileName, MetaData, MyAnnouncementIndex + 1, False)
-                                If g_bDebug Then Log("DoCheckAnnouncementQueue is adding a track to the Queue = http://" & HSIpAddress & HTTPPort & AnnouncementURL & FileName, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue is adding a track to the Queue = http://" & HSIpAddress & HTTPPort & AnnouncementURL & FileName, LogType.LOG_TYPE_INFO)
                             End If
                         Catch ex As Exception
                             Log("Error in DoCheckAnnouncementQueue when adding Announcement to Sonos Queue with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -6332,7 +6294,7 @@ Public Class HSPI
                                 'If AnnouncementItem.SourceZoneMusicAPI.PlayerState <> player_state_values.Playing Then // removed in v14
                                 'If StartQueueIndex = 1 Then
                                 ' we need to make sure the player is "forced" to play its queue. Seen errors here. The right syntax is x-rincon-queue:RINCON_000E5824C3B001400#0
-                                'If g_bDebug Then Log("DoCheckAnnouncementQueue is playing URI = " & "x-rincon-queue:" & AnnouncementItem.SourceZoneMusicAPI.GetUDN & "#0", LogType.LOG_TYPE_INFO)
+                                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue is playing URI = " & "x-rincon-queue:" & AnnouncementItem.SourceZoneMusicAPI.GetUDN & "#0", LogType.LOG_TYPE_INFO)
                                 'AnnouncementItem.SourceZoneMusicAPI.PlayURI("x-rincon-queue:" & AnnouncementItem.SourceZoneMusicAPI.GetUDN & "#0", "")
                                 Dim WaitTime As Integer = MyAnnouncementWaitToSendPlay
                                 If AnnouncementItem.DelayinSec > MyAnnouncementWaitToSendPlay Then
@@ -6348,9 +6310,9 @@ Public Class HSPI
                                 End If
                                 'If AnnouncementItem.SourceZoneMusicAPI.ZoneIsLinked Then Wait(0.5)
                                 If WaitTime <> 0 Then
-                                    If SuperDebug Then Log("Waiting in DoCheckAnnouncementQueue before issues play for = " & WaitTime.ToString & " seconds", LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlEvents Then Log("Waiting in DoCheckAnnouncementQueue before issues play for = " & WaitTime.ToString & " seconds", LogType.LOG_TYPE_INFO)
                                     wait(WaitTime)
-                                    If SuperDebug Then Log("End Waiting in DoCheckAnnouncementQueue", LogType.LOG_TYPE_INFO)
+                                    If piDebuglevel > DebugLevel.dlEvents Then Log("End Waiting in DoCheckAnnouncementQueue", LogType.LOG_TYPE_INFO)
                                 End If
                                 AnnouncementItem.SourceZoneMusicAPI.SetTransportState("Play", True)
                                 '      Else
@@ -6361,12 +6323,16 @@ Public Class HSPI
 
                                 ' End If
                             Catch ex As Exception
-                                If g_bDebug Then Log("Error in DoCheckAnnouncementQueue when calling PlayURI with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue when calling PlayURI with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                                ' added 9/4/2019 because when failing, it will take forever to timeout
+                                AnnouncementItem.State_ = AnnouncementState.asFilePlayed
+                                AnnouncementReEntry = False
+                                Exit Sub
                             End Try
                             MyAnnouncementIndex = MyAnnouncementIndex + 1
                             'wait(1) ' this is to make sure the playerstate has moved to playing before the timeout procedure begins checking for the "end of file" which is player stopped
+                            If piDebuglevel > DebugLevel.dlEvents Then Log("DoCheckAnnouncementQueue is waiting in for player to start playing w/ multiple announcements and existing procedure", LogType.LOG_TYPE_INFO)
                             AnnouncementReEntry = False
-                            If SuperDebug Then Log("DoCheckAnnouncementQueue is waiting in for player to start playing w/ multiple announcements and existing procedure", LogType.LOG_TYPE_INFO)
                             Exit Sub
                         End If
                     Else
@@ -6376,13 +6342,13 @@ Public Class HSPI
                             If UCase(Extensiontype) = ".MP3" Then
                                 ' fixed in v.99 AnnouncementItem.SourceZoneMusicAPI.PlayUri("x-rincon-mp3radio://" & HSIpAddress & HTTPPort & AnnouncementPath & FileName, MetaData)
                                 AnnouncementItem.SourceZoneMusicAPI.PlayURI("http://" & HSIpAddress & HTTPPort & AnnouncementURL & FileName, MetaData)
-                                If g_bDebug Then Log("DoCheckAnnouncementQueue is calling PlayURI with http://" & HSIpAddress & HTTPPort & AnnouncementURL & FileName, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue is calling PlayURI with http://" & HSIpAddress & HTTPPort & AnnouncementURL & FileName, LogType.LOG_TYPE_INFO)
                             Else
                                 AnnouncementItem.SourceZoneMusicAPI.PlayURI("http://" & HSIpAddress & HTTPPort & AnnouncementURL & FileName, MetaData)
-                                If g_bDebug Then Log("DoCheckAnnouncementQueue is calling PlayURI with http://" & HSIpAddress & HTTPPort & AnnouncementURL & FileName, LogType.LOG_TYPE_INFO)
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue is calling PlayURI with http://" & HSIpAddress & HTTPPort & AnnouncementURL & FileName, LogType.LOG_TYPE_INFO)
                             End If
                         Catch ex As Exception
-                            If g_bDebug Then Log("Error in DoCheckAnnouncementQueue when adding Announcement to Sonos Queue with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue when adding Announcement to Sonos Queue with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                         End Try
                         Dim WaitTime As Integer = MyAnnouncementWaitToSendPlay
                         If AnnouncementItem.DelayinSec > MyAnnouncementWaitToSendPlay Then
@@ -6398,28 +6364,32 @@ Public Class HSPI
                         End If
                         'If AnnouncementItem.SourceZoneMusicAPI.ZoneIsLinked Then Wait(0.5)
                         If WaitTime <> 0 Then
-                            If SuperDebug Then Log("Waiting in DoCheckAnnouncementQueue before issues play for = " & WaitTime.ToString & " seconds", LogType.LOG_TYPE_INFO)
+                            If piDebuglevel > DebugLevel.dlEvents Then Log("Waiting in DoCheckAnnouncementQueue before issues play for = " & WaitTime.ToString & " seconds", LogType.LOG_TYPE_INFO)
                             wait(WaitTime)
-                            If SuperDebug Then Log("End Waiting in DoCheckAnnouncementQueue", LogType.LOG_TYPE_INFO)
+                            If piDebuglevel > DebugLevel.dlEvents Then Log("End Waiting in DoCheckAnnouncementQueue", LogType.LOG_TYPE_INFO)
                         End If
                         Try
                             AnnouncementItem.SourceZoneMusicAPI.SetTransportState("Play", True)
                         Catch ex As Exception
-                            If g_bDebug Then Log("Error in DoCheckAnnouncementQueue when calling PlayURI with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue when calling PlayURI with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                            ' added 9/4/2019 because when failing, it will take forever to timeout
+                            AnnouncementItem.State_ = AnnouncementState.asFilePlayed
+                            AnnouncementReEntry = False
+                            Exit Sub
                         End Try
                         'Wait(1) ' this is to make sure the playerstate has moved to playing before the timeout procedure begins checking for the "end of file" which is player stopped
                         MyAnnouncementIndex = MyAnnouncementIndex + 1
+                        If piDebuglevel > DebugLevel.dlEvents Then Log("DoCheckAnnouncementQueue is waiting in for player to start playing w/ single announcement and existing procedure", LogType.LOG_TYPE_INFO)
                         AnnouncementReEntry = False
-                        If SuperDebug Then Log("DoCheckAnnouncementQueue is waiting in for player to start playing w/ single announcement and existing procedure", LogType.LOG_TYPE_INFO)
                         Exit Sub
                     End If
 
                 Else
                     ' this is the old TTS way
                     AnnouncementItem.State_ = AnnouncementState.asSpeaking
-                    If SuperDebug Then Log("DoCheckAnnouncementQueue starts old TTS way speech", LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlEvents Then Log("DoCheckAnnouncementQueue starts old TTS way speech", LogType.LOG_TYPE_INFO)
                     hs.SpeakProxy(0, TextString, True, AnnouncementItem.host)
-                    If SuperDebug Then Log("DoCheckAnnouncementQueue ends old TTS way speech", LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlEvents Then Log("DoCheckAnnouncementQueue ends old TTS way speech", LogType.LOG_TYPE_INFO)
                     AnnouncementItem.State_ = AnnouncementState.asLinked
                 End If
                 Index = Index + 1
@@ -6441,27 +6411,27 @@ Public Class HSPI
                     AnnouncementInProgress = False
                     AnnouncementReEntry = False
                     MyAnnouncementCountdown = MyMaxAnnouncementTime ' reset the clock
-                    If g_bDebug Then Log("DoCheckAnnouncementQueue was done but found new announcement item", LogType.LOG_TYPE_INFO)
+                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue was done but found new announcement item", LogType.LOG_TYPE_INFO)
                     Exit Sub
                 End If
             Catch ex As Exception
-                If g_bDebug Then Log("Error in DoCheckAnnouncementQueue looking at next announcement in queue with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue looking at next announcement in queue with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
         End If
         AnnouncementItem.State_ = AnnouncementState.asUnlinking
-        If SuperDebug Then Log("DoCheckAnnouncementQueue is starting to unlink", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlEvents Then Log("DoCheckAnnouncementQueue is starting to unlink", LogType.LOG_TYPE_INFO)
         HandleLinkingOff(AnnouncementItem.LinkGroupName)
-        If SuperDebug Then Log("DoCheckAnnouncementQueue is done unlinking", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlEvents Then Log("DoCheckAnnouncementQueue is done unlinking", LogType.LOG_TYPE_INFO)
         ' annoucementevent: off
-        PlayChangeNotifyCallback(player_status_change.AnnouncementChange, player_state_values.AnnouncementStop, True)
+        PlayChangeNotifyCallback(Player_status_change.AnnouncementChange, Player_state_values.AnnouncementStop, True)
         AnnouncementItem.State_ = AnnouncementState.asIdle
         DeleteHeadOfAnnouncementQueue()
         If AnnouncementLink Is Nothing Then
             AnnouncementsInQueue = False
             MyAnnouncementIndex = 0
-            If g_bDebug Then Log("DoCheckAnnouncementQueue is ending and all announcements were processed", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue is ending and all announcements were processed", LogType.LOG_TYPE_INFO)
         Else
-            If g_bDebug Then Log("DoCheckAnnouncementQueue is ending but more announcements are queued", LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue is ending but more announcements are queued", LogType.LOG_TYPE_INFO)
         End If
         AnnouncementInProgress = False
         AnnouncementReEntry = False
@@ -6469,7 +6439,7 @@ Public Class HSPI
 
     Public Function GetLinkgroupSourceZone(ByVal LinkgroupName As String) As Object
         GetLinkgroupSourceZone = Nothing
-        If g_bDebug Then Log("GetLinkgroupSourceZone called with LinkgroupName = " & LinkgroupName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetLinkgroupSourceZone called with LinkgroupName = " & LinkgroupName, LogType.LOG_TYPE_INFO)
         Dim LinkgroupZoneSource As String
         LinkgroupZoneSource = GetStringIniFile("LinkgroupZoneSource", LinkgroupName, "")
         If LinkgroupZoneSource = "" Then
@@ -6477,7 +6447,7 @@ Public Class HSPI
             Try
                 GetLinkgroupSourceZone = MyHSPIControllerRef.GetAPIByUDN(LinkgroupName)
             Catch ex As Exception
-                If g_bDebug Then Log("Error in GetLinkgroupSourceZone didn't find " & LinkgroupName & " under [LinkgroupZoneSource] in the .ini file", LogType.LOG_TYPE_ERROR)
+                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetLinkgroupSourceZone didn't find " & LinkgroupName & " under [LinkgroupZoneSource] in the .ini file", LogType.LOG_TYPE_ERROR)
                 Exit Function
             End Try
         Else
@@ -6488,13 +6458,13 @@ Public Class HSPI
         Try
             GetLinkgroupSourceZone = MyHSPIControllerRef.GetAPIByUDN(LinkgroupZoneSource)
         Catch ex As Exception
-            If g_bDebug Then Log("Error in GetLinkgroupSourceZone didn't find MusicAPI for " & LinkgroupZoneSource, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetLinkgroupSourceZone didn't find MusicAPI for " & LinkgroupZoneSource, LogType.LOG_TYPE_ERROR)
         End Try
     End Function
 
     Public Function GetLinkgroupSourceZoneAudioInputFlag(ByVal LinkgroupName As String) As Boolean
         GetLinkgroupSourceZoneAudioInputFlag = False
-        If g_bDebug Then Log("GetLinkgroupSourceZoneAudioInputFlag called with LinkgroupName = " & LinkgroupName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetLinkgroupSourceZoneAudioInputFlag called with LinkgroupName = " & LinkgroupName, LogType.LOG_TYPE_INFO)
         Dim LinkgroupZoneSource As String
         LinkgroupZoneSource = GetStringIniFile("LinkgroupZoneSource", LinkgroupName, "")
         If LinkgroupZoneSource = "" Then
@@ -6511,11 +6481,6 @@ Public Class HSPI
         Else
             GetLinkgroupSourceZoneAudioInputFlag = False
         End If
-    End Function
-
-
-    Public Function TextIsFileName(ByVal inString As String) As Boolean
-        TextIsFileName = False
     End Function
 
     Public Function RemoveBlanks(ByVal InString) As String
@@ -6570,7 +6535,7 @@ Public Class HSPI
     End Function
 
     Private Function CheckForVoiceTag(ByRef inText As String) As String
-        If g_bDebug Then Log("CheckForVoiceTag called with inText = " & inText, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CheckForVoiceTag called with inText = " & inText, LogType.LOG_TYPE_INFO)
         CheckForVoiceTag = ""
         ' Structure = <voice required='Name=Microsoft Anna'>Hello World how are things around here said Anna</voice>
         If inText.IndexOf("<voice ") = -1 Then
@@ -6606,7 +6571,7 @@ Public Class HSPI
             VoiceTagInfo = Trim(VoiceTagInfo.Remove(0, 4))  ' remove starting name char
             If VoiceTagInfo.IndexOf("=") <> 0 Then Exit Function ' should not be
             VoiceTagInfo = Trim(VoiceTagInfo.Remove(0, 1))  ' remove the = char, now what is left is the voice required
-            If g_bDebug Then Log("CheckForVoiceTag returns with inText = " & inText & " and Voice = " & VoiceTagInfo, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CheckForVoiceTag returns with inText = " & inText & " and Voice = " & VoiceTagInfo, LogType.LOG_TYPE_INFO)
             Return VoiceTagInfo
         Catch ex As Exception
             Log("Error in CheckForVoiceTag called with inText = " & inText & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -6618,7 +6583,7 @@ Public Class HSPI
 #Region "Plugin MultiZone functions"
     Public Function AllZonesOn() As Boolean
         ' 	Boolean 	Turns on all zones in the system. Returns TRUE to indicate success, FALSE indicates failure.
-        If g_bDebug And gIOEnabled Then Log("AllZonesOn called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("AllZonesOn called", LogType.LOG_TYPE_INFO)
         AllZonesOn = False
         Try
             If MyHSDeviceLinkedList.Count = 0 Then
@@ -6637,7 +6602,7 @@ Public Class HSPI
 
     Public Function AllZonesOff() As Boolean
         '  	Boolean 	Turns off all zones in the system. Returns TRUE to indicate success, FALSE indicates failure.
-        If g_bDebug And gIOEnabled Then Log("AllZonesOff called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("AllZonesOff called", LogType.LOG_TYPE_INFO)
         AllZonesOff = False
         Try
             If MyHSDeviceLinkedList.Count = 0 Then
@@ -6656,7 +6621,7 @@ Public Class HSPI
 
     Public Function AllZonesPause() As Boolean
         '  	Boolean 	Pauses all zones in the system. Returns TRUE to indicate success, FALSE indicates failure.
-        If g_bDebug And gIOEnabled Then Log("AllZonesPause called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("AllZonesPause called", LogType.LOG_TYPE_INFO)
         AllZonesPause = False
         Try
             If MyHSDeviceLinkedList.Count = 0 Then
@@ -6675,7 +6640,7 @@ Public Class HSPI
 
     Public Function AllZonesMuteOn() As Boolean
         '  	Boolean 	Turns off all zones in the system. Returns TRUE to indicate success, FALSE indicates failure.
-        If g_bDebug And gIOEnabled Then Log("AllZonesMuteOn called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("AllZonesMuteOn called", LogType.LOG_TYPE_INFO)
         AllZonesMuteOn = False
         Try
             If MyHSDeviceLinkedList.Count = 0 Then
@@ -6694,7 +6659,7 @@ Public Class HSPI
 
     Public Function AllZonesMuteOff() As Boolean
         '  	Boolean 	Turns off all zones in the system. Returns TRUE to indicate success, FALSE indicates failure.
-        If g_bDebug And gIOEnabled Then Log("AllZonesMuteOff called", LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly And gIOEnabled Then Log("AllZonesMuteOff called", LogType.LOG_TYPE_INFO)
         AllZonesMuteOff = False
         Try
             If MyHSDeviceLinkedList.Count = 0 Then
@@ -6727,7 +6692,7 @@ Public Class HSPI
     End Function
 
     Public Sub DMRemove(UDN As String)
-        If g_bDebug Then Log("DMRemove called with UDN = " & UDN, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DMRemove called with UDN = " & UDN, LogType.LOG_TYPE_INFO)
         If MyHSDeviceLinkedList.Count = 0 Then Exit Sub
         For Each UPnPDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
             If UPnPDevice.ZoneUDN = UDN Then
@@ -6741,658 +6706,9 @@ Public Class HSPI
                 Exit Sub
             End If
         Next
-        If g_bDebug Then Log("Error in DMRemove. Could not find UDN = " & UDN, LogType.LOG_TYPE_ERROR)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DMRemove. Could not find UDN = " & UDN, LogType.LOG_TYPE_ERROR)
     End Sub
 #End Region
 
 End Class
 
-
-
-
-<Serializable()> _
-Public Class MyUPnpDeviceInfo
-    Public ZoneName As String
-    Public ZoneModel As String
-    Public ZoneUDN As String
-    Public ZonePlayerRef As Integer
-    Public ZoneOnLine As Boolean
-    Public ZoneDeviceAPIIndex As Integer
-    Public ZonePlayerControllerRef As HSPI
-    Public ZoneWeblinkCreated As Boolean
-    Public ZoneHasInput As Boolean
-    Public ZoneIsHSInput As Boolean
-    Public ZoneAdminState As Boolean
-    Public Device As MyUPnPDevice
-    Public UPnPDeviceIPAddress As String = ""
-    Public UPnPDeviceAdminStateActive As Boolean = False
-    Public UPnPDeviceIsAddedToHS As Boolean = False
-    Public ZoneDeviceIconURL As String = ""
-    Public ZoneCurrentIcon As String = ""
-
-    Public Sub New()
-        MyBase.New()
-        ZoneName = ""
-        ZoneModel = ""
-        ZoneUDN = ""
-        ZonePlayerRef = -1
-        ZoneOnLine = False
-        ZoneDeviceAPIIndex = 0
-        ZonePlayerControllerRef = Nothing
-        ZoneWeblinkCreated = False
-        ZoneHasInput = False
-        ZoneIsHSInput = False
-        ZoneAdminState = True
-        Device = Nothing
-        UPnPDeviceAdminStateActive = False
-        UPnPDeviceIsAddedToHS = False
-        UPnPDeviceIPAddress = ""
-        ZoneDeviceIconURL = ""
-        ZoneCurrentIcon = ""
-    End Sub
-
-    Public Sub Close()
-        ZoneName = ""
-        ZoneModel = ""
-        ZoneUDN = ""
-        ZonePlayerRef = -1
-        ZoneOnLine = False
-        ZoneDeviceAPIIndex = 0
-        ZonePlayerControllerRef = Nothing
-        ZoneWeblinkCreated = False
-        ZoneHasInput = False
-        ZoneIsHSInput = False
-        ZoneAdminState = True
-        Device = Nothing
-        UPnPDeviceAdminStateActive = False
-        UPnPDeviceIsAddedToHS = False
-        UPnPDeviceIPAddress = ""
-        ZoneDeviceIconURL = ""
-        ZoneCurrentIcon = ""
-    End Sub
-
-
-
-End Class
-
-<Serializable()> _
-Public Class SavedPlayerList
-    Public MyLinkListIndex As Integer = 0
-    Public MyPlayerUDNArray() As String
-    Public MyCurrentLinkListIndex As Integer = 0
-
-
-    Public Sub New()
-        MyBase.New()
-        FlushInfo()
-    End Sub
-
-    Public Sub FlushInfo()
-        MyLinkListIndex = 0
-        MyCurrentLinkListIndex = 0
-        Try
-            Erase MyPlayerUDNArray
-        Catch ex As Exception
-            If g_bDebug Then Log("Error in SavedPlayerList.FlushInfo with error = " & ex.Message, LogType.LOG_TYPE_ERROR)
-        End Try
-
-    End Sub
-
-    Public Sub ResetIndex()
-        MyCurrentLinkListIndex = 0
-    End Sub
-
-    Public Function GetNext() As String
-        If MyLinkListIndex = 0 Then
-            Return ""
-        End If
-        If MyCurrentLinkListIndex >= MyLinkListIndex Then
-            Return ""
-        End If
-        GetNext = MyPlayerUDNArray(MyCurrentLinkListIndex)
-        MyCurrentLinkListIndex = MyCurrentLinkListIndex + 1
-    End Function
-
-    Public Sub Add(ByVal PlayerUDN As String)
-        If g_bDebug Then Log("SavedPlayerList.add called with PlayerUDN = " & PlayerUDN & " and MyLinkListIndex = " & MyLinkListIndex.ToString, LogType.LOG_TYPE_INFO)
-        Dim TempIndex As Integer
-        If MyLinkListIndex = 0 Then
-            ReDim Preserve MyPlayerUDNArray(MyLinkListIndex)
-            MyPlayerUDNArray(MyLinkListIndex) = PlayerUDN
-            MyLinkListIndex = MyLinkListIndex + 1
-        Else
-            For TempIndex = 0 To MyLinkListIndex - 1
-                If MyPlayerUDNArray(TempIndex) = PlayerUDN Then
-                    ' the Index is already stored
-                    Exit Sub
-                End If
-            Next
-            ' the Index doesn't exist store it
-            ReDim Preserve MyPlayerUDNArray(MyLinkListIndex)
-            MyPlayerUDNArray(MyLinkListIndex) = PlayerUDN
-            MyLinkListIndex = MyLinkListIndex + 1
-        End If
-    End Sub
-
-    Public Function IsAlreadyStored(PlayerUDN As String) As Boolean
-        IsAlreadyStored = False
-        If g_bDebug Then Log("SavedPlayerList.IsAlreadyStored called with PlayerUDN = " & PlayerUDN & " and MyLinkListIndex = " & MyLinkListIndex.ToString, LogType.LOG_TYPE_INFO)
-        If MyLinkListIndex = 0 Then Exit Function
-        Try
-            Dim TempIndex As Integer
-            For TempIndex = 0 To MyLinkListIndex - 1
-                If MyPlayerUDNArray(TempIndex) = PlayerUDN Then
-                    ' the Index is already stored
-                    Return True
-                End If
-            Next
-        Catch ex As Exception
-            If g_bDebug Then Log("Error in SavedPlayerList.IsAlreadyStored with PlayerUDN = " & PlayerUDN & " and MyLinkListIndex = " & MyLinkListIndex.ToString & " and Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
-        End Try
-        If g_bDebug Then Log("SavedPlayerList.IsAlreadyStored for PlayerUDN = " & PlayerUDN & " didn't find anything stored", LogType.LOG_TYPE_INFO)
-    End Function
-
-    Public Function GetLastUDN() As String   ' note this procedure also removes the last player info
-        If g_bDebug Then Log("SavedPlayerList.GetLastIndex called" & " and MyLinkListIndex = " & MyLinkListIndex.ToString, LogType.LOG_TYPE_INFO)
-        GetLastUDN = ""
-        If MyLinkListIndex = 0 Then Exit Function
-        GetLastUDN = MyPlayerUDNArray(MyLinkListIndex - 1)
-        MyLinkListIndex = MyLinkListIndex - 1
-        If MyLinkListIndex <= 0 Then
-            FlushInfo()
-        Else
-            ReDim Preserve MyPlayerUDNArray(MyLinkListIndex)
-        End If
-        If g_bDebug Then Log("SavedPlayerList.GetLastIndex called and returned UDN = " & GetLastUDN, LogType.LOG_TYPE_INFO)
-    End Function
-End Class
-
-<Serializable()> _
-Public Class LinkGroupInfo
-    Public MyLinkGroupName As String = ""
-    Public MySavedPlayerList As SavedPlayerList
-    Public Sub New()
-        MyBase.New()
-        MySavedPlayerList = New SavedPlayerList
-    End Sub
-    Public Sub FlushInfo()
-        MySavedPlayerList = Nothing
-    End Sub
-End Class
-
-<Serializable()> _
-Public Class LinkGroupInfoArray
-    Public MyLinkListIndex As Integer = 0
-    Public MyLinkGroupInfoArray()
-
-    Public Sub New()
-        MyBase.New()
-        MyLinkListIndex = 0
-        MyLinkGroupInfoArray = Nothing
-    End Sub
-
-    Public Sub FlushInfo()
-        Dim TempIndex As Integer
-        For TempIndex = 0 To MyLinkListIndex - 1
-            MyLinkGroupInfoArray(TempIndex).flushinfo()
-            MyLinkGroupInfoArray(TempIndex) = Nothing
-        Next
-        MyLinkListIndex = 0
-        Erase MyLinkGroupInfoArray
-    End Sub
-
-    Public Function AddLinkGroupInfo(ByVal LinkgroupName As String) As LinkGroupInfo
-        If g_bDebug Then Log("AddLinkGroupInfo called with LinkgroupName = " & LinkgroupName, LogType.LOG_TYPE_INFO)
-        AddLinkGroupInfo = Nothing
-        Dim TempIndex As Integer
-        If MyLinkListIndex = 0 Then
-            ReDim Preserve MyLinkGroupInfoArray(MyLinkListIndex)
-            MyLinkGroupInfoArray(MyLinkListIndex) = New LinkGroupInfo
-            MyLinkGroupInfoArray(MyLinkListIndex).MyLinkgroupName = LinkgroupName
-            AddLinkGroupInfo = MyLinkGroupInfoArray(MyLinkListIndex)
-            MyLinkListIndex = MyLinkListIndex + 1
-        Else
-            For TempIndex = 0 To MyLinkListIndex - 1
-                If MyLinkGroupInfoArray(TempIndex).MyLinkgroupName = LinkgroupName Then
-                    AddLinkGroupInfo = MyLinkGroupInfoArray(TempIndex)
-                    Exit Function
-                End If
-            Next
-            ' the Index doesn't exist store it
-            ReDim Preserve MyLinkGroupInfoArray(MyLinkListIndex)
-            MyLinkGroupInfoArray(MyLinkListIndex) = New LinkGroupInfo
-            MyLinkGroupInfoArray(MyLinkListIndex).MyLinkgroupName = LinkgroupName
-            AddLinkGroupInfo = MyLinkGroupInfoArray(MyLinkListIndex)
-            MyLinkListIndex = MyLinkListIndex + 1
-        End If
-        If g_bDebug Then Log("AddLinkGroupInfo done for LinkgroupName = " & LinkgroupName & ". LinkListIndex = " & MyLinkListIndex, LogType.LOG_TYPE_INFO)
-    End Function
-
-    Public Function GetLinkGroupInfo(ByVal LinkgroupName As String) As LinkGroupInfo
-        If SuperDebug Then Log("GetLinkGroupInfo called with LinkgroupName = " & LinkgroupName, LogType.LOG_TYPE_INFO)
-        GetLinkGroupInfo = Nothing
-        If MyLinkListIndex <> 0 Then
-            Dim TempIndex As Integer
-            For TempIndex = 0 To MyLinkListIndex - 1
-                If MyLinkGroupInfoArray(TempIndex).MyLinkgroupName = LinkgroupName Then
-                    GetLinkGroupInfo = MyLinkGroupInfoArray(TempIndex)
-                    Exit Function
-                End If
-            Next
-        End If
-        ' entry did not exist, add it
-        GetLinkGroupInfo = AddLinkGroupInfo(LinkgroupName)
-    End Function
-
-
-
-End Class
-
-
-Module HS_GLOBAL_VARIABLES
-
-    ' interface status
-    ' for InterfaceStatus function call
-    Public Const ERR_NONE = 0
-    Public Const ERR_SEND = 1
-    Public Const ERR_INIT = 2
-
-    ' Master State Pairs
-    Public Const msDisconnected = 100
-    Public Const msConnected = 101
-    Public Const msBuildingDB = 102
-    Public Const msInitializing = 103
-    Public Const msPauseAll = 1000
-    Public Const msPlayAll = 1001
-    Public Const msMuteAll = 1002
-    Public Const msUnmuteAll = 1003
-    Public Const msBuildDB = 1004
-
-    ' Player State Pairs
-    Public Const psStopped = 2
-    Public Const psPaused = 3
-    Public Const psPlaying = 1
-    Public Const psPlay = 1001
-    Public Const psStop = 1002
-    Public Const psPause = 1003
-    Public Const psNext = 1004
-    Public Const psPrevious = 1005
-    Public Const psBuildiPodDB = 1006
-    Public Const psShuffle = 1007
-    Public Const psRepeat = 1008
-    Public Const psVolUp = 1009
-    Public Const psVolDown = 1010
-    Public Const psMute = 1011
-    Public Const psBalanceLeft = 1012
-    Public Const psBalanceRight = 1013
-    Public Const psLoudness = 1014
-    Public Const psVolSlider = 15
-    Public Const psBalanceSlider = 200
-    Public Const psPlayPause = 1015
-
-    ' MuteState Pairs
-    Public Const msMuted = 1001
-    Public Const msUnmuted = 1000
-
-    ' ShuffleState Pairs
-    Public Const ssShuffled = 1001
-    Public Const ssNoShuffle = 1000
-
-    ' RepeatState Pairs
-    Public Const rsRepeat = 1001
-    Public Const rsnoRepeat = 1000
-
-    ' Down - Slider - Up pairs
-    Public Const vpDown = 1000
-    Public Const vpSlider = 1
-    Public Const vpUp = 1001
-    Public Const vpMidPoint = 300
-
-    ' Toggle pairs
-    Public Const tpOff = 1000
-    Public Const tpOn = 1001
-    Public Const tpToggle = 1002
-
-    Public Const lsLoudnessOff = 1000
-    Public Const lsLoudnessOn = 1001
-    ' Define Trigger/Actions Variables
-    '
-    Public gTriggerNames(2) As String
-    Public gTriggerActions(1) As String
-
-    '
-    ' Declare Global Variables
-    '
-
-    Public hs As HomeSeerAPI.IHSApplication
-    Public callback As HomeSeerAPI.IAppCallbackAPI
-    Public InterfaceVersion As Integer
-    Public bShutDown As Boolean = False
-    Public MyShutDownRequest As Boolean = False
-
-    'Public instance As String = ""                             ' set when SupportMultipleInstances is TRUE
-    Public g_bDebug As Boolean = True
-    Public gLogErrorsOnly As Boolean = False
-    Public gLogToDisk As Boolean = False
-    Public gHSInitialized As Boolean = False
-    Public SuperDebug As Boolean = False
-    Public ImRunningOnLinux As Boolean = False
-    Public HSisRunningOnLinux As Boolean = False
-    Public gInterfaceStatus As Integer = ERR_INIT           ' Interface status
-    Public PlugInIPAddress As String = ""
-    Public PluginIPPort As String = ""
-    Public ImRunningLocal As Boolean = True
-
-    Public MasterHSDeviceRef As Integer = -1
-    Public gIOEnabled As Boolean = False                    ' IO interface enabled
-    Public MyPIisInitialized As Boolean = False
-
-    Public IFACE_NAME As String = "Sonos"                   ' This is the plugin's name
-    Public tIFACE_NAME As String = "Sonos"
-    Public sIFACE_NAME As String = "Sonos" '"SONOSCONTROLLER"
-    Public ShortIfaceName As String = "Sonos"
-    Public MyINIFile As String = tIFACE_NAME & ".ini"    ' Configuration File
-
-    ' File Path Name definitions. May be overwritten in InitIO
-    Public CurrentAppPath As String = ""
-    Public MusicDBPath As String = "/html/" & tIFACE_NAME & "/MusicDB/SonosDB.sdb"
-    Public RadioStationsDBPath As String = "/html/" & tIFACE_NAME & "/MusicDB/SonosRadioStationsDB.sdb"
-    Public DockedPlayersDBPath As String = "/html/" & tIFACE_NAME & "/MusicDB/"
-    Public FileArtWorkPath As String = tIFACE_NAME & "\Artwork\"
-    Public DebugLogFileName As String = "/" & tIFACE_NAME & "/Logs/SonosDebug.txt"
-    Public Const DBConnectionString As String = "Data Source=" ' 
-
-    ' URLs
-    Public AnnouncementPath As String = "\" & tIFACE_NAME & "\Announcements\"
-    Public AnnouncementURL As String = "/" & tIFACE_NAME & "/Announcements/"
-    Public ImagesPath As String = "/images/" & sIFACE_NAME & "/"
-    Public URLImagesPath As String = "/images/" & sIFACE_NAME & "/"
-    Public NoArtPath As String = "/images/" & sIFACE_NAME & "/NoArt.png" ' this is based on \html\Sonos\Images
-    Public ArtWorkPath As String = "/images/" & tIFACE_NAME & "/Artwork/"
-    Public URLArtWorkPath As String = "/images/" & tIFACE_NAME & "/Artwork/"  '"/" & tIFACE_NAME & "/Artwork/"  
-
-
-    Public WithEvents MyZonePlayer As HSPI
-    Public RenderingInfo, ContentInfo As String
-
-    Public Const cMaxNbrOfUPNP = 400
-    Public MaxNbrOfUPNPObjects As Integer = cMaxNbrOfUPNP
-
-    Public SonosSettingsHaveChanged As Boolean = False
-    Public WirelessSettingsHaveChanged As Boolean = False
-
-    Public MusicDBIsBeingEstablished As Boolean = False
-
-    Public MyMusicDBItems As New MusicDBItems
-    Public VolumeStep As Integer = 5
-    Public Const cArtworkSize = 150
-    Public ArtworkHSize As Integer = 0
-    Public ArtworkVSize As Integer = 0
-    Public AutoBuildDockedDB As Boolean = False
-    Public NbrOfPingRetries As Integer = 3
-    Public ShowFailedPings As Boolean = False
-    Public MyMaxAnnouncementTime As Integer = 100
-    Public MyNoPingingFlag As Boolean = False
-
-    Public LearnRadioStations As Boolean = False
-    Public Const ConfigPage = "SonosConfig"
-    Public Const PlayerControlPage = "PlayerControl"
-    Public Const UPnPViewPage As String = "SonosViewer"
-
-    ' Part of the UPNP stuff
-    Public TCPListenerPort As Integer = 0 '12291
-    Public UPnPSubscribeTimeOut As Integer = 1800
-    Public MySSDPDevice As MySSDP
-    Public Const LoopBackIPv4Address As String = "127.0.0.1"
-    Public Const AnyIPv4Address As String = "0.0.0.0"
-
-    Public UPnPDebuglevel As DebugLevel = DebugLevel.dlOff
-
-    Public AnnouncementLink As AnnouncementItems = Nothing
-    Public AnnouncementsInQueue As Boolean = False
-    Public AnnouncementInProgress As Boolean = False
-    Public AnnouncementReEntry As Boolean = False
-    Public MyAnnouncementCountdown As Integer = 100
-    Public MyAnnouncementIndex As Integer = 0
-    Public LastStoredQueueID As String = ""
-    Public AnnouncementTitle As String = "HomeSeer Announcement"
-    Public AnnouncementAuthor As String = "Dirk Corsus"
-    Public AnnouncementAlbum As String = "SonosController"
-    Public ResendPlay As Integer = 0
-    Public MyAnnouncementWaitToSendPlay As Integer = 0
-    Public MyAnnouncementWaitBetweenPlayers As Integer = 0
-
-    Public MyHSTrackLengthFormat As HSSTrackPositionSettings = HSSTrackPositionSettings.TPSSeconds
-    Public MyHSTrackPositionFormat As HSSTrackPositionSettings = HSSTrackPositionSettings.TPSSeconds
-
-    Public PreviousVersion As Integer = 0
-    Public Const CurrentVersion As Integer = 1
-
-    Public Enum player_status_change
-        SongChanged = 1         'raises whenever the current song changes
-        PlayStatusChanged = 2   'raises when pause, stop, play, etc. pressed.
-        PlayList = 3            'raises whenever the current playlist changes
-        Library = 4             'raises when the library changes
-    End Enum
-
-    Public Enum player_state_values
-        playing = 1
-        stopped = 2
-        paused = 3
-        forwarding = 4
-        rewinding = 5
-        UpdateHSServerOnly = 17
-    End Enum
-
-    Public Enum SonosHSDevices
-        Player = 0
-        Status = 1
-        Control = 2
-        Repeat = 3
-        Shuffle = 4
-        Volume = 5
-        Balance = 6
-        Mute = 7
-        Loudness = 8
-        Tittle = 9
-        NexTittle = 10
-        Artist = 11
-        NextArtist = 12
-        Album = 13
-        NextAlbum = 14
-        Art = 15
-        NextArt = 16
-        TrackLength = 17
-        TrackPosition = 18
-        RadioStationName = 19
-        TrackDescriptor = 20
-        Genre = 21
-        TrackDate = 22
-        Master = 23
-        RootDevice = 24
-    End Enum
-
-    Public Enum repeat_modes
-        repeat_off = 0
-        repeat_one = 1
-        repeat_all = 2
-    End Enum
-
-    Public Enum player_selections
-        Playlist_Track = 0
-        Artist_Album_Track = 1
-        Artist_Track = 2
-        Album_Track = 3
-        Playlist = 4
-        Artist_Album = 5
-        Album = 6
-        Artist = 7
-        Genre = 8
-        audiobook = 9
-        podcast = 10
-        LineInput = 11
-    End Enum
-
-    Public Enum AnnouncementState
-        asIdle = 0
-        asLinking = 1
-        asLinked = 2
-        asSpeaking = 3
-        asFilePlayed = 4
-        asUnlinking = 5
-    End Enum
-
-    <Serializable()> _
-    Public Class MusicDBItems
-        Public Sub New()
-            MyBase.New()
-        End Sub
-        Public Genres As Boolean = True
-        Public Tracks As Boolean = True
-        Public Artists As Boolean = True
-        Public Albums As Boolean = True
-        Public Playlists As Boolean = True
-        Public Radiostations As Boolean = True
-        Public Audiobooks As Boolean = True
-        Public Podcasts As Boolean = True
-    End Class
-
-    <Serializable()> _
-    Public Class AnnouncementItems
-        Public Sub New()
-            MyBase.New()
-        End Sub
-        Public LinkGroupName As String = ""
-        Public device As Short = 0
-        Public text As String = ""
-        Public host As String = ""
-        Public IsFile As Boolean = False
-        Public State_ As AnnouncementState = AnnouncementState.asIdle
-        Public Next_ As Object = Nothing
-        Public Previous_ As Object = Nothing
-        Public SourceZoneMusicAPI As HSPI = Nothing
-        Public DelayinSec As Integer = 0
-        Public AbsoluteTime As DateTime
-    End Class
-
-
-    <Serializable()> Public Structure IPAddressInfo
-        Public IPAddress As String
-        Public IPPort As String
-    End Structure
-
-    <Serializable()> Public Class PingArrayElement
-        Public IPAddress As String
-        Public Status As String
-        Public FailedPingCount As Integer
-        Public ClientNameList As String()
-    End Class
-
-
-    Public Enum DebugLevel
-        dlOff = 0
-        dlErrorsOnly = 1
-        dlEvents = 2
-        dlVerbose = 3
-    End Enum
-
-    Public Enum ManagePingActions
-        mpAdd
-        mpRemove
-        mpTimeOut
-        mpStatus
-    End Enum
-
-    Public Enum QueueActions
-        qaDontPlay
-        qaPlayLast
-        qaPlayNext
-        qaPlayNow
-    End Enum
-
-    Public Enum DeviceInfoIndex
-        diGivenName = 0
-        diUDN = 1
-        diDeviceModelName = 2
-        diDeviceType = 3
-        diFriendlyName = 4
-        diIPAddress = 5
-        diIPPort = 6
-        diMusicAPIIndex = 7
-        diAdminState = 8
-        diDeviceIsAdded = 9
-        diHSDeviceCode = 10
-        diDeviceAPIIndex = 11
-        diTimeBetweenPictures = 12
-        diArtistObjectID = 13
-        diAlbumObjectID = 14
-        diTrackObjectID = 15
-        diGenreObjectID = 16
-        diPlayListObjectID = 17
-        diPollTransportChanges = 18
-        diRepeat = 19
-        diShuffle = 20
-        diServerUDN = 21
-        diSystemUpdateID = 22
-        diPictureSize = 23
-        diPollVolumeChanges = 24
-        diRemoteControl = 25
-        diRegistered = 26
-        diRemoteType = 27
-        diNextAV = 28
-        diUseNextAV = 29
-        diAnnouncementMP3 = 30
-        diMusicObjectID = 31
-        diPhotosObjectID = 32
-        diVideosObjectID = 33
-        diSystemUpdateIDAtDBCreation = 34
-        diMACAddress = 35
-        ' these are for HS3
-        diTrackHSRef = 36
-        diNextTrackHSRef = 37
-        diArtistHSRef = 38
-        diNextArtistHSRef = 39
-        diAlbumHSRef = 40
-        diNextAlbumHSRef = 41
-        diArtHSRef = 42
-        diNextArtHSRef = 43
-        diPlayStateHSRef = 44
-        diVolumeHSRef = 45
-        diMuteHSRef = 46
-        diLoudnessHSRef = 47
-        diBalanceHSRef = 48
-        diTrackLengthHSRef = 49
-        diTrackPosHSRef = 50
-        diRadiostationNameHSRef = 51
-        diTrackDescrHSRef = 52
-        diRepeatHSRef = 53
-        diShuffleHSRef = 54
-        diPlayerHSRef = 55
-        diGenreHSRef = 56
-        ' These specific for Sonos
-        diSonosPlayerType = 57
-        diSonosReplicationInfo = 58
-        diDeviceIConURL = 59
-        diRoomIcon = 60
-        diDockDeviceNameHSRef = 61
-        diArtFileIndex = 62
-        diNextArtFileIndex = 63
-    End Enum
-
-    Public Enum PostAnnouncementAction
-        paaAlwaysForward = 0
-        paaForwardNoMatch = 1
-        paaAlwaysDrop = 2
-    End Enum
-
-    Public Enum HSSTrackLengthSettings
-        TLSSeconds = 0
-        TLSHoursMinutesSeconds = 1
-    End Enum
-
-    Public Enum HSSTrackPositionSettings
-        TPSSeconds = 0
-        TPSHoursMinutesSeconds = 1
-        TPSPercentage = 2
-    End Enum
-End Module

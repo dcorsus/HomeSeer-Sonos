@@ -1,5 +1,9 @@
 http://192.168.1.181:1400/support/aggregate
 \http://192.168.1.124:1400/status
 http://192.168.1.124:1400/support/review
-
+:1400/customsd.htm
+:1400/tools
+:1400/wifictrl?wifi=off
+:1400/wifictrl?wifi=persist-off
+:1400/wifictrl?wifi=on
 

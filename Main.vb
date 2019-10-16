@@ -31,10 +31,10 @@ Module Main
     End Class
 
     Public Function AddInstance(InstanceName As String) As HSPI
-        If g_bDebug Then Log("AddInstance called with InstanceName = " & InstanceName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddInstance called with InstanceName = " & InstanceName, LogType.LOG_TYPE_INFO)
         AddInstance = Nothing
         If AllInstances.Contains(InstanceName) Then
-            If g_bDebug Then Log("Warning AddInstance called with InstanceName = " & InstanceName & " but instance already exists", LogType.LOG_TYPE_WARNING)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning AddInstance called with InstanceName = " & InstanceName & " but instance already exists", LogType.LOG_TYPE_WARNING)
             Exit Function
         End If
         Dim PlugAPI As HSPI = New HSPI
@@ -68,7 +68,7 @@ Module Main
             ih.host = lhost
             ih.hspi = PlugAPI
             AllInstances.Add(InstanceName, ih)
-            If g_bDebug Then Log("AddInstance successfully added InstanceName = " & InstanceName & ", Count = " & AllInstances.Count.ToString & ", Capacity = " & AllInstances.Capacity.ToString, LogType.LOG_TYPE_INFO)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("AddInstance successfully added InstanceName = " & InstanceName & ", Count = " & AllInstances.Count.ToString & ", Capacity = " & AllInstances.Capacity.ToString, LogType.LOG_TYPE_INFO)
         Catch ex As Exception
             PlugAPI.DestroyPlayer(True)
             PlugAPI = Nothing
@@ -79,7 +79,7 @@ Module Main
 
 
     Public Function RemoveInstance(InstanceName As String) As String
-        If g_bDebug Then Log("RemoveInstance called with InstanceName = " & InstanceName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("RemoveInstance called with InstanceName = " & InstanceName, LogType.LOG_TYPE_INFO)
         If Not AllInstances.Contains(InstanceName) Then
             Return "Instance does not exist"
         End If
@@ -99,7 +99,7 @@ Module Main
                 End If
             Next
         Catch ex As Exception
-            If g_bDebug Then Log("Error in RemoveInstance for InstanceName = " & InstanceName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in RemoveInstance for InstanceName = " & InstanceName & " with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             Return "Error removing instance: " & ex.Message
         End Try
         Return ""
@@ -123,21 +123,21 @@ Module Main
                     Try
                         MainInstance = parts(1)
                     Catch ex As Exception
-                        Maininstance = ""
+                        MainInstance = ""
                     End Try
             End Select
         Next
 
-        gAppAPI = New hspi
+        gAppAPI = New HSPI
 
-        Console.WriteLine("Connecting to server at " & sIp & " with Instance = '" & Maininstance & "' ...")
+        Console.WriteLine("Connecting to server at " & sIp & " with Instance = '" & MainInstance & "' ...")
         client = ScsServiceClientBuilder.CreateClient(Of IHSApplication)(New ScsTcpEndPoint(sIp, 10400), gAppAPI)
         clientCallback = ScsServiceClientBuilder.CreateClient(Of IAppCallbackAPI)(New ScsTcpEndPoint(sIp, 10400), gAppAPI)
 
         ' My code
 
-        If Maininstance <> "" Then
-            tIFACE_NAME = tIFACE_NAME & "_" & Maininstance.ToString
+        If MainInstance <> "" Then
+            tIFACE_NAME = tIFACE_NAME & "_" & MainInstance.ToString
             MusicDBPath = "/html/" & tIFACE_NAME & "/MusicDB/SonosDB.sdb"
             RadioStationsDBPath = "/html/" & tIFACE_NAME & "/MusicDB/SonosRadioStationsDB.sdb"
             DockedPlayersDBPath = "/html/" & tIFACE_NAME & "/MusicDB/"
@@ -185,7 +185,7 @@ TryAgain:
 
         Try
             ' connect to HS so it can register a callback to us
-            host.Connect(sIFACE_NAME, Maininstance)
+            host.Connect(sIFACE_NAME, MainInstance)
 
             ' create the user object that is the real plugin, accessed from the pluginAPI wrapper
             callback = callback
@@ -239,7 +239,7 @@ TryAgain:
 
 
     Private Sub wait(ByVal secs As Integer)
-        'If g_bDebug Then Log("Wait in Main called with Wait = " & secs.ToString, LogType.LOG_TYPE_INFO) causes and error as HS has already disconnected
+        'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Wait in Main called with Wait = " & secs.ToString, LogType.LOG_TYPE_INFO) causes and error as HS has already disconnected
         Threading.Thread.Sleep(secs * 1000)
     End Sub
 
