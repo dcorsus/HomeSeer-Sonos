@@ -4275,6 +4275,7 @@ Public Class HSPI
         Dim ZoneInfo As String(,) = Nothing
         Dim SonosPlayer As HSPI
         Dim NewStart As Boolean = GetBooleanIniFile("Options", "RefreshDevices", False)
+        TCPListenerPort = GetIntegerIniFile("Options", "TCPListenerPort", 0)
 
         If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Initializing Sonos Devices", LogType.LOG_TYPE_INFO)
         '
@@ -4383,7 +4384,7 @@ Public Class HSPI
             Log("Error in InitializeSonosDevices writing PreviousVersion with error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
 
-        WriteBooleanIniFile("Options", "RefreshDevices", False)
+        WriteBooleanIniFile("Options", "RefreshDevices", False) ' just in case this flag was set
         SetDeviceStringConnected()
         SonosPlayer = Nothing
 
