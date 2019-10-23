@@ -2928,9 +2928,10 @@ Public Class HSPI
         Dim ZoneInfo() As PlayerRecord
         ReDim ZoneInfo(0)
         If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("FindZonePlayers: Attempting to locate all connected ZonePlayers. This may take up to 9 seconds.", LogType.LOG_TYPE_INFO)
+        Dim discoveryPort As Integer = GetIntegerIniFile("Options", "SSDPListenerPort", 1901)  ' added 10/20/2019 in v.39
 
         Dim MyDevicesLinkedList As MyUPnPDevices = Nothing
-        MyDevicesLinkedList = MySSDPDevice.StartSSDPDiscovery("urn:schemas-upnp-org:device:ZonePlayer:1") '("upnp:rootdevice") ' MySSDPDevice.StartSSDPDiscovery("urn:schemas-upnp-org:device:ZonePlayer:1")
+        MyDevicesLinkedList = MySSDPDevice.StartSSDPDiscovery("urn:schemas-upnp-org:device:ZonePlayer:1", discoveryPort) ' ' changed 10/20/2019 in v.39
 
         If MyDevicesLinkedList Is Nothing Then
             Log("No UPnPDevices found. Please ensure the network is functional and that UPnPDevices devices are attached.", LogType.LOG_TYPE_WARNING)
@@ -2943,7 +2944,7 @@ Public Class HSPI
 
         Dim DeviceCount As Integer = 0
         Try
-            If (Not MyDevicesLinkedList Is Nothing) And MyDevicesLinkedList.Count > 0 Then
+            If (Not MyDevicesLinkedList Is Nothing) AndAlso MyDevicesLinkedList.Count > 0 Then  ' changed 10/21/2019 to prevent exception when no devices were found
                 Index = 0
                 For Each Device As MyUPnPDevice In MyDevicesLinkedList
                     If Mid(Device.UniqueDeviceName, 1, 12) = "uuid:RINCON_" And Device.ModelNumber <> "ZB100" And Device.ModelNumber <> "BR200" Then
@@ -2984,20 +2985,20 @@ Public Class HSPI
             ZoneInfo = Nothing
             If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("FindZonePlayers - Discovery succeeded: " & ZoneCount.ToString & " ZonePlayer(s) found.", LogType.LOG_TYPE_INFO)
             Try
-                RemoveHandler MySSDPDevice.NewDeviceFound, AddressOf NewDeviceFound
+                If MySSDPDevice IsNot Nothing Then RemoveHandler MySSDPDevice.NewDeviceFound, AddressOf NewDeviceFound
             Catch ex As Exception
             End Try
             Try
-                RemoveHandler MySSDPDevice.MCastDiedEvent, AddressOf MultiCastDiedEvent
+                If MySSDPDevice IsNot Nothing Then RemoveHandler MySSDPDevice.MCastDiedEvent, AddressOf MultiCastDiedEvent
             Catch ex As Exception
             End Try
             Try
-                AddHandler MySSDPDevice.NewDeviceFound, AddressOf NewDeviceFound
+                If MySSDPDevice IsNot Nothing Then AddHandler MySSDPDevice.NewDeviceFound, AddressOf NewDeviceFound
             Catch ex As Exception
                 Log("ERROR in FindZonePlayers trying to add a NewDeviceFound Handler with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
             Try
-                AddHandler MySSDPDevice.MCastDiedEvent, AddressOf MultiCastDiedEvent
+                If MySSDPDevice IsNot Nothing Then AddHandler MySSDPDevice.MCastDiedEvent, AddressOf MultiCastDiedEvent
             Catch ex As Exception
                 Log("ERROR in FindZonePlayers trying to add a MulticastDied Event Handler with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
             End Try
