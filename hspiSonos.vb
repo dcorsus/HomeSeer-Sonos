@@ -2928,7 +2928,7 @@ Public Class HSPI
         Dim ZoneInfo() As PlayerRecord
         ReDim ZoneInfo(0)
         If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("FindZonePlayers: Attempting to locate all connected ZonePlayers. This may take up to 9 seconds.", LogType.LOG_TYPE_INFO)
-        Dim discoveryPort As Integer = GetIntegerIniFile("Options", "SSDPListenerPort", 1901)  ' added 10/20/2019 in v.39
+        Dim discoveryPort As Integer = GetIntegerIniFile("Options", "SSDPListenerPort", 0)  ' added 10/20/2019 in v.39
 
         Dim MyDevicesLinkedList As MyUPnPDevices = Nothing
         MyDevicesLinkedList = MySSDPDevice.StartSSDPDiscovery("urn:schemas-upnp-org:device:ZonePlayer:1", discoveryPort) ' ' changed 10/20/2019 in v.39
@@ -4428,7 +4428,7 @@ Public Class HSPI
     Public Sub DoRediscover()
 
         If piDebuglevel > DebugLevel.dlEvents Then Log("DoRediscover called", LogType.LOG_TYPE_INFO)
-
+        'MySSDPDevice.SendMSearch()
         Try
             Dim AllDevices As MyUPnPDevices = MySSDPDevice.GetAllDevices()
             If Not AllDevices Is Nothing And AllDevices.Count > 0 Then
