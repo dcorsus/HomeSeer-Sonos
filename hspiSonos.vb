@@ -172,10 +172,6 @@ Public Class HSPI
     End Property
 
     Public Function Capabilities() As Integer Implements HomeSeerAPI.IPlugInAPI.Capabilities
-        If gInterfaceStatus = ERR_NONE Then '  ' 	generate some event from all players to get ipad/iphone clients updated when they come back on-line
-            ' tobe fixed dcor
-            'CapabilitiesCalledFlag = True      ' the time procedure will pick up on this flag, send the events and reset the flag
-        End If
         If instance <> "" And (GetStringIniFile(UDN, DeviceInfoIndex.diSonosPlayerType.ToString, "").ToUpper <> "SUB") And GetBooleanIniFile("Options", "MediaAPIEnabled", False) Then
             If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Capabilities called for Instance = " & instance & " Capabilities are IO and Music", LogType.LOG_TYPE_INFO)
             Return HomeSeerAPI.Enums.eCapabilities.CA_IO + HomeSeerAPI.Enums.eCapabilities.CA_Music

@@ -260,7 +260,7 @@ Partial Public Class HSPI 'HSMusicAPI
             If MyUPnPDevice.Alive Then
                 If DeviceStatus = "Offline" Then
                     If piDebuglevel > DebugLevel.dlEvents Then Log("Reachable called for UPnPDevice " & ZoneName & " which is reachable on network. Attempting to reconnect", LogType.LOG_TYPE_INFO)
-                    Connect("uuid:" & UDN)
+                    'Connect("uuid:" & UDN) removed 11/11/2019 because it caused parallel connections
                 End If
                 Reachable = True
             End If
@@ -1141,11 +1141,6 @@ Partial Public Class HSPI 'HSMusicAPI
     End Sub
 
     Public Sub DeviceLostCallBack()
-        ' tobefixed dcor
-        'If DockedDeviceToFind = FindData Then
-        'DockedDeviceCallbackDeviceLost(FindData, bstrUDN)
-        'Exit Sub
-        'End If
         Try
             ' Device is Removed or Lost
             Log("ZonePlayer " & ZoneName & " has been disconnected from the network in DeviceLostCallBack.", LogType.LOG_TYPE_WARNING)
@@ -3484,7 +3479,7 @@ updateHSDevices:
     Private Sub RenderingControlDied() Handles myRenderingControlCallback.ControlDied
         Log("Rendering Control Callback Died. ZonePlayer - " & ZoneName, LogType.LOG_TYPE_INFO)
         Try
-            Log("UPnP connection to ZonePlayer " & ZoneName & " was lost in RenderingControlDied. Attempting to reconnect...", LogType.LOG_TYPE_INFO)
+            Log("UPnP connection to ZonePlayer " & ZoneName & " was lost in RenderingControlDied.", LogType.LOG_TYPE_INFO)
             Disconnect(False)
         Catch ex As Exception
             Log("Error in RenderingControlDied. This rendering didn't work too well for zoneplayer = " & ZoneName & ". Error =" & ex.Message, LogType.LOG_TYPE_ERROR)
@@ -4599,7 +4594,7 @@ updateHSDevices:
             CurrentURI = MediaInfo(gmiCurrentURI)
             If CurrentURI.ToString.IndexOf("x-rincon-queue:") <> -1 Then
                 PlayingFromQueue = True
-                If QueueAction = QueueActions.qaPlayNow Or QueueAction = QueueActions.qaDontPlay Then ' Means it goes to end of queue
+                If QueueAction <> QueueActions.qaPlayNext Then ' Means it goes to end of queue changed 10/28/2019 in v46
                     CurrentTrackIndexInQueue = MediaInfo(gmiNrTracks) + 1
                     TrackIndex = CurrentTrackIndexInQueue
                 End If
@@ -10389,24 +10384,33 @@ updateHSDevices:
         If DeviceStatus = "Offline" Then Exit Sub
         If AudioIn Is Nothing Then Exit Sub
         If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetAudioInputAttributes called for ZoneName " & ZoneName, LogType.LOG_TYPE_INFO)
-        wait(1)
+        Dim AudioInputName As String = ""
+        Dim repeatCounter As Integer = 0
+        While repeatCounter < 3 And AudioInputName = ""
+            Try
+                AudioInputName = AudioIn.QueryStateVariable("AudioInputName")
+                Exit While
+            Catch ex As Exception
+                ' perhaps the info isn't received yet
+                If piDebuglevel > DebugLevel.dlEvents Then Log("Error in GetAudioInputAttributes for zoneplayer = " & ZoneName & " when getting the AudioInputName with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+                wait(1)
+            End Try
+            repeatCounter += 1
+        End While
+        If ZoneModel = "WD100" Then MyDockediPodPlayerName = AudioInputName
+        Dim LineInConnected As String = ""
         Try
             'If ZoneModel = "WD100" Then
             ' we need to find out at start up whether something is docked. The Zone player doesn't fire off automatically
-            Dim AudioInputName
-            AudioInputName = AudioIn.QueryStateVariable("AudioInputName")
-            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetAudioInputAttributes for zoneplayer = " & ZoneName & " found AudioInputName = " & AudioInputName.ToString, LogType.LOG_TYPE_INFO)
-            If ZoneModel = "WD100" Then MyDockediPodPlayerName = AudioInputName
-            Dim LineInConnected As String
             LineInConnected = AudioIn.QueryStateVariable("LineInConnected")
-            If LineInConnected = "" Then LineInConnected = "False"
-            iPodDockChange(LineInConnected)
-            AudioInState(4) = LineInConnected
-            MyLineInputConnected = LineInConnected
-            'End If
         Catch ex As Exception
-            Log("Error in GetAudioInputAttributes for zoneplayer = " & ZoneName & " when getting the AudioInputName with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
+            If piDebuglevel > DebugLevel.dlEvents Then Log("Error in GetAudioInputAttributes for zoneplayer = " & ZoneName & " when getting the LineInConnected with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetAudioInputAttributes for zoneplayer = " & ZoneName & " found AudioInputName = " & AudioInputName.ToString & " and LineInConnected = " & LineInConnected, LogType.LOG_TYPE_INFO)
+        If LineInConnected = "" Then LineInConnected = "False"
+        iPodDockChange(LineInConnected)
+        AudioInState(4) = LineInConnected
+        MyLineInputConnected = LineInConnected
     End Sub
 
     Private Sub AddiPodPlayerNameToINIFile(ByVal iPodName As String)
