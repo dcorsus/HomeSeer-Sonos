@@ -4429,10 +4429,10 @@ Public Class HSPI
             Dim AllDevices As MyUPnPDevices = MySSDPDevice.GetAllDevices()
             If Not AllDevices Is Nothing And AllDevices.Count > 0 Then
                 For Each DLNADevice As MyUPnPDevice In AllDevices
+                    If piDebuglevel > DebugLevel.dlEvents Then Log("DoRediscover found UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_INFO) ' moved this here on 11/16/2019
                     If (DLNADevice.UniqueDeviceName <> "") And (DLNADevice.Location <> "") And DLNADevice.Alive Then
                         ' check whether this devices was known to us and on-line
                         ' go find it in the array
-                        If piDebuglevel > DebugLevel.dlEvents Then Log("DoRediscover found UDN = " & DLNADevice.UniqueDeviceName & ", with location = " & DLNADevice.Location & " and Alive = " & DLNADevice.Alive.ToString, LogType.LOG_TYPE_INFO)
                         Dim DLNADeviceInfo As MyUPnpDeviceInfo = Nothing
                         Dim NewUDN As String = Replace(DLNADevice.UniqueDeviceName, "uuid:", "")
                         DLNADeviceInfo = FindUPnPDeviceInfo(NewUDN)

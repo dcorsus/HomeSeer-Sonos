@@ -1,7 +1,4 @@
-﻿Imports Scheduler
-Imports System.Web.UI.WebControls
-Imports System.Web.UI
-Imports System.Text
+﻿Imports System.Text
 Imports System.Web
 
 Class SonosConfig
@@ -491,7 +488,11 @@ Class SonosConfig
                                     End If
                                 End If
                             End If
-                            stbPlayerTable.Append("<td>" & Alive & "</td>")
+                            If (Player.DeviceStatus.ToUpper = "ONLINE") Xor (Alive = "True") Then
+                                stbPlayerTable.Append("<td style='background-color:LightGray;color:red'>" & Alive & "</td>")    ' added 11/16/2019 this would mean PI and UPNP status is wrong
+                            Else
+                                stbPlayerTable.Append("<td style='background-color:LightGray;color:green'>" & Alive & "</td>")
+                            End If
                             stbPlayerTable.Append("<td>" & HSDevice.ZoneModel & "</td>")
                             stbPlayerTable.Append("<td>" & HSDevice.UPnPDeviceIPAddress & "</td>")
                             stbPlayerTable.Append("<td Align='middle'>" & BuildPlayerDeleteOverlay("Are you sure?", PlayerListTableRow.ToString) & "</td>")
