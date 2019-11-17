@@ -6960,7 +6960,7 @@ updateHSDevices:
         GetSoftwareVersion = 0
         If DeviceStatus = "Offline" Then Exit Function
         Dim InArg(0)
-        Dim OutArg(8)
+        Dim OutArg(9)
         Try
             DeviceProperties.InvokeAction("GetZoneInfo", InArg, OutArg)
             Dim SWVersionParts As String() = OutArg(2).ToString.Split(".")

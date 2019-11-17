@@ -4959,7 +4959,7 @@ Public Class HSPI
                 ' every 5 minutes I want to see if any zones got added
                 MyTimeoutActionArray(TORediscover) = MyTimeoutActionArray(TORediscover) - 1
                 If MyTimeoutActionArray(TORediscover) <= 0 Then
-                    If InitDeviceFlag Then DoRediscover() ' changed in v3.1.0.27 becauser discovery kicked in while still initializing
+                    If MyPIisInitialized Then DoRediscover() ' changed in v3.1.0.27 because discovery kicked in while still initializing, Changed again in v.50 on 11/16/2019 because using initdeviceflag is wrong
                     MyTimeoutActionArray(TORediscover) = TORediscoverValue
                 End If
             Case TOCheckChange
