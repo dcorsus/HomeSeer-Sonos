@@ -352,8 +352,8 @@ Public Class HSPI
             Try
                 If Not File.Exists(CurrentAppPath & "/Config/" & tIFACE_NAME & ".ini") Then
                     Try
-                        WriteBooleanIniFile("Options", "Debug", False)
-                        WriteBooleanIniFile("Options", "piDebuglevel > DebugLevel.dlEvents", False)
+                        WriteIntegerIniFile("Options", "piDebuglevel", DebugLevel.dlErrorsOnly) ' fixed error here where "piDebuglevel > DebugLevel.dlEvents=False" was written in V52
+                        WriteIntegerIniFile("Options", "UPnPDebugLevel", DebugLevel.dlErrorsOnly)
                     Catch ex As Exception
                         Log("Error in InitIO. Unable to create /Config/" & tIFACE_NAME & ".ini file with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
@@ -419,8 +419,8 @@ Public Class HSPI
             Try
                 If Not File.Exists(CurrentAppPath & "\Config\" & tIFACE_NAME & ".ini") Then
                     Try
-                        WriteBooleanIniFile("Options", "Debug", False)
-                        WriteBooleanIniFile("Options", "piDebuglevel > DebugLevel.dlEvents", False)
+                        'WriteBooleanIniFile("Options", "Debug", False)
+                        WriteBooleanIniFile("Options", "piDebuglevel", DebugLevel.dlErrorsOnly)
                     Catch ex As Exception
                         Log("Error in InitIO. Unable to create \Config\" & tIFACE_NAME & ".ini file with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
@@ -1321,6 +1321,7 @@ Public Class HSPI
                     Return stb.ToString
                 Case "Link"
                     Dim LinkPlayerList As New clsJQuery.jqSelector("LinkPlayerAction" & sUnique, ActionsPageName, True)
+                    LinkPlayerList.IncludeValues = True ' added 2/17/2020 in v.52 so we can have the value (UDN) returned. Name only gives issues with international characters
                     For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
                         If HSDevice.ZonePlayerControllerRef IsNot Nothing Then
                             ' special case, just find the first player with a reference
@@ -1338,6 +1339,7 @@ Public Class HSPI
                     Return stb.ToString
                 Case "AddGroup"
                     Dim LinkPlayerList As New clsJQuery.jqSelector("LinkPlayerAction" & sUnique, ActionsPageName, True)
+                    LinkPlayerList.IncludeValues = True ' added 2/17/2020 in v.52 so we can have the value (UDN) returned. Name only gives issues with international characters
                     For Each HSDevice As MyUPnpDeviceInfo In MyHSDeviceLinkedList
                         If HSDevice.ZonePlayerControllerRef IsNot Nothing Then
                             ' special case, just find the first player with a reference
@@ -1824,8 +1826,17 @@ Public Class HSPI
                         Dim PlayerNameString As String() = Split(parts(sKey), ",")
                         Dim PlayerUDNString As String = ""
                         For Each Playername In PlayerNameString
+                            ' changed on 2/17/2020 in v.52 we now set a flag to return the value, so we now have the UDN. This was an issue with the international characters set
+                            Dim playerParts As String() = Split(Playername, "|")
+                            ' the first part is the name and the second part is the UDN
                             If PlayerUDNString <> "" Then PlayerUDNString = PlayerUDNString & ","
-                            PlayerUDNString = PlayerUDNString & GetUDNbyZoneName(Playername)
+                            If UBound(playerParts) > 0 Then
+                                ' the UDN is there
+                                PlayerUDNString &= playerParts(1)
+                            Else
+                                ' the old way
+                                PlayerUDNString = PlayerUDNString & GetUDNbyZoneName(Playername)
+                            End If
                         Next
                         Action.Add(CObj(PlayerUDNString), sKey)
                     Case InStr(sKey, "AudioInputPlayerAction") > 0
@@ -5178,6 +5189,8 @@ Public Class HSPI
 
     Public Function GetUDNbyZoneName(ByVal inZoneName As String) As String
         GetUDNbyZoneName = ""
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("GetUDNbyZoneName called for for Zone Name = " & inZoneName, LogType.LOG_TYPE_INFO)
+
         If MyHSDeviceLinkedList.Count = 0 Then
             If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in GetUDNbyZoneName. ZonePlayer not found. inZoneName : " & inZoneName, LogType.LOG_TYPE_ERROR)
             Exit Function

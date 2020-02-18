@@ -488,7 +488,7 @@ Class SonosConfig
                                     End If
                                 End If
                             End If
-                            If (Player.DeviceStatus.ToUpper = "ONLINE") Xor (Alive = "True") Then
+                            If (Player IsNot Nothing) AndAlso (Player.DeviceStatus.ToUpper = "ONLINE") Xor (Alive = "True") Then
                                 stbPlayerTable.Append("<td style='background-color:LightGray;color:red'>" & Alive & "</td>")    ' added 11/16/2019 this would mean PI and UPNP status is wrong
                             Else
                                 stbPlayerTable.Append("<td style='background-color:LightGray;color:green'>" & Alive & "</td>")
