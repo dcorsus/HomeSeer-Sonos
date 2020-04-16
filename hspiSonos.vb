@@ -5603,7 +5603,7 @@ Public Class HSPI
                     ' this is an active zone
                     DestinationSonosPlayer = GetAPIByUDN(LinkgroupZoneDetail(0))
                     If DestinationSonosPlayer Is Nothing Then
-                        Log("Error in HandleLinkingOn for LinkgroupZoneDestination = " & LinkgroupZone & " not found", LogType.LOG_TYPE_ERROR)
+                        Log("Error in HandleLinkingOn for LinkgroupZoneDestination = " & LinkgroupZone & " not found while saving zones", LogType.LOG_TYPE_ERROR)
                     Else
                         If DestinationSonosPlayer.ZoneIsASlave Then
                             If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn detected PairedSlave = " & DestinationSonosPlayer.GetZoneName & " and UDN = " & DestinationSonosPlayer.GetUDN & " and will save the Master Only", LogType.LOG_TYPE_INFO)
@@ -5634,8 +5634,9 @@ Public Class HSPI
                             Log("Error in HandleLinkingOn getting Controller for LinkgroupZoneDestination = " & LinkgroupZone & " with error: " & ex.Message, LogType.LOG_TYPE_ERROR)
                             Log("DestinationZoneIndex = " & DestinationSonosPlayer.GetUDN, LogType.LOG_TYPE_ERROR)
                         End Try
+                        ' 4/15/2020 v.53 moved here else we cause exception which is not caught and caused doCheckAnnouncementqueue to hang
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn: Done Saving LinkgroupZoneDestination = " & DestinationSonosPlayer.GetZoneName, LogType.LOG_TYPE_INFO)
                     End If
-                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn: Done Saving LinkgroupZoneDestination = " & DestinationSonosPlayer.GetZoneName, LogType.LOG_TYPE_INFO)
                 End If
             End If
         Next
@@ -5681,7 +5682,7 @@ Public Class HSPI
                     If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn: Start LinkgroupZoneDestination = " & LinkgroupZoneDetail(0), LogType.LOG_TYPE_INFO)
                     DestinationSonosPlayer = GetAPIByUDN(LinkgroupZoneDetail(0))
                     If DestinationSonosPlayer Is Nothing Then
-                        Log("Error in HandleLinkingOn for LinkgroupZoneDestination = " & LinkgroupZoneDetail(0) & " not found", LogType.LOG_TYPE_ERROR)
+                        Log("Error in HandleLinkingOn for LinkgroupZoneDestination = " & LinkgroupZoneDetail(0) & " not found while linking", LogType.LOG_TYPE_ERROR)
                     Else
                         If DestinationSonosPlayer.ZoneIsASlave Then
                             If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn detected PairedSlave = " & DestinationSonosPlayer.GetZoneName & " and will switch to the Master", LogType.LOG_TYPE_INFO)
@@ -5743,8 +5744,9 @@ Public Class HSPI
                         Catch ex As Exception
                             Log("Error in HandleLinkingOn getting Controller for LinkgroupZoneDestination = " & DestinationSonosPlayer.GetZoneName & " with error: " & ex.Message, LogType.LOG_TYPE_ERROR)
                         End Try
+                        ' 4/15/2020 v.53 moved here else we cause exception which is not caught and caused doCheckAnnouncementqueue to hang                   
+                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn: Done LinkgroupZoneDestination = " & DestinationSonosPlayer.GetZoneName, LogType.LOG_TYPE_INFO)
                     End If
-                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("HandleLinkingOn: Done LinkgroupZoneDestination = " & DestinationSonosPlayer.GetZoneName, LogType.LOG_TYPE_INFO)
                 End If
             End If
         Next
@@ -5887,14 +5889,14 @@ Public Class HSPI
                                         If TempPlayer.ZoneIsASlave Then
                                             TempPlayer = MyHSPIControllerRef.GetAPIByUDN(TempPlayer.ZoneMasterUDN)
                                         End If
+                                        ' 4/15/2020 moved code here to avoid error when tempPlayer is not found v.53
+                                        If TempPlayer.GetUDN = TargetPlayer.GetUDN Then
+                                            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SaveLinkedPlayers found a match between announcement link group and Linkgroup with Linked Zone = " & TargetPlayer.GetZoneName & " and LinkgroupZone = " & TempPlayer.GetZoneName, LogType.LOG_TYPE_INFO)
+                                            ' found 
+                                            WasFound = True
+                                            Exit For
+                                        End If
                                     End If
-                                    If TempPlayer.GetUDN = TargetPlayer.GetUDN Then
-                                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("SaveLinkedPlayers found a match between announcement link group and Linkgroup with Linked Zone = " & TargetPlayer.GetZoneName & " and LinkgroupZone = " & TempPlayer.GetZoneName, LogType.LOG_TYPE_INFO)
-                                        ' found 
-                                        WasFound = True
-                                        Exit For
-                                    End If
-
                                 End If
                             End If
                         Next
@@ -5915,7 +5917,6 @@ Public Class HSPI
                             End Try
                         End If
                     End If
-
                 End If
             Next
         Catch ex As Exception
@@ -6078,9 +6079,9 @@ Public Class HSPI
     Private Sub DoCheckAnnouncementQueue()
 
         If Not AnnouncementsInQueue Then Exit Sub
-        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue called AnnouncementinQueue = " & AnnouncementsInQueue.ToString & " and AnnouncementInProgress = " & AnnouncementInProgress.ToString & " and AnnouncementCountdown = " & MyAnnouncementCountdown.ToString & " AnnouncementReEntry = " & AnnouncementReEntry.ToString, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue called AnnouncementinQueue = " & AnnouncementsInQueue.ToString & " and AnnouncementInProgress = " & AnnouncementInProgress.ToString & " and AnnouncementCountdown = " & MyAnnouncementCountdown.ToString & " announcementReEntryCounter = " & announcementReEntryCounter.ToString, LogType.LOG_TYPE_INFO)
 
-        If AnnouncementReEntry Then
+        If announcementReEntryCounter > 0 Then
             If piDebuglevel > DebugLevel.dlEvents Then
                 If AnnouncementLink IsNot Nothing Then
                     If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue called and cause re-entry. Announcement state = " & AnnouncementLink.State_.ToString, LogType.LOG_TYPE_WARNING)
@@ -6088,14 +6089,15 @@ Public Class HSPI
                     If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue called and cause re-entry. No Announcementlink ?", LogType.LOG_TYPE_WARNING)
                 End If
             End If
+            announcementReEntryCounter -= 1
             Exit Sub ' re-entry
         End If
-        AnnouncementReEntry = True
+        announcementReEntryCounter = 100
         If AnnouncementInProgress Then
             If Not AnnouncementLink Is Nothing Then
                 If AnnouncementLink.State_ = AnnouncementState.asLinking Then
                     ' this is re-entrance
-                    AnnouncementReEntry = False
+                    announcementReEntryCounter = 0
                     Exit Sub
                 End If
                 If AnnouncementLink.IsFile Then
@@ -6130,7 +6132,7 @@ Public Class HSPI
                                     End If
                                 End If
                             End If
-                            AnnouncementReEntry = False
+                            announcementReEntryCounter = 0
                             Exit Sub
                         End If
                     Else
@@ -6146,7 +6148,7 @@ Public Class HSPI
                 AnnouncementsInQueue = False
                 AnnouncementInProgress = False
                 MyAnnouncementIndex = 0
-                AnnouncementReEntry = False
+                announcementReEntryCounter = 0
                 Exit Sub
             End If
         End If
@@ -6154,11 +6156,11 @@ Public Class HSPI
 
         If AnnouncementLink Is Nothing Then
             ' this should not be
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue. No AnnouncementLink", LogType.LOG_TYPE_ERROR)
             AnnouncementsInQueue = False
             AnnouncementInProgress = False
             MyAnnouncementIndex = 0
-            AnnouncementReEntry = False
-            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue. No AnnouncementLink", LogType.LOG_TYPE_ERROR)
+            announcementReEntryCounter = 0
             Exit Sub
         End If
         If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue called for linkgroup " & AnnouncementLink.LinkGroupName & " and State = " & AnnouncementLink.State_.ToString & " and isFile = " & AnnouncementLink.IsFile.ToString, LogType.LOG_TYPE_INFO)
@@ -6194,8 +6196,8 @@ Public Class HSPI
             AnnouncementItem.State_ = AnnouncementState.asLinked
         ElseIf AnnouncementItem.State_ = AnnouncementState.asLinking Then
             ' this is re-entrance
-            AnnouncementReEntry = False
             If piDebuglevel > DebugLevel.dlEvents Then Log("DoCheckAnnouncementQueue is waiting in Linking state and existing procedure", LogType.LOG_TYPE_INFO)
+            announcementReEntryCounter = 0
             Exit Sub
         End If
         Dim StartQueueIndex As Integer = MyAnnouncementIndex + 1
@@ -6243,7 +6245,7 @@ Public Class HSPI
                             If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue in SpeakToFile copying file = " & TextString & " to " & Path & FileName & " with error " & ex.Message, LogType.LOG_TYPE_ERROR)
                             AnnouncementInProgress = False
                             AnnouncementItem.State_ = AnnouncementState.asFilePlayed
-                            AnnouncementReEntry = False
+                            announcementReEntryCounter = 0
                             Exit Sub
                         End Try
                     Else
@@ -6264,7 +6266,7 @@ Public Class HSPI
                             Log("Error in DoCheckAnnouncementQueue called SpeakToFile unsuccessfully with Text " & TextString & " and File " & Path & FileName & " and error " & ex.Message, LogType.LOG_TYPE_ERROR)
                             ' added 9/4/2019 because when failing, it will take forever to timeout
                             AnnouncementItem.State_ = AnnouncementState.asFilePlayed
-                            AnnouncementReEntry = False
+                            announcementReEntryCounter = 0
                             Exit Sub
                         End Try
                     End If
@@ -6337,13 +6339,13 @@ Public Class HSPI
                                 If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue when calling PlayURI with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                                 ' added 9/4/2019 because when failing, it will take forever to timeout
                                 AnnouncementItem.State_ = AnnouncementState.asFilePlayed
-                                AnnouncementReEntry = False
+                                announcementReEntryCounter = 0
                                 Exit Sub
                             End Try
                             MyAnnouncementIndex = MyAnnouncementIndex + 1
                             'wait(1) ' this is to make sure the playerstate has moved to playing before the timeout procedure begins checking for the "end of file" which is player stopped
                             If piDebuglevel > DebugLevel.dlEvents Then Log("DoCheckAnnouncementQueue is waiting in for player to start playing w/ multiple announcements and existing procedure", LogType.LOG_TYPE_INFO)
-                            AnnouncementReEntry = False
+                            announcementReEntryCounter = 0
                             Exit Sub
                         End If
                     Else
@@ -6385,13 +6387,13 @@ Public Class HSPI
                             If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Error in DoCheckAnnouncementQueue when calling PlayURI with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                             ' added 9/4/2019 because when failing, it will take forever to timeout
                             AnnouncementItem.State_ = AnnouncementState.asFilePlayed
-                            AnnouncementReEntry = False
+                            announcementReEntryCounter = 0
                             Exit Sub
                         End Try
                         'Wait(1) ' this is to make sure the playerstate has moved to playing before the timeout procedure begins checking for the "end of file" which is player stopped
                         MyAnnouncementIndex = MyAnnouncementIndex + 1
                         If piDebuglevel > DebugLevel.dlEvents Then Log("DoCheckAnnouncementQueue is waiting in for player to start playing w/ single announcement and existing procedure", LogType.LOG_TYPE_INFO)
-                        AnnouncementReEntry = False
+                        announcementReEntryCounter = 0
                         Exit Sub
                     End If
 
@@ -6419,10 +6421,10 @@ Public Class HSPI
                     ' copy the sourceAPI to next announcement entry because there is no linking done, so this info will otherwise be lost - added 7/16/2019 in v3.1.0.35
                     NextAnnouncementItem.SourceZoneMusicAPI = AnnouncementItem.SourceZoneMusicAPI
                     DeleteHeadOfAnnouncementQueue()
-                    AnnouncementInProgress = False
-                    AnnouncementReEntry = False
-                    MyAnnouncementCountdown = MyMaxAnnouncementTime ' reset the clock
                     If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue was done but found new announcement item", LogType.LOG_TYPE_INFO)
+                    AnnouncementInProgress = False
+                    MyAnnouncementCountdown = MyMaxAnnouncementTime ' reset the clock
+                    announcementReEntryCounter = 0
                     Exit Sub
                 End If
             Catch ex As Exception
@@ -6445,7 +6447,7 @@ Public Class HSPI
             If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DoCheckAnnouncementQueue is ending but more announcements are queued", LogType.LOG_TYPE_INFO)
         End If
         AnnouncementInProgress = False
-        AnnouncementReEntry = False
+        announcementReEntryCounter = 0
     End Sub
 
     Public Function GetLinkgroupSourceZone(ByVal LinkgroupName As String) As Object
