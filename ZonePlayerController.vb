@@ -852,7 +852,7 @@ Partial Public Class HSPI 'HSMusicAPI
 
         ConnectPlayer = False ' make sure we don't reconnect on timer-ex v.92. received a disconnect and findercallback all automously 
 
-        MyZoneModel = pDevice.ModelNumber  ' store the Model here ZP80/90/100/120 or WD100. The latter is needed for a multitude of checks
+        MyZoneModel = pDevice.ModelNumber  ' store the Model here ZP80/90/100/120 or WD100. The latter is needed for a multitude of checks.
 
         MyUPnPDevice = pDevice
         IPAddress = pDevice.IPAddress
