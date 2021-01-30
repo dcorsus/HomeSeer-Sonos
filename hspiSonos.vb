@@ -172,12 +172,16 @@ Public Class HSPI
     End Property
 
     Public Function Capabilities() As Integer Implements HomeSeerAPI.IPlugInAPI.Capabilities
-        If instance <> "" And (GetStringIniFile(UDN, DeviceInfoIndex.diSonosPlayerType.ToString, "").ToUpper <> "SUB") And GetBooleanIniFile("Options", "MediaAPIEnabled", False) Then
-            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Capabilities called for Instance = " & instance & " Capabilities are IO and Music", LogType.LOG_TYPE_INFO)
-            Return HomeSeerAPI.Enums.eCapabilities.CA_IO + HomeSeerAPI.Enums.eCapabilities.CA_Music
+        If instance = "" Then   ' rewritten 5/27/2020 to prevent error at startup when HS calls this function before any init
+            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Capabilities called for Instance = " & instance & " Capabilities are IO", LogType.LOG_TYPE_INFO)
+            Return HomeSeerAPI.Enums.eCapabilities.CA_IO
         Else
-            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Capabilities called for Instance = " & instance & " Capabilities are IO", LogType.LOG_TYPE_INFO)
-            Return HomeSeerAPI.Enums.eCapabilities.CA_IO '+ HomeSeerAPI.Enums.eCapabilities.CA_Music
+            If (GetStringIniFile(UDN, DeviceInfoIndex.diSonosPlayerType.ToString, "").ToUpper <> "SUB") And GetBooleanIniFile("Options", "MediaAPIEnabled", False) Then
+                'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Capabilities called for Instance = " & instance & " Capabilities are IO and Music", LogType.LOG_TYPE_INFO)
+                Return HomeSeerAPI.Enums.eCapabilities.CA_IO + HomeSeerAPI.Enums.eCapabilities.CA_Music
+            Else
+                Return HomeSeerAPI.Enums.eCapabilities.CA_IO
+            End If
         End If
     End Function
 
@@ -420,7 +424,8 @@ Public Class HSPI
                 If Not File.Exists(CurrentAppPath & "\Config\" & tIFACE_NAME & ".ini") Then
                     Try
                         'WriteBooleanIniFile("Options", "Debug", False)
-                        WriteBooleanIniFile("Options", "piDebuglevel", DebugLevel.dlErrorsOnly)
+                        WriteIntegerIniFile("Options", "piDebuglevel", DebugLevel.dlErrorsOnly) ' fixed on 9/27/2020 in v3.1.0.54
+                        WriteIntegerIniFile("Options", "UPnPDebugLevel", DebugLevel.dlErrorsOnly) ' fixed on 9/27/2020 in v3.1.0.54
                     Catch ex As Exception
                         Log("Error in InitIO. Unable to create \Config\" & tIFACE_NAME & ".ini file with Error = " & ex.Message, LogType.LOG_TYPE_ERROR)
                     End Try
@@ -2961,7 +2966,7 @@ Public Class HSPI
                         ZoneInfo(Index).ModelNbr = Device.ModelNumber
                         ZoneInfo(Index).pDevice = Device
                         Dim InArg(0) As Object
-                        Dim OutArg(2) As Object
+                        Dim OutArg(3) As Object ' updated 10/2/2020
                         Try
                             Device.Services.Item("urn:upnp-org:serviceId:DeviceProperties").InvokeAction("GetZoneAttributes", InArg, OutArg)
                             ZoneInfo(Index).ZoneName = OutArg(0) ' this is CurrentZoneName
@@ -3088,7 +3093,7 @@ Public Class HSPI
                     Exit Sub
                 End If
                 Dim InArg(0) As Object
-                Dim OutArg(2) As Object
+                Dim OutArg(3) As Object ' updated 10/2/2020
                 Dim NewZoneModel As String = NewUPnPDevice.ModelNumber
                 Try
                     NewUPnPDevice.Services.Item("urn:upnp-org:serviceId:DeviceProperties").InvokeAction("GetZoneAttributes", InArg, OutArg)
@@ -3133,6 +3138,10 @@ Public Class HSPI
                     ' create this new device
                     If NewZoneModel.ToUpper <> "SUB" Then
                         DeviceRef = CreatePlayerDevice(-1, NewZoneName, NewZoneModel, True)
+                        If DeviceRef = -1 Then
+                            If piDebuglevel > DebugLevel.dlOff Then Log("Error in AddNewDiscoveredDevice for Zonename = " & NewZoneName & ". HS returned -1 as a reference!!!", LogType.LOG_TYPE_ERROR)
+                            Exit Sub
+                        End If
                         ' save it in the ini file
                         WriteIntegerIniFile("UPnP UDN to HSRef", NewUDN, DeviceRef)
                         WriteStringIniFile("UPnP HSRef to UDN", DeviceRef, NewUDN)
@@ -3350,6 +3359,10 @@ Public Class HSPI
                         Dim PlayerUDN As String = Replace(ZoneUDN, "uuid:", "")
                         If ZoneModel.ToUpper <> "SUB" Then
                             DeviceRef = CreatePlayerDevice(-1, ZoneName, ZoneModel, True)
+                            If DeviceRef = -1 Then
+                                If piDebuglevel > DebugLevel.dlOff Then Log("Error in BuildHSSonosDevices for Zonename = " & ZoneName & ". HS returned -1 as a reference!!!", LogType.LOG_TYPE_ERROR)
+                                Exit Sub
+                            End If
                             ' save it in the ini file
                             WriteIntegerIniFile("UPnP UDN to HSRef", PlayerUDN, DeviceRef)
                             WriteStringIniFile("UPnP HSRef to UDN", DeviceRef, PlayerUDN)

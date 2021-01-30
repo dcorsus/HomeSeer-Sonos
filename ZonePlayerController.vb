@@ -797,7 +797,7 @@ Partial Public Class HSPI 'HSMusicAPI
             Try
                 If ZoneModel <> "WD100" Then
                     Dim InArg(0) As String
-                    Dim OutArg(2) As String
+                    Dim OutArg(3) As String ' updated 10/2/2020
                     Dim CurrentZoneName As String = ""
                     Try
                         MyUPnPDevice.Services.Item("urn:upnp-org:serviceId:DeviceProperties").InvokeAction("GetZoneAttributes", InArg, OutArg)
@@ -1107,7 +1107,7 @@ Partial Public Class HSPI 'HSMusicAPI
             Try
                 If ZoneModel <> "WD100" Then
                     Dim InArg(0) As String
-                    Dim OutArg(2) As String
+                    Dim OutArg(3) As String ' updated 10/2/2020
                     Dim CurrentZoneName As String = ""
                     Try
                         MyUPnPDevice.Services.Item("urn:upnp-org:serviceId:DeviceProperties").InvokeAction("GetZoneAttributes", InArg, OutArg)
@@ -5853,7 +5853,7 @@ updateHSDevices:
                 End Try
                 Try
                     'TrackInfo(4) = DecodeURI(xmlData.GetElementsByTagName("upnp:albumArtURI").Item(0).InnerText) removed in version 3.1.0.19 because failure to retrieve art
-                    TrackInfo(4) = BuildArtURL(TrackInfo(4))
+                    'TrackInfo(4) = BuildArtURL(TrackInfo(4)) ' dcor remove 5/2
                     If piDebuglevel > DebugLevel.dlErrorsOnly Then Log(ZoneName & " TrackInfo (albumArtURI) = " & TrackInfo(4).ToString, LogType.LOG_TYPE_INFO)
                 Catch ex As Exception
                 End Try
@@ -5898,6 +5898,7 @@ updateHSDevices:
             MyZoneSourceExt = "Radio"
             InternetRadio = True
             TrackInfo(4) = BuildArtURL("/getaa?s=1&u=" & TrackInfo(3))
+            TrackInfo(4) = GetAlbumArtPath(TrackInfo(4), False) ' dcor change 5/2/2020
             If piDebuglevel > DebugLevel.dlErrorsOnly Then Log(ZoneName & " TrackInfo () = Internet Radio " & TrackInfo(3).ToString, LogType.LOG_TYPE_INFO)
         ElseIf Mid(CurrentURI, 1, 17) = "x-sonosapi-stream" Then
             ' Internet Radio - MetaData present
@@ -5906,6 +5907,7 @@ updateHSDevices:
             MyZoneSourceExt = "Stream Radio"
             InternetRadio = True
             TrackInfo(4) = BuildArtURL("/getaa?s=1&u=" & TrackInfo(3))
+            TrackInfo(4) = GetAlbumArtPath(TrackInfo(4), False) ' dcor change 5/2/2020
             If piDebuglevel > DebugLevel.dlErrorsOnly Then Log(ZoneName & " TrackInfo (Internet Radio) = " & TrackInfo(0).ToString, LogType.LOG_TYPE_INFO)
             If piDebuglevel > DebugLevel.dlErrorsOnly Then Log(ZoneName & " TrackInfo (Internet Radio Art) = " & TrackInfo(3).ToString, LogType.LOG_TYPE_INFO)
             'If TrackInfo(0) <> "" And TrackInfo(0).ToString.Contains("iHeartRadio ") Then
@@ -5989,6 +5991,15 @@ updateHSDevices:
             MyZoneSourceExt = "TV"
             If piDebuglevel > DebugLevel.dlErrorsOnly Then Log(ZoneName & " TrackInfo () = TV " & TrackInfo(2).ToString, LogType.LOG_TYPE_INFO)
             ' ElseIF .... x-rincon-cpcontainer probably need to add this , this is Google Music podcasts
+        ElseIf Mid(CurrentURI, 1, 11) = "x-sonos-vli" Then  'Spotify    ' dcor new added 5/13/2020
+            ' example Spotify -> x-sonos-vli:RINCON_000E5859008A01400:2,spotify:42813bef25b76b8c8f4cfd829962d76a
+            TrackInfo(9) = "Virtual Line In"
+            ZoneSource = "VLI"
+            MyZoneSourceExt = "Virtual Line In"
+            InternetRadio = True
+            Dim service As String = RetrieveServiceNameFromVLI(CurrentURI)
+            If service <> "" Then MyZoneSourceExt = service
+            If piDebuglevel > DebugLevel.dlErrorsOnly Then Log(ZoneName & " TrackInfo (Internet Radio) = " & TrackInfo(0).ToString, LogType.LOG_TYPE_INFO)
         Else
             ' Probably some Internet streaming. Save URI and MetaData
             TrackInfo(9) = "Unknown"
@@ -6069,7 +6080,7 @@ updateHSDevices:
         Try
             If TrackInfo(4) = NoArtPath Or TrackInfo(4).trim = "" Then 'Else the info was already retrieved from the radio station
                 'TrackInfo(4) = DecodeURI(xmlData.GetElementsByTagName("upnp:albumArtURI").Item(0).InnerText) removed in v3.1.0.19 because of failure to retrieve art
-                TrackInfo(4) = BuildArtURL(TrackInfo(4))
+                'TrackInfo(4) = BuildArtURL(TrackInfo(4)) ' dcor remove 5/2
                 ' /getaa?m=1&u=http%3a%2f%2f79f84a69-0f02-4bd8-b6b0-f72f89ed86f3.x-udn%2fWMPNSSv4%2f33788882%2f1_ezBFQTc3NUU2LTUyNDctNEJDNS05QkVBLTYzMUJBMkZCMDIyRn0uMC5EOUQ4QTBDRQ.mp3%3falbumArt%3dtrue
                 If piDebuglevel > DebugLevel.dlErrorsOnly Then Log(ZoneName & " TrackInfo PositionInfo (albumArtURI) = " & TrackInfo(4).ToString, LogType.LOG_TYPE_INFO)
             End If
@@ -6077,7 +6088,7 @@ updateHSDevices:
         Catch ex As Exception
             'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log( "Error for " & ZoneName & " TrackInfo (albumArtURI) = not found with error " & ex.Message, LogType.LOG_TYPE_ERROR)
         End Try
-        TrackInfo(4) = GetAlbumArtPath(TrackInfo(4), False)
+
         Try
             TrackInfo(5) = PositionInfo(pmiRelTime)    'Track Position
             If piDebuglevel > DebugLevel.dlErrorsOnly Then Log(ZoneName & " TrackInfo PositionInfo (Track Position) = " & TrackInfo(5).ToString, LogType.LOG_TYPE_INFO)
@@ -6115,7 +6126,17 @@ updateHSDevices:
         GetCurrentTrackInfo = TrackInfo
     End Function
 
-
+    Private Function RetrieveServiceNameFromVLI(service As String) As String
+        ' x-sonos-vli:RINCON_000E5859008A01400:2,spotify:42813bef25b76b8c8f4cfd829962d76a
+        Dim splitParts As String() = service.Split(",")
+        If splitParts IsNot Nothing AndAlso splitParts.Count > 1 Then
+            Dim serviceParts As String() = splitParts(1).Split(":")
+            If serviceParts IsNot Nothing AndAlso serviceParts.Count > 0 Then
+                Return serviceParts(0)
+            End If
+        End If
+        Return ""
+    End Function
 
     Public Function SaveCurrentTrackInfo(ByVal LinkgroupName As String, ByVal SaveQueueFlag As Boolean, Optional DeleteSavedQueues As Boolean = False)
         SaveCurrentTrackInfo = ""
@@ -7103,7 +7124,7 @@ updateHSDevices:
         End If
         Try
             Dim InArg(0)
-            Dim OutArg(2)
+            Dim OutArg(3)   ' updated 10/2/2020
             DeviceProperties.InvokeAction("GetZoneAttributes", InArg, OutArg)
             GetZoneName = OutArg(0)
             'ZoneName = GetZoneName
