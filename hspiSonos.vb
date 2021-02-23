@@ -5534,7 +5534,7 @@ Public Class HSPI
             If ("Link-" & LinkgroupZone) = ButtonName Then
                 MyLinkState = True
                 'HandleLinking(LinkgroupZone, True)
-                HandleLinkingOn(LinkgroupZone)
+                HandleLinkingOn(LinkgroupZone, True)  ' changed on 2/2/2021 in v3.1.0.56 Without the parameter "true" the event doesn't ungroup the source player when linking
                 Exit Sub
             ElseIf ("Unlink-" & LinkgroupZone) = ButtonName Then
                 'HandleLinking(LinkgroupZone, False)

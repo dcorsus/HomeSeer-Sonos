@@ -1175,7 +1175,7 @@ Partial Public Class HSPI 'HSMusicAPI
     End Sub
 
     Private Sub ProcessZoneGroupState(inVar As String)
-        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("ProcessZoneGroupState called for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
+        If piDebuglevel > DebugLevel.dlEvents Then Log("ProcessZoneGroupState called for zoneplayer = " & ZoneName, LogType.LOG_TYPE_INFO)
 
         ' example
         '<ZoneGroups>
@@ -3133,7 +3133,7 @@ updateHSDevices:
         Try
             If (StateVarName = "ZoneName") Then
                 Properties(0) = Value.ToString
-                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("DevicePropertiesStateChange for ZonePlayer " & ZoneName & ": Var Name = " & StateVarName & " Value = " & Value.ToString, LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlEvents Then Log("DevicePropertiesStateChange for ZonePlayer " & ZoneName & ": Var Name = " & StateVarName & " Value = " & Value.ToString, LogType.LOG_TYPE_INFO)
                 ' this could indicate that the zone name has changed.
                 ' Two posibilities
                 ' a/ Name Changed by user
@@ -5183,8 +5183,8 @@ updateHSDevices:
                             PlayURI("x-rincon-queue:" & GetUDN() & "#0", "")
                             PlayURI = "OK"
                             Exit Function
-                        ElseIf UPnPClass.ToUpper = "#PLAYLISTVIEW" Then ' this case was added to support Apple Music Playlists which have class = object.container.playlistContainer.#PlaylistView
-                            ' added 5/22/2019 in v3.1.0.30
+                        ElseIf isPlaylistContainer(MetaDataDoc.GetElementsByTagName("upnp:class").Item(0).InnerText) Then ' this case was added to support Apple Music Playlists which have class = object.container.playlistContainer.#PlaylistView
+                            ' added 5/22/2019 in v3.1.0.30 and changed again on 2/22/2021 in v.3.1.57 to support youTube plalists which have object.container.playlistContainer.#CURATED_RADIO_STATIO
                             ClearQueue()
                             AddTrackToQueue(URI, MetaData, 0, True)
                             PlayURI("x-rincon-queue:" & GetUDN() & "#0", "")
@@ -10312,43 +10312,43 @@ updateHSDevices:
         NewStates = Newstate.Split(",")
         Try
             If OldStates(1) <> NewStates(1) Then ' UserRadioUpdateID -> called when the favorite radiostations have been changed
-                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for UserRadioUpdateID with Old = " & OldStates(1) & " and New = " & NewStates(1), LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlEvents Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for UserRadioUpdateID with Old = " & OldStates(1) & " and New = " & NewStates(1), LogType.LOG_TYPE_INFO)
                 WriteBooleanIniFile("SettingsReplicationState", "SonosSettingsHaveChanged", True)
                 PlayChangeNotifyCallback(player_status_change.ConfigChange, player_state_values.ReplicationState)
             End If
             If OldStates(3) <> NewStates(3) Then ' Unknown
-                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for Unkown 1 with Old = " & OldStates(3) & " and New = " & NewStates(3), LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlEvents Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for Unkown 1 with Old = " & OldStates(3) & " and New = " & NewStates(3), LogType.LOG_TYPE_INFO)
             End If
             If OldStates(5) <> NewStates(5) Then ' SavedQueuesUpdateID -> this is called when the saved queues change
-                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for SavedQueuesUpdateID with Old = " & OldStates(5) & " and New = " & NewStates(5), LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlEvents Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for SavedQueuesUpdateID with Old = " & OldStates(5) & " and New = " & NewStates(5), LogType.LOG_TYPE_INFO)
                 If Not AnnouncementInProgress Then
                     WriteBooleanIniFile("SettingsReplicationState", "SonosSettingsHaveChanged", True)
                     PlayChangeNotifyCallback(player_status_change.ConfigChange, player_state_values.ReplicationState)
                 End If
             End If
             If OldStates(7) <> NewStates(7) Then ' ShareListUpdateID -> this is when the music Index is reindexed
-                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for ShareListUpdateID with Old = " & OldStates(7) & " and New = " & NewStates(7), LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlEvents Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for ShareListUpdateID with Old = " & OldStates(7) & " and New = " & NewStates(7), LogType.LOG_TYPE_INFO)
                 WriteBooleanIniFile("SettingsReplicationState", "SonosSettingsHaveChanged", True)
                 PlayChangeNotifyCallback(player_status_change.ConfigChange, player_state_values.ReplicationState)
             End If
             If OldStates(9) <> NewStates(9) Then ' Unknown -> this changed when I deleted a music service
-                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for Unkown 4 with Old = " & OldStates(9) & " and New = " & NewStates(9), LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlEvents Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for Unkown 4 with Old = " & OldStates(9) & " and New = " & NewStates(9), LogType.LOG_TYPE_INFO)
                 PlayChangeNotifyCallback(player_status_change.ConfigChange, player_state_values.ReplicationState)
             End If
             If OldStates(11) <> NewStates(11) Then ' Unkown -> this changed when I deleted a music service, together with UNkown 4
-                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for Alarms with Old = " & OldStates(11) & " and New = " & NewStates(11), LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlEvents Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for Alarms with Old = " & OldStates(11) & " and New = " & NewStates(11), LogType.LOG_TYPE_INFO)
                 PlayChangeNotifyCallback(player_status_change.ConfigChange, player_state_values.ReplicationState)
             End If
             If OldStates(13) <> NewStates(13) Then ' ServiceListVersion?
-                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for ServiceListVersion? with Old = " & OldStates(13) & " and New = " & NewStates(13), LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlEvents Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for ServiceListVersion? with Old = " & OldStates(13) & " and New = " & NewStates(13), LogType.LOG_TYPE_INFO)
                 PlayChangeNotifyCallback(player_status_change.ConfigChange, player_state_values.ReplicationState)
             End If
             If OldStates(15) <> NewStates(15) Then ' RecentlyPlayedUpdateID
-                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for RecentlyPlayedUpdateID with Old = " & OldStates(15) & " and New = " & NewStates(15), LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlEvents Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for RecentlyPlayedUpdateID with Old = " & OldStates(15) & " and New = " & NewStates(15), LogType.LOG_TYPE_INFO)
                 PlayChangeNotifyCallback(player_status_change.ConfigChange, player_state_values.ReplicationState)
             End If
             If OldStates(17) <> NewStates(17) Then ' Unkown
-                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for Unknown 8 with Old = " & OldStates(17) & " and New = " & NewStates(17), LogType.LOG_TYPE_INFO)
+                If piDebuglevel > DebugLevel.dlEvents Then Log("CompareReplicationChanges for zoneplayer " & ZoneName & " detected change for Unknown 8 with Old = " & OldStates(17) & " and New = " & NewStates(17), LogType.LOG_TYPE_INFO)
                 PlayChangeNotifyCallback(player_status_change.ConfigChange, player_state_values.ReplicationState)
             End If
         Catch ex As Exception
@@ -11113,6 +11113,33 @@ updateHSDevices:
         Catch ex As Exception
         End Try
     End Function
+
+    Private Function isContainer(ClassString As String) As Boolean
+        If ClassString = "" Then Return False
+        Dim ClassItems As String()
+        Try
+            ClassItems = ClassString.Split(".")
+            If ClassItems.Length > 1 AndAlso ClassItems(1) = "container" Then
+                Return True
+            End If
+        Catch ex As Exception
+        End Try
+        Return False
+    End Function
+
+    Private Function isPlaylistContainer(ClassString As String) As Boolean
+        If ClassString = "" Then Return False
+        Dim ClassItems As String()
+        Try
+            ClassItems = ClassString.Split(".")
+            If ClassItems.Length > 2 AndAlso ClassItems(2) = "playlistContainer" Then
+                Return True
+            End If
+        Catch ex As Exception
+        End Try
+        Return False
+    End Function
+
 
 End Class
 
