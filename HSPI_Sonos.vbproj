@@ -38,7 +38,7 @@
     <DebugType>Full</DebugType>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <OutputPath>..\..\..\..\..\..\Program Files %28x86%29\HomeSeer HS3\</OutputPath>
+    <OutputPath>..\..\..\..\..\..\Program Files %28x86%29\HomeSeer HS4\</OutputPath>
     <DocumentationFile>HSPI_Sonos.xml</DocumentationFile>
     <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
     <WarningsAsErrors>

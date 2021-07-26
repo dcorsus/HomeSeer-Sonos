@@ -1408,7 +1408,7 @@ Public Class HSPI
                     stb.Append(InputBox.Build)
                     Return stb.ToString
                 Case "Play URL"
-                    Dim InputEditBox As New clsJQuery.jqTextBox("InputEditAction" & sUnique, "text", "", ActionsPageName, 1000, True)
+                    Dim InputEditBox As New clsJQuery.jqTextBox("InputEditAction" & sUnique, "text", InputString, ActionsPageName, 250, True)   ' fixed in v58 on 6/13/2021 inputstring was missing causing issues in HS4
                     stb.Append("Enter URL:")
                     stb.Append(InputEditBox.Build)
                     Return stb.ToString
