@@ -6126,24 +6126,31 @@ Public Class HSPI
                         Else
                             ' go check the PositionInfo, if <> 0 then the announcement has started, let's also check the playerstate!
                             AnnouncementLink.SourceZoneMusicAPI.CheckAnnouncementHasStarted() ' added in v109 
-                            If Not AnnouncementLink.SourceZoneMusicAPI.HasAnnouncementStarted Then
-                                If MyAnnouncementCountdown <= MyMaxAnnouncementTime - 5 And ResendPlay = 0 Then
-                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DoCheckAnnouncementQueue. Announcement hasn't started after " & (MyMaxAnnouncementTime - MyAnnouncementCountdown + 1).ToString & " seconds", LogType.LOG_TYPE_WARNING)
-                                    'AnnouncementLink.SourceZoneMusicAPI.SetTransportState("Play", True) ' was removed/added in v0.91 removed in v.93
-                                    'AnnouncementLink.SourceZoneMusicAPI.SubmitDiagnostics() ' was removed/added for test purposes in v0.91
-                                    ResendPlay = 1
-                                ElseIf MyAnnouncementCountdown <= MyMaxAnnouncementTime - 30 And ResendPlay = 1 Then
-                                    If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DoCheckAnnouncementQueue. Announcement hasn't started after " & (MyMaxAnnouncementTime - MyAnnouncementCountdown + 1).ToString & " seconds", LogType.LOG_TYPE_WARNING)
-                                    'AnnouncementLink.SourceZoneMusicAPI.SetTransportState("Play", True) ' was removed/added in v0.91 removed in v.93
-                                    'AnnouncementLink.SourceZoneMusicAPI.SubmitDiagnostics() ' was removed/added for test purposes in v0.91
-                                    ResendPlay = 2
-                                    ' the announcement has started and is running.
-                                    ' Having trouble with repeat_all showing up, in v.18 I'll add a check and force no-repeat in case it is wrong
-                                    If AnnouncementLink.SourceZoneMusicAPI.SonosRepeat <> Repeat_modes.repeat_off Then
-                                        If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DoCheckAnnouncementQueue. Sourceplayer mysteriously jumped to repeat state", LogType.LOG_TYPE_WARNING)
-                                        AnnouncementLink.SourceZoneMusicAPI.PlayModeNormal()
-                                    End If
-                                End If
+                            ' all removed on 8/6/2021 in v.59 check each second on whether repeat state has changed
+                            'If Not AnnouncementLink.SourceZoneMusicAPI.HasAnnouncementStarted Then
+                            'If MyAnnouncementCountdown <= MyMaxAnnouncementTime - 5 And ResendPlay = 0 Then
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DoCheckAnnouncementQueue. Announcement hasn't started after " & (MyMaxAnnouncementTime - MyAnnouncementCountdown + 1).ToString & " seconds", LogType.LOG_TYPE_WARNING)
+                            'AnnouncementLink.SourceZoneMusicAPI.SetTransportState("Play", True) ' was removed/added in v0.91 removed in v.93
+                            'AnnouncementLink.SourceZoneMusicAPI.SubmitDiagnostics() ' was removed/added for test purposes in v0.91
+                            'ResendPlay = 1
+                            'ElseIf MyAnnouncementCountdown <= MyMaxAnnouncementTime - 30 And ResendPlay = 1 Then
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DoCheckAnnouncementQueue. Announcement hasn't started after " & (MyMaxAnnouncementTime - MyAnnouncementCountdown + 1).ToString & " seconds", LogType.LOG_TYPE_WARNING)
+                            'AnnouncementLink.SourceZoneMusicAPI.SetTransportState("Play", True) ' was removed/added in v0.91 removed in v.93
+                            'AnnouncementLink.SourceZoneMusicAPI.SubmitDiagnostics() ' was removed/added for test purposes in v0.91
+                            'ResendPlay = 2
+                            ' the announcement has started and is running.
+                            ' Having trouble with repeat_all showing up, in v.18 I'll add a check and force no-repeat in case it is wrong
+                            ' code removed here in v59
+                            'If AnnouncementLink.SourceZoneMusicAPI.SonosRepeat <> Repeat_modes.repeat_off Then
+                            'If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DoCheckAnnouncementQueue. Sourceplayer mysteriously jumped to repeat state", LogType.LOG_TYPE_WARNING)
+                            'AnnouncementLink.SourceZoneMusicAPI.PlayModeNormal()
+                            'End If
+                            'End If
+                            'End If
+                            ' code moved here in v.59
+                            If AnnouncementLink.SourceZoneMusicAPI.SonosRepeat <> Repeat_modes.repeat_off Then
+                                If piDebuglevel > DebugLevel.dlErrorsOnly Then Log("Warning in DoCheckAnnouncementQueue. Sourceplayer mysteriously jumped to repeat state", LogType.LOG_TYPE_WARNING)
+                                AnnouncementLink.SourceZoneMusicAPI.PlayModeNormal()
                             End If
                             announcementReEntryCounter = 0
                             Exit Sub
