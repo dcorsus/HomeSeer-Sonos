@@ -4126,10 +4126,10 @@ Public Class HSPI
         End Try
         Try
             If GetStringIniFile("Options", "MaxAnnouncementTime", "") = "" Then
-                WriteIntegerIniFile("Options", "MaxAnnouncementTime", MyMaxAnnouncementTime)
+                WriteIntegerIniFile("Options", "MaxAnnouncementTime", myMaxAnnouncementTime)
             Else
-                MyMaxAnnouncementTime = GetIntegerIniFile("Options", "MaxAnnouncementTime", 100)
-                MyAnnouncementCountdown = MyMaxAnnouncementTime
+                myMaxAnnouncementTime = GetIntegerIniFile("Options", "MaxAnnouncementTime", 100)
+                MyAnnouncementCountdown = myMaxAnnouncementTime
             End If
         Catch ex As Exception
             Log("Error in ReadIniFile reading Maximum Announcement Time with error =  " & ex.Message, LogType.LOG_TYPE_ERROR)
